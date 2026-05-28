@@ -1344,14 +1344,36 @@
                 adminMode = adminMode === 'gestion' ? 'creacion' : 'gestion';
                 const icon = document.getElementById('admin-mode-icon');
                 const label = document.getElementById('admin-mode-label');
+                
+                const btnFindes = document.getElementById('admin-findes-btn');
+                const btnHorarios = document.getElementById('admin-horarios-btn');
+                const btnBloquear = document.getElementById('admin-bloquear-periodo-btn');
+                const btnEdit = document.getElementById('admin-edit-btn');
+
                 if (adminMode === 'creacion') {
                     icon.textContent = '➕';
                     label.textContent = 'Modo Creación de Reservas';
                     adminModeToggleBtn.className = 'w-full bg-blue-100 border border-blue-200 text-blue-700 font-bold py-3 px-6 rounded-xl text-center text-sm transition-all hover:bg-blue-200 cursor-pointer flex items-center justify-center gap-2';
+                    
+                    if (btnFindes) btnFindes.classList.add('hidden');
+                    if (btnHorarios) btnHorarios.classList.add('hidden');
+                    if (btnBloquear) btnBloquear.classList.add('hidden');
+                    if (btnEdit) {
+                        btnEdit.classList.add('hidden');
+                        if (isAdminEditMode) {
+                            isAdminEditMode = false;
+                            document.body.classList.remove('edit-mode-active');
+                        }
+                    }
                 } else {
                     icon.textContent = '🛠️';
                     label.textContent = 'Modo Gestión de Horarios';
                     adminModeToggleBtn.className = 'w-full bg-orange-100 border border-orange-200 text-orange-700 font-bold py-3 px-6 rounded-xl text-center text-sm transition-all hover:bg-orange-200 cursor-pointer flex items-center justify-center gap-2';
+                    
+                    if (btnFindes) btnFindes.classList.remove('hidden');
+                    if (btnHorarios) btnHorarios.classList.remove('hidden');
+                    if (btnBloquear) btnBloquear.classList.remove('hidden');
+                    if (btnEdit) btnEdit.classList.remove('hidden');
                 }
                 renderSlots();
             };

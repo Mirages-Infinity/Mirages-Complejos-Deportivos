@@ -53,12 +53,12 @@
         <div
             style="max-width:672px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;">
             <div style="width:80px;">{% block header_left %}&nbsp;{% endblock %}</div>
-            <div style="display:flex;align-items:center;gap:6px;">
+            <a href="{% url 'inicio' %}" style="display:flex;align-items:center;gap:6px;text-decoration:none;">
                 <span style="font-size:1.5rem;">🏟️</span>
                 <span style="font-size:1.1rem;font-weight:700;color:#374151;">
                     Complejos <span style="color:#22c55e;">Deportivos</span>
                 </span>
-            </div>
+            </a>
             <div style="width:80px;display:flex;justify-content:flex-end;align-items:center;gap:4px;">
                 {% block header_right %}
                 {% if user.is_authenticated %}
