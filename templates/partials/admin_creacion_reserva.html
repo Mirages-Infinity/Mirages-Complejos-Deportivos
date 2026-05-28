@@ -1,0 +1,146 @@
+{# Partial: modal + JS para crear reservas como admin. Requiere variable cancha_id. #}
+<div id="modal-crear-reserva" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true">
+  <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="cerrarModalCrearReserva()"></div>
+  <div class="relative bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col">
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+            <line x1="12" y1="14" x2="12" y2="19"></line>
+            <line x1="9.5" y1="16.5" x2="14.5" y2="16.5"></line>
+          </svg>
+        </span>
+        <div>
+          <p class="font-black text-gray-900 text-base leading-tight">Crear reserva</p>
+          <p class="text-xs text-gray-400 font-medium mt-0.5" id="crv-fecha-hora">--</p>
+        </div>
+      </div>
+      <button onclick="cerrarModalCrearReserva()" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <div>
+        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Nombre del solicitante</label>
+        <input type="text" id="crv-nombre" placeholder="Ej: Juan Pérez"
+          class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-blue-400 transition-all">
+      </div>
+      <div>
+        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Email (opcional)</label>
+        <input type="email" id="crv-email" placeholder="ejemplo@correo.cl"
+          class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-blue-400 transition-all">
+      </div>
+      <div>
+        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Estado del pago</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" id="crv-pago-pagado" onclick="setPagoCreacion(true)" class="py-2.5 rounded-2xl border-2 font-black text-xs uppercase tracking-wider transition-all">Pagado</button>
+          <button type="button" id="crv-pago-nopagado" onclick="setPagoCreacion(false)" class="py-2.5 rounded-2xl border-2 font-black text-xs uppercase tracking-wider transition-all">No pagado</button>
+        </div>
+        <p class="text-[10px] text-gray-500 mt-2 leading-relaxed" id="crv-pago-help">Si está pagado se aprueba al instante. Si no, queda pendiente como una reserva normal.</p>
+      </div>
+      <div id="crv-error" class="hidden text-xs text-red-600 font-semibold bg-red-50 rounded-xl px-3 py-2 leading-relaxed"></div>
+    </div>
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
+      <button type="button" onclick="cerrarModalCrearReserva()"
+        class="flex-1 py-3 rounded-2xl border border-gray-200 text-gray-500 font-black text-[11px] uppercase tracking-widest hover:bg-gray-100 transition-all">Cancelar</button>
+      <button type="button" onclick="confirmarCrearReserva()"
+        class="flex-1 py-3 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-sm shadow-blue-200">Crear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const CANCHA_ID = {{ cancha_id }};
+    let pagoCreacionState = true;
+    let crvFechaActual = null;
+    let crvHoraActual = null;
+
+    function getCookieCRV(name) {
+      let v = null;
+      document.cookie.split(';').forEach(c => {
+        c = c.trim();
+        if (c.startsWith(name + '=')) v = decodeURIComponent(c.slice(name.length + 1));
+      });
+      return v;
+    }
+
+    window.setPagoCreacion = function(pagado) {
+      pagoCreacionState = pagado;
+      const btnPagado = document.getElementById('crv-pago-pagado');
+      const btnNo = document.getElementById('crv-pago-nopagado');
+      const help = document.getElementById('crv-pago-help');
+      const baseInactivo = 'py-2.5 rounded-2xl border-2 border-gray-200 bg-white text-gray-500 font-black text-xs uppercase tracking-wider hover:border-gray-300 transition-all';
+      if (pagado) {
+        btnPagado.className = 'py-2.5 rounded-2xl border-2 border-green-500 bg-green-50 text-green-700 font-black text-xs uppercase tracking-wider transition-all';
+        btnNo.className = baseInactivo;
+        help.textContent = 'La reserva quedará APROBADA al instante (registrado como pagado en tarjeta).';
+      } else {
+        btnNo.className = 'py-2.5 rounded-2xl border-2 border-yellow-500 bg-yellow-50 text-yellow-700 font-black text-xs uppercase tracking-wider transition-all';
+        btnPagado.className = baseInactivo;
+        help.textContent = 'La reserva quedará PENDIENTE y seguirá el flujo normal de aprobación.';
+      }
+    };
+
+    window.abrirModalCrearReserva = function(fechaStr, horaStr, fechaDisplay) {
+      crvFechaActual = fechaStr;
+      crvHoraActual = horaStr;
+      document.getElementById('crv-fecha-hora').textContent = `${fechaDisplay} • ${horaStr}`;
+      document.getElementById('crv-nombre').value = '';
+      document.getElementById('crv-email').value = '';
+      document.getElementById('crv-error').classList.add('hidden');
+      window.setPagoCreacion(true);
+      const m = document.getElementById('modal-crear-reserva');
+      m.classList.remove('hidden'); m.classList.add('flex');
+      setTimeout(() => document.getElementById('crv-nombre').focus(), 50);
+    };
+
+    window.cerrarModalCrearReserva = function() {
+      const m = document.getElementById('modal-crear-reserva');
+      m.classList.add('hidden'); m.classList.remove('flex');
+    };
+
+    window.confirmarCrearReserva = async function() {
+      const nombre = document.getElementById('crv-nombre').value.trim();
+      const email = document.getElementById('crv-email').value.trim();
+      const err = document.getElementById('crv-error');
+      err.classList.add('hidden');
+      if (!nombre) { err.textContent = 'Debes ingresar el nombre del solicitante.'; err.classList.remove('hidden'); return; }
+
+      // Flujo "No pagado": delegar al voucher + modal de pago normal.
+      if (!pagoCreacionState) {
+        if (typeof window.adminTriggerVoucher !== 'function') {
+          err.textContent = 'Flujo de pago no disponible en esta página.'; err.classList.remove('hidden'); return;
+        }
+        window.cerrarModalCrearReserva();
+        window.adminTriggerVoucher(crvFechaActual, crvHoraActual, nombre, email);
+        return;
+      }
+
+      // Flujo "Pagado": creación directa (APROBADA al instante).
+      try {
+        const res = await fetch("{% url 'crear_reserva_admin' %}", {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookieCRV('csrftoken') },
+          body: JSON.stringify({
+            cancha_id: CANCHA_ID,
+            fecha: crvFechaActual,
+            hora: crvHoraActual,
+            solicitante_nombre: nombre,
+            solicitante_email: email,
+            pagado: true
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'success') { window.cerrarModalCrearReserva(); location.reload(); }
+        else { err.textContent = data.message || 'No se pudo crear la reserva.'; err.classList.remove('hidden'); }
+      } catch (e) { err.textContent = 'Error de conexión.'; err.classList.remove('hidden'); }
+    };
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') window.cerrarModalCrearReserva(); });
+  })();
+</script>

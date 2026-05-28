@@ -43,6 +43,9 @@ urlpatterns = [
     path('canchas/check-horario/', views.check_bloqueo_horario, name='check_bloqueo_horario'),
     path('canchas/check-reservada/', views.check_hora_reservada, name='check_hora_reservada'),
     path('config-cancha/toggle-status/', views.toggle_cancha_status, name='toggle_cancha_status'),
+    path('config-cancha/actualizar-horario/', views.actualizar_horario_cancha, name='actualizar_horario_cancha'),
+    path('config-cancha/toggle-findes/', views.toggle_findes_semana_cancha, name='toggle_findes_semana_cancha'),
+    path('canchas/admin/crear-reserva/', views.crear_reserva_admin, name='crear_reserva_admin'),
     path('reserva-tenis/finalizar/', views.finalizar_reserva_tenis, name='finalizar_reserva_tenis'),
 
     path('reserva-gimnasio/', views.reserva_gimnasio, name='reserva_gimnasio'),

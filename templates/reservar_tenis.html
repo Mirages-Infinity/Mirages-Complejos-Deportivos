@@ -253,6 +253,25 @@
                         </div>
                         <div class="flex items-center gap-1.5 min-w-20 justify-end">
                             {% if user.is_superuser %}
+                            <button id="admin-findes-btn" onclick="toggleFindes()"
+                                title="{% if '5' in config_tenis.dias_semana and '6' in config_tenis.dias_semana %}Deshabilitar fines de semana (Sáb-Dom activos){% else %}Habilitar fines de semana (Sáb-Dom){% endif %}"
+                                class="relative p-2 bg-white border {% if '5' in config_tenis.dias_semana and '6' in config_tenis.dias_semana %}border-purple-400 text-purple-600 hover:border-purple-600{% else %}border-gray-200 text-gray-500 hover:border-purple-500 hover:text-purple-600{% endif %} rounded-lg shadow-sm transition-all group mr-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                <span class="absolute -top-1 -right-1 text-[8px] font-black {% if '5' in config_tenis.dias_semana and '6' in config_tenis.dias_semana %}bg-purple-500{% else %}bg-gray-400{% endif %} text-white rounded-full px-1 leading-3 py-0.5">SD</span>
+                            </button>
+                            <button id="admin-horarios-btn" onclick="abrirModalHorarios()" title="Gestionar horarios e intervalos"
+                                class="p-2 bg-white border border-gray-200 hover:border-green-500 hover:text-green-600 rounded-lg shadow-sm transition-all group mr-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="text-gray-500">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </button>
                             <button id="admin-bloquear-periodo-btn" onclick="abrirModalBloqueoPeriodo()" title="Bloquear período de fechas"
                                 class="p-2 bg-white border border-gray-200 hover:border-orange-500 hover:text-orange-600 rounded-lg shadow-sm transition-all group mr-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
@@ -312,10 +331,11 @@
                     <!-- Botón de Confirmación Compacto (Oculto para Admins) -->
                     <div class="mt-4" id="confirm-container">
                         {% if user.is_superuser %}
-                        <div id="admin-info-bar"
-                            class="w-full bg-blue-100 border border-blue-200 text-blue-700 font-bold py-3 px-6 rounded-xl text-center text-sm">
-                            🛠️ Modo de Gestión de Horarios
-                        </div>
+                        <button id="admin-mode-toggle" type="button"
+                            class="w-full bg-orange-100 border border-orange-200 text-orange-700 font-bold py-3 px-6 rounded-xl text-center text-sm transition-all hover:bg-orange-200 cursor-pointer flex items-center justify-center gap-2">
+                            <span id="admin-mode-icon">🛠️</span>
+                            <span id="admin-mode-label">Modo Gestión de Horarios</span>
+                        </button>
                         {% else %}
                         <button id="confirm-booking"
                             class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md shadow-green-100 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:bg-gray-200 disabled:shadow-none disabled:cursor-not-allowed text-sm sm:text-base"
@@ -385,6 +405,7 @@
                             <p class="text-gray-400 text-xs opacity-90">Verifica tus datos</p>
                         </div>
                     </div>
+                    <span id="v-admin-badge" class="hidden absolute top-3 right-3 bg-orange-400 text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full shadow-lg">Creada por admin</span>
                 </div>
 
                 <div class="p-5 sm:p-6 space-y-5">
@@ -414,26 +435,26 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
-                        <div>
+                        <div id="v-nombre-row">
                             <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Nombre
                                 Completo</p>
-                            <p class="font-bold text-gray-800 truncate"
+                            <p id="v-nombre" class="font-bold text-gray-800 truncate"
                                 title="{{ request.user.get_full_name|default:request.user.username }}">
                                 {{ request.user.first_name }} {{ request.user.last_name|default:request.user.username }}
                             </p>
                         </div>
-                        <div>
+                        <div id="v-rut-row">
                             <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">RUT</p>
                             <p class="font-bold text-gray-800">{{ user_profile.rut|default:'No registrado' }}</p>
                         </div>
-                        <div>
+                        <div id="v-email-row">
                             <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Correo
                                 Electrónico</p>
-                            <p class="text-sm font-medium text-gray-600 truncate" title="{{ request.user.email }}">
+                            <p id="v-email" class="text-sm font-medium text-gray-600 truncate" title="{{ request.user.email }}">
                                 {{ request.user.email }}
                             </p>
                         </div>
-                        <div>
+                        <div id="v-tel-row">
                             <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Teléfono</p>
                             <p class="font-bold text-gray-800">{{ user_profile.telefono|default:'No registrado' }}</p>
                         </div>
@@ -728,6 +749,7 @@
         let currentReservadas = [];
         let currentBloqueadoPeriodo = false;
         let isAdminEditMode = false;
+        let adminMode = 'gestion'; // 'gestion' | 'creacion'
         let transferProofFile = null;
 
         const displayDate = document.getElementById('display-date');
@@ -890,6 +912,14 @@
                 slot.onclick = () => {
                     if (!voucherContainer.classList.contains('hidden')) return;
                     if (currentBloqueadoPeriodo) return;
+                    if (adminMode === 'creacion') {
+                        if (isPast || isBlocked || isReserved) return;
+                        const yyyy2 = selectedDate.getFullYear();
+                        const mm2 = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+                        const dd2 = selectedDate.getDate().toString().padStart(2, '0');
+                        window.abrirModalCrearReserva(`${yyyy2}-${mm2}-${dd2}`, timeStr, formatDate(selectedDate));
+                        return;
+                    }
                     if (isAdminEditMode) {
                         if (isPast) return;
                         toggleSlotBlock(timeStr, slot);
@@ -1048,6 +1078,45 @@
             };
         }
 
+        // Helper para que el modal admin (modo "No pagado") dispare el voucher
+        window.adminCreacionInfo = null;
+        window.adminTriggerVoucher = function(fechaStr, horaStr, nombre, email) {
+            window.adminCreacionInfo = { nombre: nombre, email: email || '' };
+            selectedSlot = horaStr;
+            const [y, mo, d] = fechaStr.split('-').map(Number);
+            selectedDate = new Date(y, mo - 1, d);
+            vDate.textContent = formatDate(selectedDate);
+            vTime.textContent = horaStr;
+            // Snapshot de valores originales para poder restaurar al cancelar
+            const vNombre = document.getElementById('v-nombre');
+            const vEmail = document.getElementById('v-email');
+            if (!window._vOriginal) {
+                window._vOriginal = {
+                    nombre: vNombre.textContent.trim(),
+                    nombreTitle: vNombre.getAttribute('title') || '',
+                    email: vEmail.textContent.trim(),
+                    emailTitle: vEmail.getAttribute('title') || '',
+                };
+            }
+            vNombre.textContent = nombre;
+            vNombre.setAttribute('title', nombre);
+            vEmail.textContent = email || 'No registrado';
+            vEmail.setAttribute('title', email || '');
+            document.getElementById('v-rut-row').classList.add('hidden');
+            document.getElementById('v-tel-row').classList.add('hidden');
+            document.getElementById('v-admin-badge').classList.remove('hidden');
+            photoContainer.classList.add('opacity-0', 'translate-x-4');
+            setTimeout(() => {
+                photoContainer.classList.add('hidden');
+                voucherContainer.classList.remove('hidden');
+                selectorContainer.classList.remove('mx-auto');
+                setTimeout(() => {
+                    voucherContainer.classList.remove('opacity-0', 'translate-x-4');
+                    voucherContainer.classList.add('opacity-100', 'translate-x-0');
+                }, 50);
+            }, 300);
+        };
+
         // Abrir Modal desde el voucher
         const openModalBtn = document.getElementById('open-payment-modal');
         if (openModalBtn) {
@@ -1197,6 +1266,10 @@
                     if (selectedPaymentMethod === 'cupon' && cuponValidado && cuponCodigoInput) {
                         formData.append('cupon_codigo', cuponCodigoInput.value.trim().toUpperCase());
                     }
+                    if (window.adminCreacionInfo) {
+                        formData.append('admin_solicitante_nombre', window.adminCreacionInfo.nombre);
+                        formData.append('admin_solicitante_email', window.adminCreacionInfo.email || '');
+                    }
 
                     const response = await fetch('/reserva-tenis/finalizar/', {
                         method: 'POST',
@@ -1209,8 +1282,10 @@
                     const result = await response.json();
                     if (result.status === 'success') {
                         // Pequeña pausa para que se vea el procesamiento
+                        const wasAdmin = !!window.adminCreacionInfo;
+                        window.adminCreacionInfo = null;
                         setTimeout(() => {
-                            window.location.href = "{% url 'mis_reservas' %}";
+                            window.location.href = wasAdmin ? location.pathname : "{% url 'mis_reservas' %}";
                         }, 500);
                     } else {
                         alert(result.message || 'Error al procesar la reserva');
@@ -1228,6 +1303,19 @@
 
         if (cancelVoucherBtn) {
             cancelVoucherBtn.onclick = () => {
+                window.adminCreacionInfo = null;
+                // Restaurar voucher a estado normal
+                if (window._vOriginal) {
+                    const vNombre = document.getElementById('v-nombre');
+                    const vEmail = document.getElementById('v-email');
+                    vNombre.textContent = window._vOriginal.nombre;
+                    vNombre.setAttribute('title', window._vOriginal.nombreTitle);
+                    vEmail.textContent = window._vOriginal.email;
+                    vEmail.setAttribute('title', window._vOriginal.emailTitle);
+                    document.getElementById('v-rut-row').classList.remove('hidden');
+                    document.getElementById('v-tel-row').classList.remove('hidden');
+                    document.getElementById('v-admin-badge').classList.add('hidden');
+                }
                 voucherContainer.classList.add('opacity-0', 'translate-x-4');
 
                 setTimeout(() => {
@@ -1250,6 +1338,25 @@
             adminEditBtn.onclick = () => {
                 isAdminEditMode = !isAdminEditMode;
                 document.body.classList.toggle('edit-mode-active', isAdminEditMode);
+                renderSlots();
+            };
+        }
+
+        const adminModeToggleBtn = document.getElementById('admin-mode-toggle');
+        if (adminModeToggleBtn) {
+            adminModeToggleBtn.onclick = () => {
+                adminMode = adminMode === 'gestion' ? 'creacion' : 'gestion';
+                const icon = document.getElementById('admin-mode-icon');
+                const label = document.getElementById('admin-mode-label');
+                if (adminMode === 'creacion') {
+                    icon.textContent = '➕';
+                    label.textContent = 'Modo Creación de Reservas';
+                    adminModeToggleBtn.className = 'w-full bg-blue-100 border border-blue-200 text-blue-700 font-bold py-3 px-6 rounded-xl text-center text-sm transition-all hover:bg-blue-200 cursor-pointer flex items-center justify-center gap-2';
+                } else {
+                    icon.textContent = '🛠️';
+                    label.textContent = 'Modo Gestión de Horarios';
+                    adminModeToggleBtn.className = 'w-full bg-orange-100 border border-orange-200 text-orange-700 font-bold py-3 px-6 rounded-xl text-center text-sm transition-all hover:bg-orange-200 cursor-pointer flex items-center justify-center gap-2';
+                }
                 renderSlots();
             };
         }
@@ -1468,5 +1575,117 @@
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModalBloqueoPeriodo(); });
 </script>
+
+<!-- Modal Horarios e Intervalos -->
+<div id="modal-horarios" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true">
+  <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="cerrarModalHorarios()"></div>
+  <div class="relative bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col">
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-2xl bg-green-50 flex items-center justify-center shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </span>
+        <div>
+          <p class="font-black text-gray-900 text-base leading-tight">Horarios e intervalos</p>
+          <p class="text-xs text-gray-400 font-medium mt-0.5">{{ config_tenis.nombre }}</p>
+        </div>
+      </div>
+      <button onclick="cerrarModalHorarios()" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <p class="text-sm text-gray-500 leading-relaxed">Define el rango de horas disponible para reservar y la duración de cada bloque.</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Hora inicio</label>
+          <input type="time" id="hr-hora-inicio" value="{{ config_tenis.hora_inicio|time:'H:i' }}"
+            class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-green-400 transition-all">
+        </div>
+        <div>
+          <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Hora fin</label>
+          <input type="time" id="hr-hora-fin" value="{{ config_tenis.hora_fin|time:'H:i' }}"
+            class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-green-400 transition-all">
+        </div>
+      </div>
+      <div>
+        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Duración del bloque</label>
+        <select id="hr-intervalo" class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-green-400 transition-all">
+          <option value="30">30 minutos</option>
+          <option value="45">45 minutos</option>
+          <option value="60">1 hora</option>
+          <option value="90">1 hora 30 minutos</option>
+          <option value="120">2 horas</option>
+        </select>
+      </div>
+      <div id="hr-error" class="hidden text-xs text-red-600 font-semibold bg-red-50 rounded-xl px-3 py-2 leading-relaxed"></div>
+    </div>
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
+      <button type="button" onclick="cerrarModalHorarios()"
+        class="flex-1 py-3 rounded-2xl border border-gray-200 text-gray-500 font-black text-[11px] uppercase tracking-widest hover:bg-gray-100 transition-all">Cancelar</button>
+      <button type="button" onclick="guardarHorarios()"
+        class="flex-1 py-3 rounded-2xl bg-green-600 text-white font-black text-[11px] uppercase tracking-widest hover:bg-green-700 transition-all shadow-sm shadow-green-200">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function abrirModalHorarios() {
+    document.getElementById('hr-intervalo').value = "{{ config_tenis.intervalo_minutos }}";
+    document.getElementById('hr-error').classList.add('hidden');
+    const m = document.getElementById('modal-horarios');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+  function cerrarModalHorarios() {
+    const m = document.getElementById('modal-horarios');
+    m.classList.add('hidden'); m.classList.remove('flex');
+  }
+  function getCsrfHR() {
+    let v = null;
+    document.cookie.split(';').forEach(c => {
+      c = c.trim();
+      if (c.startsWith('csrftoken=')) v = decodeURIComponent(c.slice(10));
+    });
+    return v;
+  }
+  async function guardarHorarios() {
+    const hi = document.getElementById('hr-hora-inicio').value;
+    const hf = document.getElementById('hr-hora-fin').value;
+    const iv = document.getElementById('hr-intervalo').value;
+    const err = document.getElementById('hr-error');
+    err.classList.add('hidden');
+    if (!hi || !hf) { err.textContent = 'Debes ingresar ambas horas.'; err.classList.remove('hidden'); return; }
+    if (hf <= hi) { err.textContent = 'La hora de fin debe ser posterior a la de inicio.'; err.classList.remove('hidden'); return; }
+    try {
+      const res = await fetch("{% url 'actualizar_horario_cancha' %}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfHR() },
+        body: JSON.stringify({ cancha_id: {{ config_tenis.id }}, hora_inicio: hi, hora_fin: hf, intervalo_minutos: parseInt(iv,10) })
+      });
+      const data = await res.json();
+      if (data.status === 'success') { cerrarModalHorarios(); location.reload(); }
+      else { err.textContent = data.message || 'Error al guardar.'; err.classList.remove('hidden'); }
+    } catch (e) { err.textContent = 'Error de conexión.'; err.classList.remove('hidden'); }
+  }
+  async function toggleFindes() {
+    try {
+      const res = await fetch("{% url 'toggle_findes_semana_cancha' %}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfHR() },
+        body: JSON.stringify({ cancha_id: {{ config_tenis.id }} })
+      });
+      const data = await res.json();
+      if (data.status === 'success') { location.reload(); }
+      else { alert(data.message || 'No se pudo cambiar el estado.'); }
+    } catch (e) { alert('Error de conexión.'); }
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModalHorarios(); });
+</script>
+
+{% include 'partials/admin_creacion_reserva.html' with cancha_id=config_tenis.id %}
 {% endif %}
 {% endblock %}

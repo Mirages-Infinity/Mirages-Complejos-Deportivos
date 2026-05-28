@@ -461,6 +461,221 @@ def toggle_cancha_status(request):
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 
+INTERVALOS_VALIDOS = {30, 45, 60, 90, 120}
+DIAS_FINDE = {5, 6}  # 5 = Sábado, 6 = Domingo
+
+
+@login_required
+def toggle_findes_semana_cancha(request):
+    """Habilita o deshabilita Sábado y Domingo como días reservables."""
+    if not request.user.is_superuser:
+        return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        cancha = get_object_or_404(ConfigCancha, id=data.get('cancha_id'))
+        dias_actuales = set(cancha.dias_semana_list())
+        findes_activos = DIAS_FINDE.issubset(dias_actuales)
+
+        if findes_activos:
+            # Antes de quitar el finde verificar reservas activas sábado/domingo
+            hoy = date.today()
+            reservas_finde = (
+                Reserva.objects
+                .filter(cancha=cancha, estado__in=['PENDIENTE', 'APROBADA'], fecha__gte=hoy)
+                .order_by('-fecha')
+            )
+            reservas_finde = [r for r in reservas_finde if r.fecha.weekday() in DIAS_FINDE]
+            if reservas_finde:
+                ultima = reservas_finde[0].fecha
+                disponible_desde = ultima + timedelta(days=1)
+                total = len(reservas_finde)
+                plural = 'reserva activa' if total == 1 else 'reservas activas'
+                return JsonResponse({
+                    'status': 'error',
+                    'message': (
+                        f'No puedes deshabilitar los fines de semana: existen {total} {plural} '
+                        f'de sábado o domingo en {cancha.nombre}. La última es el '
+                        f'{ultima.strftime("%d/%m/%Y")}. Podrás aplicar este cambio desde el '
+                        f'{disponible_desde.strftime("%d/%m/%Y")}.'
+                    ),
+                }, status=400)
+            nuevos = sorted(dias_actuales - DIAS_FINDE)
+            accion = 'deshabilitó'
+        else:
+            nuevos = sorted(dias_actuales | DIAS_FINDE)
+            accion = 'habilitó'
+
+        cancha.dias_semana = ','.join(str(d) for d in nuevos)
+        cancha.save(update_fields=['dias_semana'])
+
+        registrar_accion(
+            request.user,
+            f"{accion.capitalize()} fines de semana",
+            f"{cancha.nombre} (días activos: {cancha.dias_semana})",
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'findes_activos': not findes_activos,
+            'message': f'Fines de semana {accion}s correctamente.',
+        })
+    except (ValueError, TypeError, json.JSONDecodeError) as e:
+        return JsonResponse({'status': 'error', 'message': f'Datos inválidos: {e}'}, status=400)
+
+
+@login_required
+def actualizar_horario_cancha(request):
+    """Actualiza hora_inicio, hora_fin e intervalo_minutos de una ConfigCancha."""
+    if not request.user.is_superuser:
+        return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        cancha_id = data.get('cancha_id')
+        hora_inicio_str = (data.get('hora_inicio') or '').strip()
+        hora_fin_str = (data.get('hora_fin') or '').strip()
+        intervalo = data.get('intervalo_minutos')
+
+        cancha = get_object_or_404(ConfigCancha, id=cancha_id)
+        hora_inicio = datetime.strptime(hora_inicio_str, "%H:%M").time()
+        hora_fin = datetime.strptime(hora_fin_str, "%H:%M").time()
+        intervalo = int(intervalo)
+
+        if hora_fin <= hora_inicio:
+            return JsonResponse({'status': 'error', 'message': 'La hora de fin debe ser posterior a la de inicio.'}, status=400)
+        if intervalo not in INTERVALOS_VALIDOS:
+            opciones = ', '.join(str(i) for i in sorted(INTERVALOS_VALIDOS))
+            return JsonResponse({'status': 'error', 'message': f'Intervalo inválido. Valores permitidos: {opciones} minutos.'}, status=400)
+
+        hay_cambios = (
+            cancha.hora_inicio != hora_inicio
+            or cancha.hora_fin != hora_fin
+            or cancha.intervalo_minutos != intervalo
+        )
+        if hay_cambios:
+            hoy = date.today()
+            ultima_reserva = (
+                Reserva.objects
+                .filter(cancha=cancha, estado__in=['PENDIENTE', 'APROBADA'], fecha__gte=hoy)
+                .order_by('-fecha')
+                .first()
+            )
+            if ultima_reserva:
+                total = Reserva.objects.filter(
+                    cancha=cancha, estado__in=['PENDIENTE', 'APROBADA'], fecha__gte=hoy
+                ).count()
+                disponible_desde = ultima_reserva.fecha + timedelta(days=1)
+                plural = 'reserva activa' if total == 1 else 'reservas activas'
+                return JsonResponse({
+                    'status': 'error',
+                    'message': (
+                        f'No puedes modificar los horarios: existen {total} {plural} en {cancha.nombre} '
+                        f'a partir de hoy. La última es el {ultima_reserva.fecha.strftime("%d/%m/%Y")}. '
+                        f'Podrás aplicar este cambio desde el {disponible_desde.strftime("%d/%m/%Y")}.'
+                    ),
+                }, status=400)
+
+        anterior = (
+            cancha.hora_inicio.strftime('%H:%M'),
+            cancha.hora_fin.strftime('%H:%M'),
+            cancha.intervalo_minutos,
+        )
+        cancha.hora_inicio = hora_inicio
+        cancha.hora_fin = hora_fin
+        cancha.intervalo_minutos = intervalo
+        cancha.save(update_fields=['hora_inicio', 'hora_fin', 'intervalo_minutos'])
+
+        registrar_accion(
+            request.user,
+            "Actualizó horarios del complejo",
+            f"{cancha.nombre}: {anterior[0]}-{anterior[1]} ({anterior[2]} min) → "
+            f"{hora_inicio.strftime('%H:%M')}-{hora_fin.strftime('%H:%M')} ({intervalo} min)",
+        )
+
+        return JsonResponse({'status': 'success', 'message': 'Horarios actualizados correctamente.'})
+
+    except (ValueError, TypeError, json.JSONDecodeError) as e:
+        return JsonResponse({'status': 'error', 'message': f'Datos inválidos: {e}'}, status=400)
+
+
+@login_required
+def crear_reserva_admin(request):
+    """Permite a un superuser crear una reserva manualmente, ya sea ya pagada
+    (APROBADA al instante) o no pagada (PENDIENTE, sigue el flujo normal)."""
+    if not request.user.is_superuser:
+        return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        cancha = get_object_or_404(ConfigCancha, id=data.get('cancha_id'))
+        fecha = datetime.strptime(data.get('fecha'), "%Y-%m-%d").date()
+        hora_inicio = datetime.strptime(data.get('hora'), "%H:%M").time()
+        nombre = (data.get('solicitante_nombre') or '').strip()
+        email = (data.get('solicitante_email') or '').strip()
+        pagado = bool(data.get('pagado'))
+
+        if not nombre:
+            return JsonResponse({'status': 'error', 'message': 'Debes ingresar el nombre del solicitante.'}, status=400)
+
+        # Validar día de semana habilitado
+        if fecha.weekday() not in cancha.dias_semana_list():
+            return JsonResponse({'status': 'error', 'message': 'Ese día no está habilitado para este recinto.'}, status=400)
+
+        # Bloqueo de período aplica también al admin (debe desbloquear primero)
+        if BloqueoPeriodo.objects.filter(cancha=cancha, fecha_inicio__lte=fecha, fecha_fin__gte=fecha).exists():
+            return JsonResponse({'status': 'error', 'message': 'Esa fecha está dentro de un período bloqueado.'}, status=400)
+
+        hora_fin_dt = datetime.combine(fecha, hora_inicio) + timedelta(minutes=cancha.intervalo_minutos)
+        hora_fin = hora_fin_dt.time()
+
+        estado = 'APROBADA' if pagado else 'PENDIENTE'
+        metodo_pago = 'TARJETA' if pagado else 'TRANSFERENCIA'
+
+        with transaction.atomic():
+            if BloqueoHorario.objects.select_for_update().filter(cancha=cancha, fecha=fecha, hora=hora_inicio).exists():
+                return JsonResponse({'status': 'error', 'message': 'Ese horario está bloqueado.'}, status=400)
+            if Reserva.objects.select_for_update().filter(
+                cancha=cancha, fecha=fecha, hora_inicio=hora_inicio, estado__in=['PENDIENTE', 'APROBADA']
+            ).exists():
+                return JsonResponse({'status': 'error', 'message': 'Ese horario ya está reservado.'}, status=400)
+
+            reserva = Reserva.objects.create(
+                cancha=cancha,
+                solicitante=None,
+                solicitante_nombre=nombre,
+                solicitante_email=email,
+                fecha=fecha,
+                hora_inicio=hora_inicio,
+                hora_fin=hora_fin,
+                estado=estado,
+                metodo_pago=metodo_pago,
+                gestionado_por=request.user if pagado else None,
+            )
+
+        registrar_accion(
+            request.user,
+            "Creó reserva manualmente",
+            f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')} "
+            f"para {nombre} ({'pagada' if pagado else 'no pagada'})",
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'reserva_id': reserva.id,
+            'estado': estado,
+            'message': f'Reserva creada como {estado.lower()}.',
+        })
+    except (ValueError, TypeError, json.JSONDecodeError) as e:
+        return JsonResponse({'status': 'error', 'message': f'Datos inválidos: {e}'}, status=400)
+
+
 @login_required
 def finalizar_reserva_cancha(request):
     if request.method == 'POST':
@@ -472,12 +687,20 @@ def finalizar_reserva_cancha(request):
                 hora_str = data.get('hora')
                 metodo_pago = data.get('metodo_pago')  # 'TARJETA' o 'TRANSFERENCIA'
                 comprobante = None
+                admin_nombre = data.get('admin_solicitante_nombre')
+                admin_email = data.get('admin_solicitante_email')
             else:
                 cancha_id = request.POST.get('cancha_id')
                 fecha_str = request.POST.get('fecha')
                 hora_str = request.POST.get('hora')
                 metodo_pago = request.POST.get('metodo_pago')
                 comprobante = request.FILES.get('comprobante_transferencia')
+                admin_nombre = request.POST.get('admin_solicitante_nombre')
+                admin_email = request.POST.get('admin_solicitante_email')
+
+            admin_override = bool(
+                request.user.is_superuser and admin_nombre and admin_nombre.strip()
+            )
             
             cancha = get_object_or_404(ConfigCancha, id=cancha_id)
             fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
@@ -505,14 +728,15 @@ def finalizar_reserva_cancha(request):
                         ),
                     }, status=400)
 
-            # Validación de 4 horas de anticipación para el mismo día
-            ahora = timezone.now()
-            inicio_solicitado = timezone.make_aware(datetime.combine(fecha, hora_inicio))
-            if inicio_solicitado < ahora + timedelta(hours=4):
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Las reservas para el mismo día deben realizarse con al menos 4 horas de anticipación.'
-                }, status=400)
+            # Validación de 4 horas de anticipación para el mismo día (admin queda exento)
+            if not admin_override:
+                ahora = timezone.now()
+                inicio_solicitado = timezone.make_aware(datetime.combine(fecha, hora_inicio))
+                if inicio_solicitado < ahora + timedelta(hours=4):
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Las reservas para el mismo día deben realizarse con al menos 4 horas de anticipación.'
+                    }, status=400)
 
             minutos = cancha.intervalo_minutos
             dt_inicio = datetime.combine(fecha, hora_inicio)
@@ -526,6 +750,11 @@ def finalizar_reserva_cancha(request):
 
             # Validar cupón antes de seguir
             cupon_obj = None
+            if metodo_pago == 'CUPON' and admin_override:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Como administrador no puedes usar cupones en reservas creadas a nombre de otra persona.',
+                }, status=400)
             if metodo_pago == 'CUPON':
                 cupon_codigo = request.POST.get('cupon_codigo', '').strip().upper()
                 if not cupon_codigo:
@@ -596,13 +825,16 @@ def finalizar_reserva_cancha(request):
 
                 reserva = Reserva.objects.create(
                     cancha=cancha,
-                    solicitante=request.user,
+                    solicitante=None if admin_override else request.user,
+                    solicitante_nombre=admin_nombre.strip() if admin_override else '',
+                    solicitante_email=(admin_email or '').strip() if admin_override else '',
                     fecha=fecha,
                     hora_inicio=hora_inicio,
                     hora_fin=hora_fin,
                     estado=estado,
                     metodo_pago=metodo_pago,
                     comprobante_transferencia=comprobante if metodo_pago == 'TRANSFERENCIA' else None,
+                    gestionado_por=request.user if admin_override else None,
                 )
 
                 # Marcar cupón como usado dentro de la misma transacción
@@ -617,21 +849,29 @@ def finalizar_reserva_cancha(request):
                         mensaje=f'Usaste el cupón {cupon_obj.codigo} para tu reserva en {cancha.nombre} el {fecha.strftime("%d/%m/%Y")}.',
                     )
 
-            if reserva.estado == 'PENDIENTE':
-                crear_notificacion_reserva(
+            if not admin_override:
+                if reserva.estado == 'PENDIENTE':
+                    crear_notificacion_reserva(
+                        request.user,
+                        'RESERVA_PENDIENTE',
+                        'Reserva enviada',
+                        f'Tu reserva para {cancha.nombre} del {fecha.strftime("%d/%m/%Y")} quedó pendiente de aprobación.',
+                        reserva,
+                    )
+                elif reserva.estado == 'APROBADA':
+                    crear_notificacion_reserva(
+                        request.user,
+                        'RESERVA_APROBADA',
+                        'Reserva realizada con éxito',
+                        f'Tu reserva para {cancha.nombre} del {fecha.strftime("%d/%m/%Y")} ha sido confirmada.',
+                        reserva,
+                    )
+            else:
+                registrar_accion(
                     request.user,
-                    'RESERVA_PENDIENTE',
-                    'Reserva enviada',
-                    f'Tu reserva para {cancha.nombre} del {fecha.strftime("%d/%m/%Y")} quedó pendiente de aprobación.',
-                    reserva,
-                )
-            elif reserva.estado == 'APROBADA':
-                crear_notificacion_reserva(
-                    request.user,
-                    'RESERVA_APROBADA',
-                    'Reserva realizada con éxito',
-                    f'Tu reserva para {cancha.nombre} del {fecha.strftime("%d/%m/%Y")} ha sido confirmada.',
-                    reserva,
+                    "Creó reserva manualmente (flujo de pago)",
+                    f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')} "
+                    f"para {admin_nombre.strip()} — método: {metodo_pago}, estado: {estado}",
                 )
             
             # Correo de confirmación (basado en la lógica existente)
