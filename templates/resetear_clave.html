@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Nueva contraseña - Complejos Deportivos{% endblock %}
+
+{% block content %}
+
+    <!-- Contenido principal -->
+    <div class="w-full max-w-lg mx-auto px-4 py-5 pb-28">
+        <div class="bg-white rounded-2xl shadow-sm px-5 py-6">
+
+            {% if error_token %}
+            <!-- Token inválido o expirado -->
+            <div class="flex flex-col items-center gap-4 py-4">
+                <span class="text-5xl">⚠️</span>
+                <p class="text-center text-gray-700 font-semibold text-base">
+                    El enlace de recuperación no es válido o ha expirado.
+                </p>
+                <a href="{% url 'recuperar_clave' %}"
+                   class="w-full py-3 rounded-full text-white font-semibold text-base text-center block mt-2"
+                   style="background-color: #6abf4b;">
+                    Solicitar nuevo enlace
+                </a>
+            </div>
+
+            {% elif exito %}
+            <!-- Contraseña cambiada con éxito -->
+            <div class="flex flex-col items-center gap-4 py-4">
+                <span class="text-5xl">✅</span>
+                <p class="text-center text-gray-700 font-semibold text-base">
+                    ¡Tu contraseña ha sido cambiada con éxito!
+                </p>
+                <a href="{% url 'login' %}"
+                   class="w-full py-3 rounded-full text-white font-semibold text-base text-center block mt-2"
+                   style="background-color: #6abf4b;">
+                    Iniciar sesión
+                </a>
+            </div>
+
+            {% else %}
+            <!-- Formulario nueva contraseña -->
+            <form method="post" action="{% url 'resetear_clave' uidb64=uidb64 token=token %}"
+                  class="flex flex-col gap-4" novalidate>
+                {% csrf_token %}
+
+                <p class="text-center text-sm text-gray-500">Elige tu nueva contraseña</p>
+
+                {% if error %}
+                <p class="text-center text-xs font-bold py-2 px-3 rounded-lg bg-red-50 border border-red-200"
+                   style="color: #e53935;">{{ error }}</p>
+                {% endif %}
+
+                <!-- Nueva contraseña -->
+                <div class="flex flex-col gap-1">
+                    <div class="relative">
+                        <input type="password" id="clave" name="clave" placeholder="Nueva contraseña"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-3 pr-10 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                        <button type="button" id="toggle-clave"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <svg id="icon-eye-1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <svg id="icon-eye-off-1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.199-3.658M6.228 6.228A9.97 9.97 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.97 9.97 0 01-1.93 3.314M6.228 6.228L3 3m3.228 3.228l3.65 3.65M17.772 17.772l3.228 3.228m-3.228-3.228l-3.65-3.65" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="clave-error" class="text-xs font-bold hidden" style="color: #e53935; letter-spacing: 0.04em;">MÍNIMO 6 CARACTERES</p>
+                </div>
+
+                <!-- Confirmar contraseña -->
+                <div class="flex flex-col gap-1">
+                    <div class="relative">
+                        <input type="password" id="clave2" name="clave2" placeholder="Confirmar contraseña"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-3 pr-10 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                        <button type="button" id="toggle-clave2"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <svg id="icon-eye-2" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <svg id="icon-eye-off-2" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.199-3.658M6.228 6.228A9.97 9.97 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.97 9.97 0 01-1.93 3.314M6.228 6.228L3 3m3.228 3.228l3.65 3.65M17.772 17.772l3.228 3.228m-3.228-3.228l-3.65-3.65" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="clave2-error" class="text-xs font-bold hidden" style="color: #e53935; letter-spacing: 0.04em;">LAS CONTRASEÑAS NO COINCIDEN</p>
+                </div>
+
+                <button type="submit" id="btn-cambiar" disabled
+                        class="w-full py-3 rounded-full text-white font-semibold text-base opacity-50 cursor-not-allowed"
+                        style="background-color: #6abf4b;">
+                    Cambiar contraseña
+                </button>
+            </form>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <script>
+        function togglePassword(inputId, eyeId, eyeOffId) {
+            const input = document.getElementById(inputId);
+            const eye = document.getElementById(eyeId);
+            const eyeOff = document.getElementById(eyeOffId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                eye.classList.add('hidden');
+                eyeOff.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eye.classList.remove('hidden');
+                eyeOff.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('toggle-clave')?.addEventListener('click', () =>
+            togglePassword('clave', 'icon-eye-1', 'icon-eye-off-1'));
+        document.getElementById('toggle-clave2')?.addEventListener('click', () =>
+            togglePassword('clave2', 'icon-eye-2', 'icon-eye-off-2'));
+
+        function validarFormulario() {
+            const clave = document.getElementById('clave').value;
+            const clave2 = document.getElementById('clave2').value;
+            const btn = document.getElementById('btn-cambiar');
+            const okLongitud = clave.length >= 6;
+            const okCoinciden = clave === clave2 && clave2.length > 0;
+
+            const errorClave = document.getElementById('clave-error');
+            const errorClave2 = document.getElementById('clave2-error');
+
+            if (clave.length > 0 && !okLongitud) {
+                errorClave.classList.remove('hidden');
+                document.getElementById('clave').classList.add('border-red-400');
+            } else {
+                errorClave.classList.add('hidden');
+                document.getElementById('clave').classList.remove('border-red-400');
+            }
+
+            if (clave2.length > 0 && !okCoinciden) {
+                errorClave2.classList.remove('hidden');
+                document.getElementById('clave2').classList.add('border-red-400');
+            } else {
+                errorClave2.classList.add('hidden');
+                document.getElementById('clave2').classList.remove('border-red-400');
+            }
+
+            if (btn) {
+                if (okLongitud && okCoinciden) {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                } else {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        }
+
+        document.getElementById('clave')?.addEventListener('input', validarFormulario);
+        document.getElementById('clave2')?.addEventListener('input', validarFormulario);
+    </script>
+
+{% endblock %}

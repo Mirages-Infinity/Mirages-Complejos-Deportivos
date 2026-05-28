@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Complejos Deportivos{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .card-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            will-change: transform;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #9ca3af;
+            cursor: pointer;
+            text-decoration: none;
+            min-width: 56px;
+        }
+
+        .bottom-nav-item:hover {
+            color: #2d3a8c;
+        }
+
+        .bottom-nav-item.active {
+            color: #2d3a8c;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col bg-gray-100">
+
+    <!-- ── Banner superior ───────────────────────────────────────────────── -->
+    {% block top_header %}
+    <div style="position:sticky;top:0;z-index:40;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+        <div
+            style="max-width:672px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;">
+            <div style="width:80px;">{% block header_left %}&nbsp;{% endblock %}</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:1.5rem;">🏟️</span>
+                <span style="font-size:1.1rem;font-weight:700;color:#374151;">
+                    Complejos <span style="color:#22c55e;">Deportivos</span>
+                </span>
+            </div>
+            <div style="width:80px;display:flex;justify-content:flex-end;align-items:center;gap:4px;">
+                {% block header_right %}
+                {% if user.is_authenticated %}
+                {% if not user.is_staff and not user.is_superuser %}
+                <a href="{% url 'notificaciones' %}"
+                    style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#4b5563;text-decoration:none;position:relative;"
+                    title="Notificaciones">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    {% if notificaciones_sin_leer > 0 %}<span
+                        style="position:absolute;top:1px;right:0;min-width:17px;height:17px;border-radius:999px;background:#ef4444;color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;">{{notificaciones_sin_leer }}</span>{% endif %}
+                </a>
+                {% endif %}
+                <a href="{% url 'logout' %}"
+                    style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ef4444;text-decoration:none;"
+                    title="Cerrar sesión">
+                    <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </a>
+                {% endif %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    <!-- ── Contenido ─────────────────────────────────────────────────────── -->
+    <div class="flex-1 pb-24">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- ── Barra de navegación inferior (siempre visible) ───────────────── -->
+    <div
+        style="position:fixed;bottom:0;left:0;width:100vw;overflow-x:clip;z-index:40;background:white;border-top:1px solid #e5e7eb;box-shadow:0 -1px 6px rgba(0,0,0,0.06);transform:translateZ(0);backface-visibility:hidden;">
+        <div
+            style="max-width:672px;margin:0 auto;display:flex;justify-content:space-around;align-items:center;padding:8px 24px;">
+
+            {% if user.is_staff or user.is_superuser %}
+            <!-- === BOTONES PARA ADMINISTRACIÓN === -->
+            <!-- 1. Inicio -->
+            <a href="{% url 'inicio' %}"
+                class="bottom-nav-item py-1 {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                </svg>
+                <span>INICIO</span>
+            </a>
+
+            <!-- 2. Panel (Centro) -->
+            <a href="{% url 'panel_inicio' %}"
+                class="bottom-nav-item py-1 {% if 'panel' in request.resolver_match.url_name %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                </svg>
+                <span>PANEL</span>
+            </a>
+
+            <!-- 3. Perfil -->
+            <a href="{% url 'perfil' %}"
+                class="bottom-nav-item py-1 {% if request.resolver_match.url_name in 'perfil,mis_datos,cambiar_email,cambiar_contrasena,mis_tarjetas,notificaciones' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                <span>PERFIL</span>
+            </a>
+
+            {% else %}
+            <!-- === BOTONES PARA USUARIOS / INVITADOS === -->
+            <!-- 1. Inicio -->
+            <a href="{% url 'inicio' %}"
+                class="bottom-nav-item py-1 {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                </svg>
+                <span>INICIO</span>
+            </a>
+
+            <!-- 2. Reservas (O espacio vacío si no está autenticado) -->
+            {% if user.is_authenticated %}
+            <a href="{% url 'mis_reservas' %}"
+                class="bottom-nav-item py-1 {% if request.resolver_match.url_name in 'mis_reservas,crear_reserva,editar_mi_reserva,cancelar_mi_reserva' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                <span>RESERVAS</span>
+            </a>
+            {% else %}
+            <div class="bottom-nav-item py-1 opacity-0 pointer-events-none"></div>
+            {% endif %}
+
+            <!-- 3. Perfil / Login -->
+            {% if user.is_authenticated %}
+            <a href="{% url 'perfil' %}"
+                class="bottom-nav-item py-1 {% if request.resolver_match.url_name in 'perfil,mis_datos,cambiar_email,cambiar_contrasena,mis_tarjetas,notificaciones' %}active{% endif %}">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                <span>PERFIL</span>
+            </a>
+            {% else %}
+            <a href="{% url 'login' %}" class="bottom-nav-item py-1">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2.2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                <span>ENTRAR</span>
+            </a>
+            {% endif %}
+            {% endif %}
+
+        </div>
+    </div>
+
+</body>
+
+</html>

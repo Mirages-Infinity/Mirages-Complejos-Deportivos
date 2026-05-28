@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}Mis Cupones{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'perfil' %}"
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+  </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
+
+  {% if messages %}
+    {% for m in messages %}
+    <div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:{% if m.tags == 'error' %}#fef2f2{% else %}#f0fdf4{% endif %};color:{% if m.tags == 'error' %}#dc2626{% else %}#16a34a{% endif %};font-size:0.82rem;">
+      {{ m }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Explicación -->
+  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:14px 16px;margin-bottom:20px;">
+    <p style="font-size:0.8rem;color:#15803d;font-weight:600;margin-bottom:6px;">¿Cómo funcionan los cupones?</p>
+    <ul style="font-size:0.75rem;color:#166534;line-height:1.7;padding-left:14px;margin:0;list-style:disc;">
+      <li>Recibes un cupón cuando cancelas una reserva ya aprobada, o cuando el sistema cancela automáticamente una de tus reservas.</li>
+      <li>Cada cupón es válido <strong>solo para la misma instalación</strong> donde se originó (ej: un cupón de tenis solo sirve para tenis).</li>
+      <li>Los cupones son de <strong>un solo uso</strong>: una vez aplicado queda marcado como usado.</li>
+      <li>Tienes <strong>3 meses</strong> para usar el cupón desde su emisión.</li>
+      <li>Al reservar, selecciona "Cupón de Reserva" como método de pago e ingresa el código.</li>
+    </ul>
+  </div>
+
+  <!-- Filtros -->
+  <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;">
+    <a href="?filtro=todos" style="flex-shrink:0;padding:5px 14px;border-radius:999px;font-size:0.75rem;font-weight:700;text-decoration:none;
+      {% if filtro == 'todos' %}background:#1f2937;color:white;{% else %}background:#f3f4f6;color:#6b7280;{% endif %}">Todos</a>
+    <a href="?filtro=activo" style="flex-shrink:0;padding:5px 14px;border-radius:999px;font-size:0.75rem;font-weight:700;text-decoration:none;
+      {% if filtro == 'activo' %}background:#16a34a;color:white;{% else %}background:#f3f4f6;color:#6b7280;{% endif %}">Disponibles</a>
+    <a href="?filtro=usado" style="flex-shrink:0;padding:5px 14px;border-radius:999px;font-size:0.75rem;font-weight:700;text-decoration:none;
+      {% if filtro == 'usado' %}background:#6b7280;color:white;{% else %}background:#f3f4f6;color:#6b7280;{% endif %}">Usados</a>
+    <a href="?filtro=expirado" style="flex-shrink:0;padding:5px 14px;border-radius:999px;font-size:0.75rem;font-weight:700;text-decoration:none;
+      {% if filtro == 'expirado' %}background:#dc2626;color:white;{% else %}background:#f3f4f6;color:#6b7280;{% endif %}">Expirados</a>
+  </div>
+
+  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">
+    {{ cupones.count }} cupón{{ cupones.count|pluralize:"es" }}
+  </p>
+
+  {% if cupones %}
+  <div style="display:flex;flex-direction:column;gap:10px;">
+
+    {% for cupon in cupones %}
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;
+                border-left:4px solid {% if cupon.estado == 'ACTIVO' %}#6abf4b{% elif cupon.estado == 'USADO' %}#9ca3af{% else %}#f87171{% endif %};">
+
+      <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
+
+        <!-- Icono -->
+        <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+                    background:{% if cupon.estado == 'ACTIVO' %}#f0fdf4{% elif cupon.estado == 'USADO' %}#f3f4f6{% else %}#fef2f2{% endif %};">
+          {% if cupon.estado == 'ACTIVO' %}
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;color:#16a34a;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3V18m-6-12v.75m0 3v.75m0 3V18M4.5 9h15M4.5 15h15M3 6h18v12H3V6z"/>
+          </svg>
+          {% elif cupon.estado == 'USADO' %}
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          {% else %}
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;color:#ef4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+          {% endif %}
+        </div>
+
+        <!-- Info -->
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+            <p style="font-size:1rem;font-weight:800;color:#1f2937;letter-spacing:0.04em;font-family:monospace;">
+              {{ cupon.codigo }}
+            </p>
+            <span style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 8px;border-radius:999px;
+                         background:{% if cupon.estado == 'ACTIVO' %}#dcfce7;color:#15803d{% elif cupon.estado == 'USADO' %}#f3f4f6;color:#6b7280{% else %}#fef2f2;color:#dc2626{% endif %};">
+              {{ cupon.get_estado_display }}
+            </span>
+          </div>
+          {% if cupon.nombre_recurso %}
+          <p style="font-size:0.75rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            Origen: {{ cupon.nombre_recurso }}
+          </p>
+          {% endif %}
+          <p style="font-size:0.7rem;color:#9ca3af;margin-top:2px;">
+            {% if cupon.estado == 'ACTIVO' %}
+              Válido hasta {{ cupon.fecha_expiracion|date:"d/m/Y" }}
+            {% elif cupon.estado == 'USADO' %}
+              Usado el {{ cupon.reserva_uso.fecha|date:"d/m/Y"|default:"—" }}
+            {% else %}
+              Venció el {{ cupon.fecha_expiracion|date:"d/m/Y" }}
+            {% endif %}
+          </p>
+        </div>
+
+        <!-- Motivo -->
+        <div style="flex-shrink:0;text-align:right;">
+          <p style="font-size:0.62rem;color:#9ca3af;line-height:1.4;">
+            {% if cupon.motivo == 'CANCELACION_USUARIO' %}
+            Cancelación<br>propia
+            {% else %}
+            Cancelación<br>sistema
+            {% endif %}
+          </p>
+        </div>
+
+      </div>
+
+      {% if cupon.estado == 'ACTIVO' %}
+      <!-- Código copiable -->
+      <div style="padding:10px 16px;background:#f9fafb;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <p style="font-size:0.72rem;color:#6b7280;">Ingresa este código al hacer una reserva</p>
+        <button onclick="copiarCodigo('{{ cupon.codigo }}', this)"
+                style="padding:5px 12px;border-radius:999px;border:1px solid #d1d5db;background:white;font-size:0.72rem;font-weight:600;color:#374151;cursor:pointer;">
+          Copiar
+        </button>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endfor %}
+
+  </div>
+
+  {% else %}
+  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:48px 16px;text-align:center;">
+    <div style="width:56px;height:56px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+      <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3V18m-6-12v.75m0 3v.75m0 3V18M4.5 9h15M4.5 15h15M3 6h18v12H3V6z"/>
+      </svg>
+    </div>
+    <p style="color:#6b7280;font-size:0.875rem;font-weight:600;margin-bottom:4px;">Sin cupones</p>
+    <p style="color:#9ca3af;font-size:0.8rem;">Aún no tienes cupones emitidos.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+function copiarCodigo(codigo, btn) {
+  navigator.clipboard.writeText(codigo).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '¡Copiado!';
+    btn.style.background = '#f0fdf4';
+    btn.style.color = '#16a34a';
+    btn.style.borderColor = '#86efac';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.style.background = 'white';
+      btn.style.color = '#374151';
+      btn.style.borderColor = '#d1d5db';
+    }, 2000);
+  });
+}
+</script>
+{% endblock %}

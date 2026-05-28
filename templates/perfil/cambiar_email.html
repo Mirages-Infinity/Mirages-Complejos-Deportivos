@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Cambio de email{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'mis_datos' %}"
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+  </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
+
+  {% if enviado %}
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:16px;padding:24px;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">📬</div>
+      <p style="font-weight:700;color:#15803d;margin-bottom:6px;">Correo de confirmación enviado</p>
+      <p style="font-size:0.85rem;color:#166534;">
+        Enviamos un enlace a <strong>{{ nuevo_email }}</strong>.<br>
+        Haz clic en él para completar el cambio.<br>
+        El enlace expira en 24 horas.
+      </p>
+    </div>
+
+  {% else %}
+    <p style="font-size:0.85rem;color:#6b7280;margin-bottom:16px;">
+      A continuación ingresa tú nuevo email dos veces para verificar.
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:16px;">
+        <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+          <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Nuevo mail</label>
+          <input type="email" name="nuevo_email" required autofocus placeholder="nuevo@correo.cl"
+                 style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+        </div>
+        <div style="padding:12px 16px;">
+          <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Confirmar nuevo mail</label>
+          <input type="email" name="nuevo_email2" required placeholder="nuevo@correo.cl"
+                 style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+        </div>
+      </div>
+
+      <p style="font-size:0.85rem;color:#6b7280;margin-bottom:12px;">
+        Ingresa tú contraseña para confirmar el cambio de email.
+      </p>
+
+      <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:20px;">
+        <div style="padding:12px 16px;">
+          <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Contraseña actual</label>
+          <input type="password" name="clave" required placeholder="••••••••"
+                 style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+        </div>
+      </div>
+
+      <button type="submit"
+              style="width:100%;padding:13px;border-radius:999px;background:#6abf4b;color:white;font-weight:600;font-size:0.9rem;border:none;cursor:pointer;">
+        Confirmar cambio de mail
+      </button>
+    </form>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Gestionar Reserva Maestro{% endblock %}
+
+{% block header_left %}
+<a href="javascript:history.back()" 
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+  </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto flex-1 px-4 py-8" style="zoom: 0.8; transform-origin: top center;">
+  
+  <div class="bg-white rounded-[40px] shadow-2xl shadow-blue-900/10 overflow-hidden border border-gray-100 flex flex-col md:flex-row">
+    
+    <!-- Lado Izquierdo: Resumen de la Reserva -->
+    <div class="md:w-1/2 p-10 bg-gradient-to-br from-gray-50 to-white border-r border-gray-100">
+      <div class="flex items-center gap-4 mb-6">
+        <span class="text-5xl">{% if reserva.cancha %}🎾{% else %}🏛️{% endif %}</span>
+        <div>
+          <h1 class="text-2xl font-black text-gray-800 leading-tight">
+            {% if reserva.salon %}{{ reserva.salon.nombre }}{% else %}{{ reserva.cancha.nombre }}{% endif %}
+          </h1>
+          <p class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mt-1">Portal de Gestión Maestro</p>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+          <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Solicitante</label>
+          <p class="text-base font-bold text-gray-800">{{ reserva.get_solicitante_display }}</p>
+          {% if reserva.solicitante_email %}
+          <p class="text-xs text-gray-400 font-medium mt-0.5">{{ reserva.solicitante_email }}</p>
+          {% endif %}
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+            <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Fecha</label>
+            <p class="text-base font-black text-gray-700">{{ reserva.fecha|date:"d M Y" }}</p>
+          </div>
+          <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+            <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Horario</label>
+            <p class="text-base font-black text-blue-600">{{ reserva.hora_inicio|time:"H:i" }} – {{ reserva.hora_fin|time:"H:i" }}</p>
+          </div>
+        </div>
+
+        <div class="bg-blue-50 p-5 rounded-3xl border border-blue-100">
+          <label class="block text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1.5">Información de Pago</label>
+          <div class="flex items-center gap-2">
+            <span class="text-xl">💳</span>
+            <p class="text-sm font-black text-blue-800 uppercase tracking-tighter">{{ reserva.get_metodo_pago_display }}</p>
+          </div>
+          {% if reserva.metodo_pago == 'TRANSFERENCIA' %}
+          <div class="mt-4 pt-4 border-t border-blue-100">
+            {% if reserva.comprobante_transferencia %}
+            <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.18em] mb-2">Comprobante adjunto</p>
+            <a href="{{ reserva.comprobante_transferencia.url }}" target="_blank" rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-blue-200 text-blue-700 text-xs font-black uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all">
+              Ver comprobante
+            </a>
+            <p class="mt-2 text-[11px] text-gray-500">{{ reserva.comprobante_transferencia.name }}</p>
+            {% else %}
+            <p class="text-xs font-bold text-amber-600 mt-3">No hay comprobante adjunto.</p>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        {% if reserva.motivo %}
+        <div class="bg-gray-50/50 p-5 rounded-3xl border border-dashed border-gray-200">
+          <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">Descripción del Evento</label>
+          <p class="text-xs text-gray-500 font-medium italic leading-relaxed">"{{ reserva.motivo }}"</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Lado Derecho: Acciones -->
+    <div class="md:w-1/2 p-10 flex flex-col justify-center">
+      <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <div>
+          <label for="motivo_rechazo" class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-3 ml-1 text-center">Justificación Administrativa</label>
+          <textarea name="motivo_rechazo" id="motivo_rechazo" rows="3" 
+                    placeholder="Escribe aquí el motivo si decides rechazar o cancelar la solicitud..."
+                    class="w-full bg-gray-50 border border-gray-100 rounded-[30px] px-6 py-5 text-sm font-medium focus:bg-white focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/5 outline-none transition-all resize-none"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3">
+          <button type="submit" name="accion" value="aprobar"
+                  class="group relative w-full bg-white border-2 border-green-100 hover:border-green-500 text-green-500 font-black py-5 px-8 rounded-2xl transition-all text-[11px] uppercase tracking-[0.2em] transform hover:-translate-y-0.5 active:scale-95 shadow-sm hover:shadow-xl shadow-green-900/5">
+            <span class="flex items-center justify-center gap-2">
+              <span class="text-base group-hover:scale-125 transition-transform">✅</span>
+              Aprobar Reserva Definitiva
+            </span>
+          </button>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button type="submit" name="accion" value="rechazar"
+                    class="group w-full bg-white border-2 border-red-100 hover:border-red-500 text-red-500 font-black py-4 px-4 rounded-2xl transition-all text-[9.5px] uppercase tracking-widest transform hover:-translate-y-0.5 active:scale-95">
+              <span class="flex flex-col items-center gap-1">
+                <span class="text-base">❌</span>
+                Rechazar
+              </span>
+            </button>
+            <button type="submit" name="accion" value="cancelar"
+                    class="group w-full bg-white border-2 border-amber-100 hover:border-amber-500 text-amber-500 font-black py-4 px-4 rounded-2xl transition-all text-[9.5px] uppercase tracking-widest transform hover:-translate-y-0.5 active:scale-95">
+              <span class="flex flex-col items-center gap-1">
+                <span class="text-base">⚠️</span>
+                Cancelar
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <p class="text-[9px] text-center text-gray-300 font-bold uppercase tracking-widest px-4">
+          * Al aprobar se enviará un correo electrónico automático de confirmación al solicitante.
+        </p>
+      </form>
+    </div>
+  </div>
+  <div style="height: 70px;"></div>
+
+</div>
+{% endblock %}

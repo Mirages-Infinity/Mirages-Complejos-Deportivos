@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Crear usuario - Panel{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'panel_usuarios' %}"
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+  </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
+
+  {% if messages %}
+    {% for m in messages %}
+    <div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:{% if m.tags == 'error' %}#fef2f2{% else %}#f0fdf4{% endif %};color:{% if m.tags == 'error' %}#dc2626{% else %}#16a34a{% endif %};font-size:0.82rem;">
+      {{ m }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Datos personales -->
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:16px;">
+
+      <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Nombre *</label>
+        <input type="text" name="nombre" value="{{ datos.nombre }}" required
+               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+        {% if errores.nombre %}
+        <p style="font-size:0.7rem;color:#dc2626;margin-top:4px;">{{ errores.nombre }}</p>
+        {% endif %}
+      </div>
+
+      <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Apellido</label>
+        <input type="text" name="apellido" value="{{ datos.apellido }}"
+               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+      </div>
+
+      <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Correo electrónico *</label>
+        <input type="email" name="email" value="{{ datos.email }}" required
+               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+        {% if errores.email %}
+        <p style="font-size:0.7rem;color:#dc2626;margin-top:4px;">{{ errores.email }}</p>
+        {% endif %}
+      </div>
+
+      <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Teléfono</label>
+        <input type="tel" name="telefono" value="{{ datos.telefono }}"
+               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+      </div>
+
+      <div style="padding:12px 16px;">
+        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">RUT</label>
+        <input type="text" name="rut" value="{{ datos.rut }}" placeholder="12345678-9"
+               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+        {% if errores.rut %}
+        <p style="font-size:0.7rem;color:#dc2626;margin-top:4px;">{{ errores.rut }}</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Contraseña -->
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:16px;">
+
+      <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Contraseña *</label>
+        <input type="password" name="contrasena" required minlength="6"
+               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+        {% if errores.contrasena %}
+        <p style="font-size:0.7rem;color:#dc2626;margin-top:4px;">{{ errores.contrasena }}</p>
+        {% endif %}
+      </div>
+
+      <div style="padding:12px 16px;">
+        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Repetir contraseña *</label>
+        <input type="password" name="contrasena2" required
+               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+      </div>
+
+    </div>
+
+    <!-- Rol -->
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:24px;">
+
+      <div style="padding:14px 16px;">
+        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:10px;">Tipo de cuenta</label>
+
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:10px;">
+          <input type="radio" name="rol" value="usuario"
+                 {% if datos.rol != 'admin' %}checked{% endif %}
+                 style="accent-color:#6abf4b;width:16px;height:16px;">
+          <span style="font-size:0.875rem;color:#1f2937;font-weight:500;">Usuario normal</span>
+        </label>
+
+        <label style="display:flex;align-items:{% if total_superusuarios >= max_superusuarios %}flex-start{% else %}center{% endif %};gap:10px;cursor:{% if total_superusuarios >= max_superusuarios %}not-allowed{% else %}pointer{% endif %};">
+          <input type="radio" name="rol" value="admin"
+                 {% if datos.rol == 'admin' %}checked{% endif %}
+                 {% if total_superusuarios >= max_superusuarios %}disabled{% endif %}
+                 style="accent-color:#6abf4b;width:16px;height:16px;margin-top:2px;">
+          <span>
+            <span style="font-size:0.875rem;color:{% if total_superusuarios >= max_superusuarios %}#9ca3af{% else %}#1f2937{% endif %};font-weight:500;">Administrador (superusuario)</span>
+            {% if total_superusuarios >= max_superusuarios %}
+            <span style="display:block;font-size:0.7rem;color:#dc2626;margin-top:2px;">
+              Límite alcanzado ({{ total_superusuarios }}/{{ max_superusuarios }} superusuarios)
+            </span>
+            {% else %}
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:2px;">
+              {{ total_superusuarios }}/{{ max_superusuarios }} superusuarios activos
+            </span>
+            {% endif %}
+          </span>
+        </label>
+
+        {% if errores.rol %}
+        <p style="font-size:0.7rem;color:#dc2626;margin-top:8px;">{{ errores.rol }}</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <button type="submit"
+            style="width:100%;padding:13px;border-radius:999px;background:#6abf4b;color:white;font-weight:600;font-size:0.9rem;border:none;cursor:pointer;">
+      Crear usuario
+    </button>
+
+  </form>
+
+</div>
+{% endblock %}

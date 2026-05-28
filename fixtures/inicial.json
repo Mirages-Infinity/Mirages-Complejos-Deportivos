@@ -1,0 +1,115 @@
+[
+{
+  "model": "complejos.configcancha",
+  "pk": 1,
+  "fields": {
+    "nombre": "Cancha de Tenis",
+    "hora_inicio": "08:30:00",
+    "hora_fin": "18:30:00",
+    "pausa_inicio": "13:00:00",
+    "pausa_fin": "14:00:00",
+    "dias_semana": "0,1,2,3,4",
+    "intervalo_minutos": 90,
+    "activo": true
+  }
+},
+{
+  "model": "complejos.configcancha",
+  "pk": 2,
+  "fields": {
+    "nombre": "Gimnasio Municipal",
+    "hora_inicio": "08:30:00",
+    "hora_fin": "22:00:00",
+    "pausa_inicio": "13:00:00",
+    "pausa_fin": "14:00:00",
+    "dias_semana": "0,1,2,3,4,5,6",
+    "intervalo_minutos": 60,
+    "activo": true
+  }
+},
+{
+  "model": "complejos.configcancha",
+  "pk": 3,
+  "fields": {
+    "nombre": "Cancha de Futbolito",
+    "hora_inicio": "08:30:00",
+    "hora_fin": "22:00:00",
+    "pausa_inicio": "13:00:00",
+    "pausa_fin": "14:00:00",
+    "dias_semana": "0,1,2,3,4,5,6",
+    "intervalo_minutos": 60,
+    "activo": true
+  }
+},
+{
+  "model": "complejos.configcancha",
+  "pk": 4,
+  "fields": {
+    "nombre": "Estadio Municipal",
+    "hora_inicio": "08:30:00",
+    "hora_fin": "22:00:00",
+    "pausa_inicio": "13:00:00",
+    "pausa_fin": "14:00:00",
+    "dias_semana": "0,1,2,3,4,5,6",
+    "intervalo_minutos": 120,
+    "activo": true
+  }
+},
+{
+  "model": "complejos.bloqueohorario",
+  "pk": 52,
+  "fields": {
+    "cancha": 1,
+    "fecha": "2026-04-20",
+    "hora": "12:00:00"
+  }
+},
+{
+  "model": "complejos.bloqueohorario",
+  "pk": 53,
+  "fields": {
+    "cancha": 1,
+    "fecha": "2026-04-20",
+    "hora": "13:00:00"
+  }
+},
+{
+  "model": "complejos.bloqueohorario",
+  "pk": 57,
+  "fields": {
+    "cancha": 1,
+    "fecha": "2026-04-21",
+    "hora": "21:00:00"
+  }
+},
+{
+  "model": "complejos.bloqueohorario",
+  "pk": 58,
+  "fields": {
+    "cancha": 1,
+    "fecha": "2026-04-21",
+    "hora": "20:00:00"
+  }
+},
+{
+  "model": "complejos.bloqueohorario",
+  "pk": 59,
+  "fields": {
+    "cancha": 1,
+    "fecha": "2026-04-21",
+    "hora": "22:00:00"
+  }
+},
+{
+  "model": "complejos.datostransferencia",
+  "pk": 1,
+  "fields": {
+    "banco": "BANCO ESTADO",
+    "titular": "MUNICIPALIDAD DE EMPEDRADO",
+    "tipo_cuenta": "CUENTA CORRIENTE",
+    "numero_cuenta": "43309029250",
+    "rut": "69.120.200-3",
+    "email": "tesoreria@empedrado.cl"
+  }
+}
+]

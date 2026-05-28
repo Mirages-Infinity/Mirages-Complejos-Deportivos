@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión - Complejos Deportivos{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'inicio' %}"
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+    </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+
+    <!-- Contenido principal -->
+    <div class="w-full max-w-lg mx-auto px-4 py-5 pb-28">
+
+        <!-- Tarjeta blanca del formulario -->
+        <div class="bg-white rounded-2xl shadow-sm px-5 py-6">
+
+            <form method="post" action="{% url 'login' %}" class="flex flex-col gap-4" novalidate>
+                {% csrf_token %}
+                {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+                <p class="text-center text-sm text-gray-500">Ingresa tu email y clave</p>
+
+                {% if error %}
+                <p class="text-center text-xs font-bold py-2 px-3 rounded-lg bg-red-50 border border-red-200" style="color: #e53935;">{{ error }}</p>
+                {% endif %}
+
+                <!-- Email -->
+                <div class="flex flex-col gap-1">
+                    <input type="email" id="email" name="email" placeholder="Email"
+                           value="{{ request.POST.email }}"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                    <p id="email-error" class="text-xs font-bold hidden" style="color: #e53935; letter-spacing: 0.04em;">EL CORREO DEBE SER VÁLIDO</p>
+                </div>
+
+                <!-- Clave -->
+                <div class="flex flex-col gap-1">
+                    <div class="relative">
+                        <input type="password" id="clave" name="clave" placeholder="Clave"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-3 pr-10 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                        <button type="button" id="toggle-clave"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <svg id="icon-eye" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <svg id="icon-eye-off" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.199-3.658M6.228 6.228A9.97 9.97 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.97 9.97 0 01-1.93 3.314M6.228 6.228L3 3m3.228 3.228l3.65 3.65M17.772 17.772l3.228 3.228m-3.228-3.228l-3.65-3.65" />
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="clave-error" class="text-xs font-bold hidden" style="color: #e53935; letter-spacing: 0.04em;">DEBES INGRESAR UNA CLAVE</p>
+                </div>
+
+                <!-- Texto ayuda -->
+                <p class="text-xs text-center text-gray-400">
+                    Si tienes problemas para ingresar, contáctanos a
+                    <span class="text-gray-500">contacto@complejosdeportivos.cl</span>
+                </p>
+
+                <!-- Botón ingresar -->
+                <button type="submit"
+                        class="w-full py-3 rounded-full text-white font-semibold text-base"
+                        style="background-color: #6abf4b;">
+                    Ingresar
+                </button>
+
+                <!-- Olvidé contraseña -->
+                <div class="flex justify-end -mt-2">
+                    <a href="{% url 'recuperar_clave' %}" class="text-sm text-gray-500 underline">Olvidé mi contraseña</a>
+                </div>
+
+                <!-- Registrarse -->
+                <p class="text-center text-sm text-gray-500 mt-2">¿Aún no tienes cuenta?</p>
+                <a href="{% url 'registro' %}"
+                   class="w-full py-3 rounded-full text-white font-semibold text-base text-center block"
+                   style="background-color: #2d3a8c;">
+                    Regístrate aquí
+                </a>
+
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('email').addEventListener('blur', function () {
+            const val = this.value.trim();
+            const error = document.getElementById('email-error');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (val && !emailRegex.test(val)) {
+                error.classList.remove('hidden');
+                this.classList.add('border-red-400');
+            } else {
+                error.classList.add('hidden');
+                this.classList.remove('border-red-400');
+            }
+        });
+
+        document.getElementById('clave').addEventListener('blur', function () {
+            const error = document.getElementById('clave-error');
+            if (this.value.trim() === '') {
+                error.classList.remove('hidden');
+                this.classList.add('border-red-400');
+            } else {
+                error.classList.add('hidden');
+                this.classList.remove('border-red-400');
+            }
+        });
+
+        document.getElementById('toggle-clave').addEventListener('click', function () {
+            const input = document.getElementById('clave');
+            const eyeOn = document.getElementById('icon-eye');
+            const eyeOff = document.getElementById('icon-eye-off');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeOn.classList.add('hidden');
+                eyeOff.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeOn.classList.remove('hidden');
+                eyeOff.classList.add('hidden');
+            }
+        });
+    </script>
+
+{% endblock %}

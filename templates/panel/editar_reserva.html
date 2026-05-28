@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Editar Reserva - Panel{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'panel_reservas' %}" 
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+  </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6 pt-10 flex-1" style="zoom: 0.85; transform-origin: top center;">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="text-3xl">{% if reserva.cancha %}🎾{% else %}🏛️{% endif %}</span>
+    <div>
+      <h1 class="text-2xl font-black text-gray-900 leading-tight">Editar Reserva</h1>
+      <p class="text-sm text-gray-500 font-medium">{{ reserva.salon.nombre|default:reserva.cancha.nombre }}</p>
+    </div>
+  </div>
+
+  {% if reserva.estado == 'ELIMINADA' %}
+  <div class="mb-6 bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3">
+    <span class="text-xl">⚠️</span>
+    <div>
+      <p class="text-[11px] font-black text-red-700 uppercase tracking-widest">Reserva Histórica (Eliminada)</p>
+      <p class="text-xs text-red-600 font-medium">Esta reserva ha sido borrada del registro activo. Solo puedes visualizar sus detalles, no editarlos.</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" class="bg-white rounded-[30px] shadow-2xl border border-gray-100 p-8 space-y-6">
+    {% csrf_token %}
+    
+    <fieldset {% if reserva.estado == 'ELIMINADA' %}disabled{% endif %} class="space-y-6">
+      
+      <!-- Fila 1: Solicitante (Compacto) -->
+      <div class="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 flex items-center justify-between">
+        <div>
+          <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Solicitante</label>
+          <p class="text-sm font-black text-gray-800">{{ reserva.solicitante.get_full_name|default:reserva.solicitante.email }}</p>
+        </div>
+        <div class="text-right hidden sm:block">
+          <p class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em]">Creado</p>
+          <p class="text-xs font-bold text-gray-500">{{ reserva.creado_en|date:"d/m/Y" }}</p>
+        </div>
+      </div>
+
+      <!-- Fila 2: Agenda (3 Columnas) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label for="fecha" class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Fecha</label>
+          <input type="date" name="fecha" id="fecha" value="{{ reserva.fecha|date:'Y-m-d' }}" 
+                 min="{{ hoy }}" max="{{ limite_futuro }}" required
+                 class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-blue-500 outline-none transition-all cursor-pointer disabled:bg-gray-50 disabled:text-gray-400">
+        </div>
+        <div class="relative">
+          <label for="hora_inicio" class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Inicio</label>
+          <span class="absolute left-4 top-[38px] text-[8px] font-black text-blue-400 uppercase">H:M</span>
+          <input type="time" name="hora_inicio" id="hora_inicio" value="{{ reserva.hora_inicio|time:'H:i' }}" 
+                 min="09:00" max="22:00" step="3600" required
+                 class="w-full bg-white border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm font-bold focus:border-blue-500 outline-none transition-all disabled:bg-gray-50 disabled:text-gray-400">
+        </div>
+        <div class="relative">
+          <label for="hora_fin" class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Término (Auto)</label>
+          <span class="absolute left-4 top-[38px] text-[8px] font-black text-indigo-400 uppercase">H:M</span>
+          <input type="time" name="hora_fin" id="hora_fin" value="{{ reserva.hora_fin|time:'H:i' }}" 
+                 readonly
+                 class="w-full bg-gray-50 border border-gray-200 rounded-xl pl-12 pr-4 py-3 text-sm font-bold text-gray-400 outline-none transition-all cursor-not-allowed">
+        </div>
+      </div>
+
+      <!-- Fila 3: Estado y Motivo -->
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div class="lg:col-span-2">
+          <label for="estado" class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Estado Maestro</label>
+          <select name="estado" id="estado" class="w-full bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm font-black text-blue-700 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer disabled:bg-gray-50 disabled:text-gray-400">
+            <option value="PENDIENTE" {% if reserva.estado == 'PENDIENTE' %}selected{% endif %}>SOLICITUD PENDIENTE</option>
+            <option value="APROBADA" {% if reserva.estado == 'APROBADA' %}selected{% endif %}>RESERVA APROBADA</option>
+            <option value="RECHAZADA" {% if reserva.estado == 'RECHAZADA' %}selected{% endif %}>RESERVA RECHAZADA</option>
+            <option value="CANCELADA" {% if reserva.estado == 'CANCELADA' %}selected{% endif %}>RESERVA CANCELADA</option>
+            <option value="ELIMINADA" {% if reserva.estado == 'ELIMINADA' %}selected{% endif %}>ELIMINADA (SÓLO LECTURA)</option>
+          </select>
+        </div>
+        <div class="lg:col-span-3">
+          <label for="motivo" class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Motivo / Descripción Administrativa</label>
+          <textarea name="motivo" id="motivo" rows="1" placeholder="Ej: Cambio solicitado por el usuario..."
+                    class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:border-blue-500 outline-none transition-all resize-none disabled:bg-gray-50 disabled:text-gray-400">{{ reserva.motivo|default:"" }}</textarea>
+        </div>
+      </div>
+
+    </fieldset>
+
+    {% if reserva.estado != 'ELIMINADA' %}
+    <div class="pt-2 flex gap-4">
+      <button type="submit" 
+              class="group relative w-full bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-black py-4 px-6 rounded-xl shadow-xl shadow-blue-100 transition-all text-[11px] uppercase tracking-[0.15em] transform hover:-translate-y-0.5 active:scale-95">
+        Actualizar Reserva Maestro
+      </button>
+    </div>
+    {% else %}
+    <div class="pt-2">
+      <a href="{% url 'panel_historial_reservas' %}" 
+         class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-500 font-black py-4 px-6 rounded-xl transition-all text-[11px] uppercase tracking-[0.15em]">
+        Volver al Historial
+      </a>
+    </div>
+    {% endif %}
+  </form>
+  </form>
+
+  <div style="height: 70px;"></div>
+</div>
+
+<script>
+  document.getElementById('hora_inicio').addEventListener('change', function() {
+    const start = this.value;
+    if (!start) return;
+    let [h, m] = start.split(':').map(Number);
+    h = (h + 1);
+    const end = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    document.getElementById('hora_fin').value = end;
+  });
+</script>
+{% endblock %}

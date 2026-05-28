@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@source "../../templates/**/*.html";
+
+@theme {
+    --color-verde-btn: #6abf4b;
+    --color-azul-card: #2d3a8c;
+    --color-verde-card: #4caf50;
+    --color-naranja-card: #f5a623;
+    --color-violeta-card: #6c5ce7;
+}

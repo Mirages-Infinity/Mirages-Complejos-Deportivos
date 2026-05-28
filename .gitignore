@@ -1,0 +1,43 @@
+# Variables de entorno — NUNCA subir al repositorio
+.env
+.env.local
+.env.*.local
+
+# Base de datos local
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+
+# Archivos subidos por usuarios
+media/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+check_log.txt
+
+# Carpeta de pruebas/experimentos locales
+scratch/
+
+# Tailwind generado (se regenera al ejecutar iniciar.bat)
+static/css/output.css

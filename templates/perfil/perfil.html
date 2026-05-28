@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24">
+
+  <!-- Avatar y nombre -->
+  <form method="post" enctype="multipart/form-data" id="foto-form">
+    {% csrf_token %}
+    <div style="display:flex;align-items:center;gap:14px;padding:20px 20px 16px;border-bottom:1px solid #f3f4f6;">
+
+      <!-- Avatar con botón cámara -->
+      <div style="position:relative;width:52px;height:52px;flex-shrink:0;">
+        {% if perfil_obj.foto %}
+        <img src="{{ perfil_obj.foto.url }}" alt="Foto"
+          style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;">
+        {% else %}
+        <div
+          style="width:52px;height:52px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:28px;height:28px;color:#9ca3af;" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+          </svg>
+        </div>
+        {% endif %}
+        <label for="foto-input" title="Cambiar foto"
+          style="position:absolute;bottom:0;right:0;width:20px;height:20px;border-radius:50%;background:#6abf4b;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.25);">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:11px;height:11px;color:white;" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+          </svg>
+        </label>
+        <input id="foto-input" type="file" name="foto" accept="image/*" style="display:none;"
+          onchange="document.getElementById('foto-form').submit()">
+      </div>
+
+      <!-- Nombre y email -->
+      <div>
+        <p style="font-weight:700;color:#1f2937;font-size:1rem;line-height:1.3;">
+          {{ request.user.get_full_name|default:request.user.email }}
+        </p>
+        <p style="font-size:0.78rem;color:#6b7280;">{{ request.user.email }}</p>
+      </div>
+
+    </div>
+  </form>
+
+  <!-- Menú -->
+  <div style="padding:20px 16px 0;">
+    <p
+      style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;padding-left:2px;">
+      Datos personales y configuración
+    </p>
+
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;">
+
+      <!-- Mis datos -->
+      <a href="{% url 'mis_datos' %}"
+        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f3f4f6;text-decoration:none;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span
+            style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#4b5563;" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+          </span>
+          <span style="font-size:0.875rem;font-weight:500;color:#374151;">Mis datos</span>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#9ca3af;flex-shrink:0;" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </a>
+
+      <!-- Cambiar contraseña -->
+      <a href="{% url 'cambiar_contrasena' %}"
+        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f3f4f6;text-decoration:none;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span
+            style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#4b5563;" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+          </span>
+          <span style="font-size:0.875rem;font-weight:500;color:#374151;">Cambiar contraseña</span>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#9ca3af;flex-shrink:0;" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </a>
+
+      {% if not user.is_staff and not user.is_superuser %}
+      <!-- Mis cupones -->
+      <a href="{% url 'mis_cupones' %}"
+        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f3f4f6;text-decoration:none;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span
+            style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#4b5563;" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M16.5 6v.75m0 3v.75m0 3V18m-6-12v.75m0 3v.75m0 3V18M4.5 9h15M4.5 15h15M3 6h18v12H3V6z" />
+            </svg>
+          </span>
+          <span style="font-size:0.875rem;font-weight:500;color:#374151;">Mis cupones</span>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#9ca3af;flex-shrink:0;" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </a>
+
+      <!-- Notificaciones -->
+      <a href="{% url 'notificaciones' %}"
+        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;text-decoration:none;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span
+            style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#4b5563;" fill="none"
+              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+            </svg>
+          </span>
+          <span style="font-size:0.875rem;font-weight:500;color:#374151;">Notificaciones</span>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#9ca3af;flex-shrink:0;" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </a>
+      {% endif %}
+
+    </div>
+  </div>
+
+
+</div>
+{% endblock %}

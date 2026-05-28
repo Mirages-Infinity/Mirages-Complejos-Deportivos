@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrarse - Complejos Deportivos{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'inicio' %}"
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+    </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+
+    <!-- Contenido principal -->
+    <div class="w-full max-w-lg mx-auto px-4 py-5 pb-28">
+
+        <!-- Tarjeta blanca del formulario -->
+        <div class="bg-white rounded-2xl shadow-sm px-5 py-6">
+
+            <h1 class="text-2xl font-bold text-gray-800 mb-5">Regístrate</h1>
+
+            {% if errores %}
+            <div class="bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4 flex flex-col gap-1">
+                {% for campo, msg in errores.items %}
+                <p class="text-xs font-bold" style="color: #e53935;">{{ msg }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'registro' %}" class="flex flex-col gap-4" id="registro-form">
+                {% csrf_token %}
+
+                <!-- Nombre y Apellido: apilados en mobile, 2 cols en sm+ -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-sm font-semibold" style="color:#2d3a8c;">Nombre <span class="text-red-500">*</span></label>
+                        <input type="text" id="nombre" name="nombre" placeholder="* Nombre" required
+                               value="{{ datos.nombre }}"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                        <p id="nombre-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">INGRESA TU NOMBRE</p>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-sm font-semibold" style="color:#2d3a8c;">Apellido <span class="text-red-500">*</span></label>
+                        <input type="text" id="apellido" name="apellido" placeholder="* Apellido" required
+                               value="{{ datos.apellido }}"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                        <p id="apellido-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">INGRESA TU APELLIDO</p>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-semibold" style="color:#2d3a8c;">Email <span class="text-red-500">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="* Email" required
+                           value="{{ datos.email }}"
+                           class="w-full border {% if errores.email %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                    <p id="email-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">EL CORREO DEBE SER VÁLIDO</p>
+                </div>
+
+                <!-- Teléfono -->
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-semibold" style="color:#2d3a8c;">Teléfono <span class="text-red-500">*</span></label>
+                    <div class="flex gap-2">
+                        <div class="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-2 bg-white text-sm text-gray-600 whitespace-nowrap">
+                            🇨🇱 +56
+                        </div>
+                        <input type="tel" id="telefono" name="telefono" placeholder="9XXXXXXXX" required
+                               value="{{ datos.telefono }}"
+                               maxlength="9"
+                               class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                    </div>
+                    <p id="telefono-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">INGRESA UN TELÉFONO VÁLIDO (9 dígitos, ej: 912345678)</p>
+                </div>
+
+                <!-- RUT -->
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-semibold" style="color:#2d3a8c;">RUT <span class="text-red-500">*</span></label>
+                    <input type="text" id="rut" name="rut" placeholder="Ej: 12345678-9" required
+                           value="{{ datos.rut }}"
+                           class="w-full border {% if errores.rut %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                    <p id="rut-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">EL RUT DEBE TENER FORMATO 12345678-9 Y SER VÁLIDO</p>
+                </div>
+
+                <!-- Fecha de nacimiento -->
+                <div class="flex flex-col gap-1">
+                    <label class="text-sm font-semibold" style="color:#2d3a8c;">Fecha de nacimiento <span class="text-red-500">*</span></label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <select name="dia" required
+                                class="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white text-gray-500">
+                            <option value="">Día</option>
+                            {% for d in dias %}
+                            <option value="{{ d }}" {% if datos.dia == d|stringformat:"s" %}selected{% endif %}>{{ d }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="mes" required
+                                class="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white text-gray-500">
+                            <option value="">Mes</option>
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                        <select name="anio" required
+                                class="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white text-gray-500">
+                            <option value="">Año</option>
+                            {% for a in anios %}
+                            <option value="{{ a }}" {% if datos.anio == a|stringformat:"s" %}selected{% endif %}>{{ a }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Contraseña: apiladas en mobile, 2 cols en sm+ -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-sm font-semibold" style="color:#2d3a8c;">Contraseña <span class="text-red-500">*</span></label>
+                        <input type="password" id="contrasena" name="contraseña" placeholder="* Contraseña" required
+                               class="w-full border {% if errores.clave %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                        <p id="contrasena-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">MÍNIMO 6 CARACTERES</p>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-sm font-semibold" style="color:#2d3a8c;">Repite la contraseña <span class="text-red-500">*</span></label>
+                        <input type="password" id="contrasena2" name="contraseña2" placeholder="* Repite la contraseña" required
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                        <p id="contrasena2-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">LAS CONTRASEÑAS NO COINCIDEN</p>
+                    </div>
+                </div>
+
+                <!-- Nota -->
+                <p class="text-xs text-gray-400">(*) campos mínimos requeridos para registrarte.</p>
+
+                <!-- Botón inscribir -->
+                <button type="submit"
+                        class="w-full py-3 rounded-full text-white font-semibold text-base"
+                        style="background-color: #6abf4b;">
+                    Inscribir
+                </button>
+
+                <!-- Link a login -->
+                <p class="text-center text-sm text-gray-500">
+                    ¿Ya tienes cuenta?
+                    <a href="{% url 'login' %}" class="font-semibold" style="color: #2d3a8c;">Inicia sesión</a>
+                </p>
+
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Utilidad: mostrar/ocultar error
+        function setError(inputId, errorId, show) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+            if (show) {
+                error.classList.remove('hidden');
+                input.classList.add('border-red-400');
+                input.classList.remove('border-gray-300');
+            } else {
+                error.classList.add('hidden');
+                input.classList.remove('border-red-400');
+                input.classList.add('border-gray-300');
+            }
+        }
+
+        // Nombre
+        document.getElementById('nombre').addEventListener('blur', function () {
+            setError('nombre', 'nombre-error', this.value.trim() === '');
+        });
+
+        // Apellido
+        document.getElementById('apellido').addEventListener('blur', function () {
+            setError('apellido', 'apellido-error', this.value.trim() === '');
+        });
+
+        // Email
+        document.getElementById('email').addEventListener('blur', function () {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const val = this.value.trim();
+            setError('email', 'email-error', val !== '' && !emailRegex.test(val));
+        });
+
+        // Teléfono: 9 dígitos, comienza con 9
+        document.getElementById('telefono').addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 9);
+        });
+        document.getElementById('telefono').addEventListener('blur', function () {
+            const val = this.value.trim();
+            const valid = /^9\d{8}$/.test(val);
+            setError('telefono', 'telefono-error', val !== '' && !valid);
+        });
+
+        const rutRegex = /^\d{7,8}-[\dkK]$/;
+
+        // RUT: sin puntos, con guion obligatorio y DV en mayúscula
+        document.getElementById('rut').addEventListener('input', function () {
+            let val = this.value.replace(/\./g, '').replace(/[^0-9kK-]/g, '').toUpperCase();
+            val = val.replace(/-/g, '');
+
+            if (val.length === 0) {
+                this.value = '';
+                return;
+            }
+
+            if (val.length === 1) {
+                this.value = val;
+                return;
+            }
+
+            const dv = val.slice(-1);
+            const body = val.slice(0, -1).slice(0, 8);
+            this.value = `${body}-${dv}`;
+        });
+        document.getElementById('rut').addEventListener('blur', function () {
+            const val = this.value.trim().replace(/\./g, '').toUpperCase();
+            this.value = val;
+            if (val === '') return;
+            setError('rut', 'rut-error', !validarRut(val));
+        });
+
+        function limpiarRut(rut) {
+            return rut.replace(/[^0-9kK]/g, '').toUpperCase();
+        }
+
+        function validarRut(rut) {
+            const normalizado = rut.replace(/\./g, '').toUpperCase();
+            if (!rutRegex.test(normalizado)) return false;
+
+            const [body, dv] = normalizado.split('-');
+            let sum = 0, mul = 2;
+            for (let i = body.length - 1; i >= 0; i--) {
+                sum += parseInt(body[i]) * mul;
+                mul = mul === 7 ? 2 : mul + 1;
+            }
+            const expected = 11 - (sum % 11);
+            const dvCalc = expected === 11 ? '0' : expected === 10 ? 'K' : String(expected);
+            return dv === dvCalc;
+        }
+
+        document.getElementById('registro-form').addEventListener('submit', function (e) {
+            const rutInput = document.getElementById('rut');
+            const rut = rutInput.value.trim().replace(/\./g, '').toUpperCase();
+            rutInput.value = rut;
+            if (!rut || !validarRut(rut)) {
+                e.preventDefault();
+                setError('rut', 'rut-error', true);
+                rutInput.focus();
+            }
+        });
+
+        // Contraseña mínimo 6 caracteres
+        document.getElementById('contrasena').addEventListener('blur', function () {
+            setError('contrasena', 'contrasena-error', this.value.length > 0 && this.value.length < 6);
+        });
+
+        // Repetir contraseña debe coincidir
+        document.getElementById('contrasena2').addEventListener('blur', function () {
+            const clave = document.getElementById('contrasena').value;
+            setError('contrasena2', 'contrasena2-error', this.value !== '' && this.value !== clave);
+        });
+    </script>
+
+
+{% endblock %}

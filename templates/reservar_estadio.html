@@ -1,0 +1,1470 @@
+{% extends 'base.html' %}
+
+{% block title %}Reserva Estadio Municipal - Complejos Deportivos{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'inicio' %}"
+    style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24"
+        stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+    </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- MODAL DE MEDIOS DE PAGO -->
+<div id="payment-modal"
+    class="fixed top-0 left-0 w-full h-full z-50 hidden flex items-center justify-center p-3 sm:p-4 transition-all duration-300">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm opacity-0 transition-opacity duration-300"
+        id="modal-backdrop"></div>
+
+    <!-- Contenido del Modal -->
+    <div class="bg-white w-full sm:w-full max-w-xl max-h-[94vh] sm:max-h-[92vh] rounded-3xl sm:rounded-4xl shadow-2xl overflow-hidden relative translate-y-8 opacity-0 transition-all duration-300 border-2 border-gray-200 flex flex-col box-border"
+        id="modal-content">
+        <!-- Header del Modal -->
+        <div class="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between">
+            <div>
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900">Método de Pago</h3>
+                <p class="text-xs text-gray-500 mt-1">Selecciona cómo deseas finalizar tu reserva</p>
+            </div>
+            <button id="close-modal"
+                class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto">
+            <!-- Opción 1: Tarjeta -->
+            <div class="payment-option group cursor-pointer border-2 border-transparent p-4 rounded-2xl flex items-center gap-4 transition-all"
+                data-method="tarjeta">
+                <div
+                    class="w-12 h-12 bg-gray-50 group-[.active]:bg-green-100 flex items-center justify-center rounded-xl transition-colors text-gray-400 group-[.active]:text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="20" height="14" x="2" y="5" rx="2" />
+                        <line x1="2" x2="22" y1="10" y2="10" />
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <p class="font-bold text-gray-800">Tarjeta de Crédito / Débito</p>
+                    <p class="text-[10px] text-green-600 font-bold uppercase tracking-widest mt-0.5">Confirmación
+                        Inmediata</p>
+                </div>
+                <div
+                    class="w-6 h-6 rounded-full border-2 border-gray-200 group-[.active]:border-green-500 flex items-center justify-center transition-all">
+                    <div
+                        class="w-3 h-3 bg-green-500 rounded-full scale-0 group-[.active]:scale-100 transition-transform">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Opción 2: Transferencia -->
+            <div class="payment-option group cursor-pointer border-2 border-transparent p-4 rounded-2xl flex items-center gap-4 transition-all"
+                data-method="transferencia">
+                <div
+                    class="w-12 h-12 bg-gray-50 group-[.active]:bg-blue-100 flex items-center justify-center rounded-xl transition-colors text-gray-400 group-[.active]:text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <p class="font-bold text-gray-800">Transferencia Bancaria</p>
+                    <p class="text-[10px] text-blue-600 font-bold uppercase tracking-widest mt-0.5">Requerirá validar
+                        comprobante</p>
+                </div>
+                <div
+                    class="w-6 h-6 rounded-full border-2 border-gray-200 group-[.active]:border-blue-500 flex items-center justify-center transition-all">
+                    <div
+                        class="w-3 h-3 bg-blue-500 rounded-full scale-0 group-[.active]:scale-100 transition-transform">
+                    </div>
+                </div>
+            </div>
+
+            <div id="transfer-info-panel" class="hidden bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                <div class="grid grid-cols-2 gap-3 sm:gap-5 items-start">
+                <div>
+                    <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.18em] mb-2">Datos de transferencia</p>
+                    <div class="space-y-2 text-[12px] sm:text-sm leading-tight">
+                        <p class="text-gray-700"><span class="font-bold">Banco:</span> {{ datos_transferencia.banco }}</p>
+                        <p class="text-gray-700"><span class="font-bold">Titular:</span> {{ datos_transferencia.titular }}</p>
+                        <p class="text-gray-700"><span class="font-bold">Tipo:</span> {{ datos_transferencia.tipo_cuenta }}</p>
+                        <p class="text-gray-700"><span class="font-bold">N°:</span> {{ datos_transferencia.numero_cuenta }}</p>
+                        <p class="text-gray-700"><span class="font-bold">RUT:</span> {{ datos_transferencia.rut }}</p>
+                        <p class="text-gray-700 break-all"><span class="font-bold">Correo:</span> {{ datos_transferencia.email }}</p>
+                    </div>
+                </div>
+
+                <div class="pl-3 sm:pl-5 border-l border-blue-100 min-w-0">
+                    <label for="transfer-proof-input" class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.18em] mb-2">
+                        Subir comprobante
+                    </label>
+                    <input id="transfer-proof-input" type="file" accept="image/*" class="hidden">
+                    <div class="space-y-3">
+                        <button id="transfer-proof-trigger" type="button"
+                            class="w-full min-h-[120px] rounded-2xl border-2 border-dashed border-blue-200 bg-white hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center justify-center gap-2 px-3 text-blue-700">
+                            <span class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="17 8 12 3 7 8" />
+                                    <line x1="12" x2="12" y1="3" y2="15" />
+                                </svg>
+                            </span>
+                            <span class="text-[11px] sm:text-xs font-black uppercase tracking-[0.14em] text-center">Seleccionar archivo</span>
+                            <span class="text-[10px] sm:text-[11px] text-gray-500 font-semibold text-center">JPG, PNG o imagen</span>
+                        </button>
+
+                    </div>
+                    <div id="transfer-proof-filebox"
+                        class="hidden rounded-2xl border border-blue-200 bg-white px-4 py-3 space-y-3">
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.14em] mb-1">Archivo cargado</p>
+                            <p id="transfer-proof-name" class="text-[11px] sm:text-[12px] font-bold text-gray-700 break-all"></p>
+                        </div>
+                        <div class="flex items-center gap-2 justify-end">
+                            <button id="transfer-proof-replace" type="button"
+                                class="w-9 h-9 rounded-full bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white transition-all flex items-center justify-center"
+                                title="Subir otro archivo">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="17 8 12 3 7 8" />
+                                    <line x1="12" x2="12" y1="3" y2="15" />
+                                </svg>
+                            </button>
+                            <button id="transfer-proof-remove" type="button"
+                                class="w-9 h-9 rounded-full bg-red-50 hover:bg-red-600 text-red-500 hover:text-white transition-all flex items-center justify-center"
+                                title="Eliminar archivo">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 6 6 18" />
+                                    <path d="m6 6 12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-gray-500">Formatos sugeridos: JPG, PNG o imagen.</p>
+                </div>
+                </div>
+                <div class="h-3 sm:h-4"></div>
+            </div>
+
+            {% if tiene_cupon %}
+            <!-- Opción 3: Cupón -->
+            <div class="payment-option group cursor-pointer border-2 border-transparent p-4 rounded-2xl flex items-center gap-4 transition-all"
+                data-method="cupon">
+                <div
+                    class="w-12 h-12 bg-gray-50 group-[.active]:bg-orange-100 flex items-center justify-center rounded-xl transition-colors text-gray-400 group-[.active]:text-orange-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16.5 6v.75m0 3v.75m0 3V18m-6-12v.75m0 3v.75m0 3V18M4.5 9h15M4.5 15h15M3 6h18v12H3V6z"/>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <p class="font-bold text-gray-800">Cupón de Reserva</p>
+                    <p class="text-[10px] text-orange-600 font-bold uppercase tracking-widest mt-0.5">Ingresa tu código de cupón</p>
+                </div>
+                <div
+                    class="w-6 h-6 rounded-full border-2 border-gray-200 group-[.active]:border-orange-500 flex items-center justify-center transition-all">
+                    <div
+                        class="w-3 h-3 bg-orange-500 rounded-full scale-0 group-[.active]:scale-100 transition-transform">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de cupón -->
+            <div id="cupon-info-panel" class="hidden bg-orange-50 border border-orange-100 rounded-2xl p-4">
+                <p class="text-[10px] font-black text-orange-400 uppercase tracking-[0.18em] mb-3">Código de cupón</p>
+                <div class="flex gap-2">
+                    <input id="cupon-codigo-input" type="text" maxlength="12" placeholder="Ej: A3F2B1C4"
+                        class="flex-1 border border-orange-200 rounded-xl px-3 py-2 text-sm font-mono font-bold uppercase focus:outline-none focus:border-orange-400 bg-white text-gray-800"
+                        style="letter-spacing:0.1em;">
+                    <button id="cupon-validar-btn" type="button"
+                        class="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold uppercase tracking-wide transition-colors">
+                        Validar
+                    </button>
+                </div>
+                <p id="cupon-mensaje" class="text-xs mt-2 hidden"></p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Footer del Modal -->
+        <div class="p-4 sm:p-6 bg-gray-50 border-t border-gray-100 flex flex-col gap-3">
+            <button id="final-submit-btn" disabled
+                class="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg transition-all text-sm uppercase tracking-wider">
+                Pagar y Finalizar Reserva
+            </button>
+        </div>
+    </div>
+</div>
+
+<div
+    class="w-full max-w-7xl mx-auto flex flex-col md:flex-row gap-6 md:gap-8 pb-8 px-4 sm:px-6 transition-all duration-500 ease-in-out items-start justify-center">
+
+    <!-- CARD IZQUIERDA: SELECTOR -->
+    <div id="selector-container" class="w-full max-w-lg transition-all duration-500 mx-auto md:mx-0 shrink-0">
+        <div class="py-3 sm:py-4">
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                <!-- Banner Superior Interno Compacto -->
+                <div class="p-3 sm:p-4 bg-linear-to-r from-[#6c5ce7] to-[#5136b6]">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                            <span class="text-2xl">🏟️</span>
+                        </div>
+                        <div>
+                            <h1 class="text-white font-bold text-lg sm:text-xl">Estadio Municipal</h1>
+                            <p class="text-purple-50 text-xs opacity-90">Reserva tu espacio</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 sm:p-4">
+                    <!-- SECCIÓN 1: SELECTOR DE FECHA COMPACTO -->
+                    <div
+                        class="flex items-center justify-between bg-gray-50 p-2 sm:p-3 rounded-xl mb-4 border border-gray-100">
+                        <div class="flex items-center gap-1 sm:gap-2">
+                            <button id="prev-date"
+                                class="p-1.5 bg-white hover:bg-gray-100 rounded-lg shadow-sm transition-all text-gray-700 border border-gray-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="m15 18-6-6 6-6" />
+                                </svg>
+                            </button>
+                            <span id="display-date"
+                                class="font-bold text-gray-800 text-sm sm:text-base min-w-[100px] text-center">DD/MM/YYYY</span>
+                            <button id="next-date"
+                                class="p-1.5 bg-white hover:bg-gray-100 rounded-lg shadow-sm transition-all text-gray-700 border border-gray-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="m9 18 6-6-6-6" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-1.5 min-w-20">
+                            {% if user.is_superuser %}
+                            <button id="admin-bloquear-periodo-btn" onclick="abrirModalBloqueoPeriodo()" title="Bloquear período de fechas"
+                                class="p-2 bg-white border border-gray-200 hover:border-orange-500 hover:text-orange-600 rounded-lg shadow-sm transition-all group mr-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" class="text-gray-500">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    <line x1="12" y1="15" x2="12" y2="17"></line>
+                                </svg>
+                            </button>
+                            <button id="admin-edit-btn" title="Editar disponibilidad (Solo Admin)"
+                                class="p-2 bg-white border border-gray-200 hover:border-blue-500 hover:text-blue-600 rounded-lg shadow-sm transition-all group">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                            </button>
+                            {% endif %}
+                            <div class="relative">
+                                <button id="calendar-btn"
+                                    class="p-2 bg-white border border-gray-200 hover:border-purple-500 hover:text-purple-600 rounded-lg shadow-sm transition-all group">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                                        <line x1="16" x2="16" y1="2" y2="6" />
+                                        <line x1="8" x2="8" y1="2" y2="6" />
+                                        <line x1="3" x2="21" y1="10" y2="10" />
+                                    </svg>
+                                </button>
+                                <input type="date" id="hidden-datepicker"
+                                    class="absolute inset-0 opacity-0 cursor-pointer pointer-events-none"
+                                    style="visibility: hidden;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: BLOQUES DE HORARIOS COMPACTOS -->
+                    <div class="mb-3">
+                        <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Horarios
+                            Disponibles</h3>
+                        {% if not config_estadio.activo and not user.is_superuser %}
+                        <div class="bg-red-50 text-red-600 font-bold p-4 rounded-xl text-center border border-red-100 text-sm flex flex-col items-center gap-2">
+                            <span class="text-2xl opacity-80">🔒</span>
+                            Complejo deshabilitado temporalmente.<br>Inténtalo nuevamente más tarde.
+                        </div>
+                        <div id="time-grid" class="hidden"></div>
+                        {% else %}
+                        <div id="time-grid" class="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                            <!-- Los bloques se generarán con JS -->
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Botón de Confirmación Compacto (Oculto para Admins) -->
+                    <div class="mt-4" id="confirm-container">
+                        {% if user.is_superuser %}
+                        <div id="admin-info-bar"
+                            class="w-full bg-purple-100 border border-purple-200 text-purple-700 font-bold py-3 px-6 rounded-xl text-center text-sm">
+                            🛠️ Modo de Gestión de Horarios
+                        </div>
+                        {% else %}
+                        <button id="confirm-booking"
+                            class="w-full bg-[#6c5ce7] hover:bg-[#5136b6] text-white font-bold py-3 px-6 rounded-xl shadow-md shadow-purple-100 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:bg-gray-200 disabled:shadow-none disabled:cursor-not-allowed text-sm sm:text-base"
+                            disabled>
+                            Selecciona un horario
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARD DERECHA: FOTO CANCHA (Visible inicialmente) -->
+    <div id="photo-container"
+        class="w-full max-w-lg transition-all duration-500 opacity-0 translate-x-4 shrink-0">
+        <div class="py-3 sm:py-4">
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <!-- Banner superior estilo voucher -->
+                <div class="p-4 bg-gray-900 text-white">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                            <span class="text-2xl">🏟️</span>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-lg">Vista previa</h2>
+                            <p class="text-gray-400 text-xs opacity-90">Foto referencia</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Foto -->
+                <div class="overflow-hidden" style="height: 300px;">
+                    <img src="/media/fotos_recintos/estadio.jpeg"
+                         alt="Estadio Municipal"
+                         class="w-full h-full object-cover">
+                </div>
+                <!-- Pie de tarjeta -->
+                <div class="p-5 sm:p-6">
+                    <p class="text-xs text-gray-400 text-center uppercase tracking-widest font-semibold">Selecciona un horario para reservar</p>
+                </div>
+            </div>
+        </div>
+        <!-- Espaciador invisible para móvil (evita que quede pegado al nav inferior) -->
+        <div class="h-20 md:hidden" aria-hidden="true"></div>
+    </div>
+
+    <!-- CARD DERECHA: VOUCHER (Oculto inicialmente) -->
+    <div id="voucher-container"
+        class="hidden w-full max-w-lg transition-all duration-500 opacity-0 translate-x-4 shrink-0">
+        <div class="py-3 sm:py-4">
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden h-full">
+                <!-- Banner Superior Ticket (Mismo estilo que el calendario) -->
+                <div class="p-4 bg-gray-900 text-white relative">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-lg">Resumen de Reserva</h2>
+                            <p class="text-gray-400 text-xs opacity-90">Verifica tus datos</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-5 sm:p-6 space-y-5">
+                    <div
+                        class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">
+                                🏟️
+                            </div>
+                            <div class="overflow-hidden">
+                                <p class="text-[10px] text-purple-400 uppercase font-bold tracking-wider">Recinto</p>
+                                <p class="font-bold text-gray-800 text-sm leading-tight truncate">{{ config_estadio.nombre|default:"Estadio Municipal" }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-1 justify-center items-end text-right">
+                            <div>
+                                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Fecha</p>
+                                <p class="font-bold text-gray-900 text-sm" id="v-date">-</p>
+                            </div>
+                            <div class="pt-1 mt-1 border-t border-gray-200">
+                                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Hora</p>
+                                <p class="font-bold text-[#6c5ce7] text-sm" id="v-time">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Nombre
+                                Completo</p>
+                            <p class="font-bold text-gray-800 truncate"
+                                title="{{ request.user.get_full_name|default:request.user.username }}">
+                                {{ request.user.first_name }} {{ request.user.last_name|default:request.user.username }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">RUT</p>
+                            <p class="font-bold text-gray-800">{{ user_profile.rut|default:'No registrado' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Correo
+                                Electrónico</p>
+                            <p class="text-sm font-medium text-gray-600 truncate" title="{{ request.user.email }}">
+                                {{ request.user.email }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Teléfono</p>
+                            <p class="font-bold text-gray-800">{{ user_profile.telefono|default:'No registrado' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 space-y-3">
+                        <button id="open-payment-modal"
+                            class="w-full bg-[#6c5ce7] hover:bg-[#5136b6] text-white font-bold py-4 px-6 rounded-xl shadow-xl shadow-purple-100 transition-all hover:scale-[1.01] active:scale-[0.99] text-sm uppercase tracking-wider">
+                            Confirmar Reserva
+                        </button>
+                        <button id="cancel-voucher"
+                            class="w-full text-gray-400 hover:text-gray-600 font-bold text-xs py-1 transition-all uppercase tracking-widest">
+                            Cambiar Horario
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</div>
+
+<style>
+    .slot-block {
+        aspect-ratio: 1.2/1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        user-select: none;
+        background-color: #f8fafc;
+    }
+
+    .slot-available {
+        color: #334155;
+        border-color: #f1f5f9;
+    }
+
+    .slot-available:hover {
+        background-color: white;
+        border-color: #6c5ce7;
+        color: #6c5ce7;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(108, 92, 231, 0.1);
+    }
+
+    .slot-selected {
+        background-color: #6c5ce7 !important;
+        color: white !important;
+        border-color: #5136b6 !important;
+        box-shadow: 0 4px 10px -2px rgba(108, 92, 231, 0.3);
+        transform: scale(1.03);
+    }
+
+    .slot-unavailable {
+        background-color: #f1f5f9;
+        color: #94a3b8;
+        cursor: not-allowed;
+        border-color: #f1f5f9;
+        opacity: 0.75;
+    }
+
+    .slot-reserved {
+        background-color: #ddd6fe;
+        color: #6d28d9;
+        cursor: not-allowed;
+        border-color: #c4b5fd;
+        opacity: 1;
+    }
+
+    .slot-reserved:hover {
+        background-color: #c4b5fd;
+        border-color: #7c3aed;
+        color: #581c87;
+        box-shadow: 0 4px 12px -2px rgba(124, 58, 237, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .slot-reserved-admin {
+        background-color: #fff7ed;
+        color: #c2410c;
+        border-color: #fed7aa;
+        cursor: pointer;
+        opacity: 1;
+    }
+
+    .slot-reserved-admin::after {
+        content: '⚠';
+        font-size: 0.6rem;
+        position: absolute;
+        top: 2px;
+        right: 2px;
+    }
+
+    .slot-reserved-admin:hover {
+        background-color: #ffedd5;
+        border-color: #fb923c;
+        box-shadow: 0 4px 12px -2px rgba(234, 88, 12, 0.25);
+        transform: translateY(-2px);
+    }
+
+    /* Estilos Modo Edición Admin */
+    .edit-mode-active #admin-edit-btn {
+        background-color: #f5f3ff;
+        border-color: #6c5ce7;
+        color: #6c5ce7;
+        box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+    }
+
+    .edit-mode-active .slot-block:not(.slot-unavailable-past):hover {
+        border-color: #6c5ce7 !important;
+        transform: scale(1.05);
+    }
+
+    .slot-blocked {
+        background-color: #fef2f2 !important;
+        color: #ef4444 !important;
+        border-color: #fee2e2 !important;
+        opacity: 1 !important;
+        cursor: pointer !important;
+    }
+
+    .slot-blocked::after {
+        content: '🔒';
+        font-size: 0.6rem;
+        position: absolute;
+        top: 2px;
+        right: 2px;
+    }
+
+    .slot-unavailable-past {
+        background-color: #f1f5f9;
+        color: #cbd5e1;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .slot-periodo-bloqueado {
+        background-color: #fff7ed;
+        color: #f97316;
+        border-color: #fed7aa;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    /* Estilos Modal de Pago */
+    .payment-option.active {
+        border-color: currentColor !important;
+        background-color: rgba(240, 253, 244, 0.05);
+    }
+
+    #payment-modal.modal-visible #modal-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    #payment-modal.modal-visible #modal-content {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    #modal-content {
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 2rem !important;
+    }
+
+    /* Hover dinámico por medio de pago */
+    .payment-option {
+        border-color: #f1f5f9 !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .payment-option[data-method="tarjeta"]:hover {
+        border-color: #6c5ce7 !important;
+        background-color: #f5f3ff !important;
+        transform: scale(1.01);
+    }
+
+    .payment-option[data-method="transferencia"]:hover {
+        border-color: #3b82f6 !important;
+        background-color: #eff6ff !important;
+        transform: scale(1.01);
+    }
+
+    .payment-option.active[data-method="tarjeta"] {
+        border-color: #6c5ce7 !important;
+        background-color: #f5f3ff !important;
+        box-shadow: 0 4px 12px -2px rgba(108, 92, 231, 0.2);
+    }
+
+    .payment-option.active[data-method="transferencia"] {
+        border-color: #3b82f6 !important;
+        background-color: #eff6ff !important;
+        box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.2);
+    }
+
+    .payment-option[data-method="cupon"]:hover {
+        border-color: #f97316 !important;
+        background-color: #fff7ed !important;
+        transform: scale(1.01);
+    }
+
+    .payment-option.active[data-method="cupon"] {
+        border-color: #f97316 !important;
+        background-color: #fff7ed !important;
+        box-shadow: 0 4px 12px -2px rgba(249, 115, 22, 0.2);
+    }
+
+    #payment-modal {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 9999 !important;
+        display: none;
+        /* Oculto por defecto */
+        align-items: center !important;
+        justify-content: center !important;
+        background: transparent !important;
+        overflow-y: auto !important;
+    }
+
+    #payment-modal.modal-visible {
+        display: flex !important;
+    }
+
+    #modal-content {
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 2rem !important;
+        transform: translateY(-2vh) !important;
+        margin: auto !important;
+    }
+
+    @media (max-width: 639px) {
+        #voucher-container .py-3,
+        #voucher-container .sm\:py-4 {
+            padding-bottom: 5.5rem !important;
+        }
+
+        #payment-modal #modal-content {
+            padding-bottom: 2.5rem !important;
+        }
+
+        #payment-modal {
+            padding: 12px !important;
+        }
+
+        #modal-content {
+            width: 100% !important;
+            max-width: 100% !important;
+            max-height: 94vh !important;
+            border-radius: 1.5rem !important;
+            transform: translateY(0) !important;
+            margin: auto !important;
+            box-sizing: border-box !important;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const config = {
+            startTime: "{{ config_estadio.hora_inicio|time:'H:i'|default:'08:30' }}",
+            endTime: "{{ config_estadio.hora_fin|time:'H:i'|default:'22:00' }}",
+            pausaInicio: "{{ config_estadio.pausa_inicio|time:'H:i'|default:'' }}",
+            pausaFin: "{{ config_estadio.pausa_fin|time:'H:i'|default:'' }}",
+            diasSemana: [{{ config_estadio.dias_semana|default:'0,1,2,3,4,5,6' }}],
+            interval: parseInt("{{ config_estadio.intervalo_minutos|default:'120' }}"),
+            isAuthenticated: "{{ user.is_authenticated|yesno:'true,false' }}" === "true"
+        };
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Límite de 31 días a futuro (1 mes)
+        const maxDate = new Date(today.getTime() + (31 * 24 * 60 * 60 * 1000));
+        maxDate.setHours(23, 59, 59, 999);
+
+        let selectedDate = new Date(today);
+        let selectedSlot = null;
+        let currentBloqueos = [];
+        let currentReservadas = [];
+        let currentBloqueadoPeriodo = false;
+        let isAdminEditMode = false;
+        let transferProofFile = null;
+
+        const displayDate = document.getElementById('display-date');
+        const timeGrid = document.getElementById('time-grid');
+        const hiddenDatePicker = document.getElementById('hidden-datepicker');
+        const confirmBtn = document.getElementById('confirm-booking');
+        const prevBtn = document.getElementById('prev-date');
+        const nextBtn = document.getElementById('next-date');
+        const voucherContainer = document.getElementById('voucher-container');
+        const photoContainer = document.getElementById('photo-container');
+        const selectorContainer = document.getElementById('selector-container');
+        const cancelVoucherBtn = document.getElementById('cancel-voucher');
+        const confirmBtnReal = document.getElementById('confirm-booking');
+
+        function formatDate(date) {
+            const d = date.getDate().toString().padStart(2, '0');
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}/${m}/${y}`;
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        window.abrirModalBloqueoPeriodo = function() {
+            const modal = document.getElementById('modal-bloqueo-periodo');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.cerrarModalBloqueoPeriodo = function() {
+            const modal = document.getElementById('modal-bloqueo-periodo');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        async function fetchBloqueos() {
+            const yyyy = selectedDate.getFullYear();
+            const mm = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+            const dd = selectedDate.getDate().toString().padStart(2, '0');
+            const fechaStr = `${yyyy}-${mm}-${dd}`;
+
+            try {
+                const response = await fetch(`?ajax=1&fecha=${fechaStr}`);
+                const data = await response.json();
+                currentBloqueos = data.bloqueos || [];
+                currentReservadas = data.reservadas || [];
+                currentBloqueadoPeriodo = data.bloqueado_periodo || false;
+                renderSlots();
+            } catch (e) {
+                console.error("Error cargando bloqueos:", e);
+            }
+        }
+
+        function updateDateUI() {
+            displayDate.textContent = formatDate(selectedDate);
+            const yyyy = selectedDate.getFullYear();
+            const mm = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+            const dd = selectedDate.getDate().toString().padStart(2, '0');
+            hiddenDatePicker.value = `${yyyy}-${mm}-${dd}`;
+
+            // Actualizar estado de los botones de navegación
+            prevBtn.style.opacity = selectedDate <= today ? "0.3" : "1";
+            prevBtn.style.cursor = selectedDate <= today ? "not-allowed" : "pointer";
+
+            nextBtn.style.opacity = selectedDate >= maxDate ? "0.3" : "1";
+            nextBtn.style.cursor = selectedDate >= maxDate ? "not-allowed" : "pointer";
+
+            fetchBloqueos();
+        }
+
+        function renderSlots() {
+            timeGrid.innerHTML = '';
+            selectedSlot = null;
+
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                if (isAdminEditMode) {
+                    confirmBtn.textContent = 'Modo Edición: Haz clic para bloquear/desbloquear';
+                    confirmBtn.className = "w-full bg-purple-600 text-white font-bold py-3 px-6 rounded-xl transition-all opacity-80 cursor-default text-sm sm:text-base";
+                } else {
+                    confirmBtn.textContent = 'Selecciona un horario';
+                    confirmBtn.className = "w-full bg-[#6c5ce7] hover:bg-[#5136b6] text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all text-sm sm:text-base disabled:bg-gray-200 disabled:cursor-not-allowed";
+                }
+            }
+
+            // JS getDay(): 0=Dom … 6=Sáb → Python weekday: (jsDay+6)%7
+            if (!config.diasSemana.includes((selectedDate.getDay() + 6) % 7)) {
+                const msg = document.createElement('p');
+                msg.className = 'col-span-full text-center text-gray-400 text-sm py-6';
+                msg.textContent = 'Este recinto no está disponible este día.';
+                timeGrid.appendChild(msg);
+                return;
+            }
+
+            const [startH, startM] = config.startTime.split(':').map(Number);
+            const [endH, endM] = config.endTime.split(':').map(Number);
+            const pausaInicioMin = config.pausaInicio
+                ? parseInt(config.pausaInicio.split(':')[0]) * 60 + parseInt(config.pausaInicio.split(':')[1])
+                : -1;
+            const pausaFinMin = config.pausaFin
+                ? parseInt(config.pausaFin.split(':')[0]) * 60 + parseInt(config.pausaFin.split(':')[1])
+                : -1;
+
+            let current = new Date(selectedDate);
+            current.setHours(startH, startM, 0, 0);
+
+            const end = new Date(selectedDate);
+            end.setHours(endH, endM, 0, 0);
+
+            while (current <= end) {
+                const h = current.getHours().toString().padStart(2, '0');
+                const m = current.getMinutes().toString().padStart(2, '0');
+                const timeStr = `${h}:${m}`;
+
+                const currentMin = current.getHours() * 60 + current.getMinutes();
+                if (pausaInicioMin >= 0 && currentMin >= pausaInicioMin && currentMin < pausaFinMin) {
+                    current.setMinutes(current.getMinutes() + config.interval);
+                    continue;
+                }
+
+                const slot = document.createElement('div');
+                slot.className = 'slot-block relative';
+                slot.innerHTML = `<span>${timeStr}</span>`;
+
+                const now = new Date();
+                const fourHoursLater = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+                const isPast = (selectedDate.toDateString() === now.toDateString() && current < fourHoursLater);
+                const isBlocked = currentBloqueos.includes(timeStr);
+                const isReserved = currentReservadas.includes(timeStr);
+
+                if (currentBloqueadoPeriodo) {
+                    slot.classList.add('slot-periodo-bloqueado');
+                } else if (isPast) {
+                    slot.classList.add('slot-unavailable-past');
+                } else if (isBlocked) {
+                    if (isAdminEditMode) {
+                        slot.classList.add('slot-blocked');
+                    } else {
+                        slot.classList.add('slot-unavailable');
+                    }
+                } else if (isReserved) {
+                    slot.classList.add(isAdminEditMode ? 'slot-reserved-admin' : 'slot-reserved');
+                } else {
+                    slot.classList.add('slot-available');
+                }
+
+                slot.onclick = () => {
+                    if (!voucherContainer.classList.contains('hidden')) return;
+                    if (currentBloqueadoPeriodo) return;
+                    if (isAdminEditMode) {
+                        if (isPast) return;
+                        toggleSlotBlock(timeStr, slot);
+                    } else {
+                        // Para usuarios normales o admin en modo vista (aunque admin no debería reservar)
+                        if (isPast || isBlocked || isReserved || ("{{ user.is_superuser }}" === "True")) return;
+
+                        if (confirmBtn) {
+                            document.querySelectorAll('.slot-block').forEach(s => s.classList.remove('slot-selected'));
+                            slot.classList.add('slot-selected');
+                            selectedSlot = timeStr;
+                            confirmBtn.disabled = false;
+                            confirmBtn.textContent = `Reservar ${timeStr}`;
+                        }
+                    }
+                };
+
+                timeGrid.appendChild(slot);
+                current.setMinutes(current.getMinutes() + config.interval);
+            }
+        }
+
+        async function toggleSlotBlock(timeStr, slotElement) {
+            const yyyy = selectedDate.getFullYear();
+            const mm = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+            const dd = selectedDate.getDate().toString().padStart(2, '0');
+            const fechaStr = `${yyyy}-${mm}-${dd}`;
+
+            slotElement.style.opacity = "0.5";
+
+            try {
+                const response = await fetch("{% url 'toggle_bloqueo' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        cancha_id: "{{ config_estadio.id }}",
+                        fecha: fechaStr,
+                        hora: timeStr
+                    })
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    if (result.action === 'blocked') {
+                        if (!currentBloqueos.includes(timeStr)) currentBloqueos.push(timeStr);
+                        if (result.avisos && result.avisos > 0) {
+                            const plural = result.avisos === 1 ? 'usuario' : 'usuarios';
+                            mostrarAvisoBloqueo(`Horario bloqueado. Se notificó a ${result.avisos} ${plural} con reservas en este horario.`);
+                        }
+                    } else {
+                        currentBloqueos = currentBloqueos.filter(t => t !== timeStr);
+                    }
+                } else if (result.message) {
+                    alert(result.message);
+                }
+            } catch (e) {
+                console.error("Error al togglear bloqueo:", e);
+            } finally {
+                renderSlots();
+            }
+        }
+
+        // Eventos
+        const vDate = document.getElementById('v-date');
+        const vTime = document.getElementById('v-time');
+
+        const finalModal = document.getElementById('payment-modal');
+        const transferInfoPanel = document.getElementById('transfer-info-panel');
+        const transferProofInput = document.getElementById('transfer-proof-input');
+        const transferProofTrigger = document.getElementById('transfer-proof-trigger');
+        const transferProofFilebox = document.getElementById('transfer-proof-filebox');
+        const transferProofName = document.getElementById('transfer-proof-name');
+        const transferProofReplace = document.getElementById('transfer-proof-replace');
+        const transferProofRemove = document.getElementById('transfer-proof-remove');
+        const cuponInfoPanel = document.getElementById('cupon-info-panel');
+        const cuponCodigoInput = document.getElementById('cupon-codigo-input');
+        const cuponValidarBtn = document.getElementById('cupon-validar-btn');
+        const cuponMensaje = document.getElementById('cupon-mensaje');
+
+        // Lógica Modal Pago
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        const finalSubmitBtn = document.getElementById('final-submit-btn');
+        let selectedPaymentMethod = null;
+        let cuponValidado = false;
+
+        function updatePaymentSubmitState() {
+            if (!finalSubmitBtn) return;
+            if (selectedPaymentMethod === 'transferencia') {
+                finalSubmitBtn.disabled = !transferProofFile;
+            } else if (selectedPaymentMethod === 'cupon') {
+                finalSubmitBtn.disabled = !cuponValidado;
+            } else {
+                finalSubmitBtn.disabled = !selectedPaymentMethod;
+            }
+        }
+
+        function resetCupon() {
+            cuponValidado = false;
+            if (cuponCodigoInput) cuponCodigoInput.value = '';
+            if (cuponMensaje) { cuponMensaje.classList.add('hidden'); cuponMensaje.textContent = ''; }
+            updatePaymentSubmitState();
+        }
+
+
+        function resetTransferProof() {
+            transferProofFile = null;
+            if (transferProofInput) transferProofInput.value = '';
+            if (transferProofName) transferProofName.textContent = '';
+            if (transferProofFilebox) transferProofFilebox.classList.add('hidden');
+            if (transferProofTrigger) transferProofTrigger.classList.remove('hidden');
+            updatePaymentSubmitState();
+        }
+
+        function setTransferProof(file) {
+            transferProofFile = file;
+            if (transferProofFile) {
+                if (transferProofName) transferProofName.textContent = transferProofFile.name;
+                if (transferProofFilebox) transferProofFilebox.classList.remove('hidden');
+                if (transferProofTrigger) transferProofTrigger.classList.add('hidden');
+            } else {
+                resetTransferProof();
+            }
+            updatePaymentSubmitState();
+        }
+
+        if (confirmBtnReal) {
+            confirmBtnReal.onclick = () => {
+                if (!selectedSlot) return;
+                if (!config.isAuthenticated) {
+                    // Usuario no autenticado: redirigir al login con la reserva pendiente
+                    const yyyy = selectedDate.getFullYear();
+                    const mm = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+                    const dd = selectedDate.getDate().toString().padStart(2, '0');
+                    const fechaStr = `${yyyy}-${mm}-${dd}`;
+                    const nextUrl = `/reserva-estadio/?fecha=${fechaStr}&hora=${encodeURIComponent(selectedSlot)}`;
+                    window.location.href = `/login/?next=${encodeURIComponent(nextUrl)}`;
+                    return;
+                }
+                vDate.textContent = formatDate(selectedDate);
+                vTime.textContent = selectedSlot;
+
+                // Ocultar foto con fade-out
+                photoContainer.classList.add('opacity-0', 'translate-x-4');
+                setTimeout(() => {
+                    photoContainer.classList.add('hidden');
+                    // Mostrar voucher
+                    voucherContainer.classList.remove('hidden');
+                    selectorContainer.classList.remove('mx-auto');
+                    setTimeout(() => {
+                        voucherContainer.classList.remove('opacity-0', 'translate-x-4');
+                        voucherContainer.classList.add('opacity-100', 'translate-x-0');
+                    }, 50);
+                }, 300);
+            };
+        }
+
+        // Abrir Modal desde el voucher
+        const openModalBtn = document.getElementById('open-payment-modal');
+        if (openModalBtn) {
+            openModalBtn.onclick = () => {
+                finalModal.classList.remove('hidden');
+                setTimeout(() => {
+                    finalModal.classList.add('modal-visible');
+                }, 10);
+            };
+        }
+
+        // Cerrar Modal
+        const closeModalBtn = document.getElementById('close-modal');
+        if (closeModalBtn) {
+            closeModalBtn.onclick = () => {
+                finalModal.classList.remove('modal-visible');
+                setTimeout(() => {
+                    finalModal.classList.add('hidden');
+                    // Reset selección
+                    paymentOptions.forEach(opt => opt.classList.remove('active'));
+                    finalSubmitBtn.disabled = true;
+                    selectedPaymentMethod = null;
+                    if (transferInfoPanel) transferInfoPanel.classList.add('hidden');
+                    if (cuponInfoPanel) cuponInfoPanel.classList.add('hidden');
+                    resetTransferProof();
+                    resetCupon();
+                }, 300);
+            };
+        }
+
+        // Seleccionar Medio de Pago
+        paymentOptions.forEach(option => {
+            option.onclick = () => {
+                paymentOptions.forEach(opt => opt.classList.remove('active', 'text-green-600', 'text-blue-600', 'text-purple-600', 'text-orange-600'));
+                option.classList.add('active');
+
+                selectedPaymentMethod = option.dataset.method;
+                if (selectedPaymentMethod === 'tarjeta') option.classList.add('text-purple-600');
+                if (selectedPaymentMethod === 'transferencia') option.classList.add('text-blue-600');
+                if (selectedPaymentMethod === 'cupon') option.classList.add('text-orange-600');
+
+                if (transferInfoPanel) {
+                    transferInfoPanel.classList.toggle('hidden', selectedPaymentMethod !== 'transferencia');
+                }
+                if (cuponInfoPanel) {
+                    cuponInfoPanel.classList.toggle('hidden', selectedPaymentMethod !== 'cupon');
+                }
+                if (selectedPaymentMethod !== 'transferencia') {
+                    resetTransferProof();
+                }
+                if (selectedPaymentMethod !== 'cupon') {
+                    resetCupon();
+                }
+
+                updatePaymentSubmitState();
+            };
+        });
+
+        if (transferProofTrigger) {
+            transferProofTrigger.onclick = () => transferProofInput.click();
+        }
+
+        if (transferProofReplace) {
+            transferProofReplace.onclick = () => transferProofInput.click();
+        }
+
+        if (transferProofRemove) {
+            transferProofRemove.onclick = () => resetTransferProof();
+        }
+
+        if (transferProofInput) {
+            transferProofInput.onchange = (e) => {
+                const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+                if (file && !(file.type || '').startsWith('image/')) {
+                    alert('Solo se permiten imágenes como comprobante.');
+                    resetTransferProof();
+                    return;
+                }
+                setTransferProof(file);
+            };
+        }
+
+        if (cuponValidarBtn) {
+            cuponValidarBtn.onclick = async () => {
+                const codigo = cuponCodigoInput ? cuponCodigoInput.value.trim().toUpperCase() : '';
+                if (!codigo) return;
+                cuponValidarBtn.disabled = true;
+                cuponValidarBtn.textContent = '...';
+                try {
+                    const resp = await fetch(`/perfil/validar-cupon/?codigo=${encodeURIComponent(codigo)}&cancha=${encodeURIComponent('{{ config_estadio.nombre }}')}`, {
+                        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                    });
+                    const data = await resp.json();
+                    cuponValidado = data.valido;
+                    if (cuponMensaje) {
+                        cuponMensaje.classList.remove('hidden', 'text-green-600', 'text-red-600');
+                        cuponMensaje.classList.add(data.valido ? 'text-green-600' : 'text-red-600');
+                        cuponMensaje.textContent = data.mensaje;
+                    }
+                } catch(e) {
+                    if (cuponMensaje) {
+                        cuponMensaje.classList.remove('hidden');
+                        cuponMensaje.classList.add('text-red-600');
+                        cuponMensaje.textContent = 'Error al validar el cupón.';
+                    }
+                } finally {
+                    cuponValidarBtn.disabled = false;
+                    cuponValidarBtn.textContent = 'Validar';
+                    updatePaymentSubmitState();
+                }
+            };
+        }
+
+        if (cuponCodigoInput) {
+            cuponCodigoInput.oninput = () => {
+                cuponValidado = false;
+                if (cuponMensaje) cuponMensaje.classList.add('hidden');
+                updatePaymentSubmitState();
+            };
+        }
+
+        if (finalSubmitBtn) {
+            finalSubmitBtn.onclick = async () => {
+                if (!selectedSlot || !selectedPaymentMethod) return;
+
+                const originalText = finalSubmitBtn.innerText;
+                finalSubmitBtn.disabled = true;
+                finalSubmitBtn.innerHTML = `
+                    <div class="flex items-center justify-center gap-2">
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Procesando...</span>
+                    </div>
+                `;
+
+                try {
+                    const formData = new FormData();
+                    formData.append('cancha_id', "{{ config_estadio.id }}");
+                    formData.append('fecha', selectedDate.toISOString().split('T')[0]);
+                    formData.append('hora', selectedSlot);
+                    formData.append('metodo_pago', selectedPaymentMethod.toUpperCase());
+                    if (selectedPaymentMethod === 'transferencia' && transferProofFile) {
+                        formData.append('comprobante_transferencia', transferProofFile);
+                    }
+                    if (selectedPaymentMethod === 'cupon' && cuponValidado && cuponCodigoInput) {
+                        formData.append('cupon_codigo', cuponCodigoInput.value.trim().toUpperCase());
+                    }
+
+                    const response = await fetch('/reserva-estadio/finalizar/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        // Pequeña pausa para que se vea el procesamiento
+                        setTimeout(() => {
+                            window.location.href = "{% url 'mis_reservas' %}";
+                        }, 500);
+                    } else {
+                        alert(result.message || 'Error al procesar la reserva');
+                        finalSubmitBtn.disabled = false;
+                        finalSubmitBtn.innerText = originalText;
+                    }
+                } catch (e) {
+                    console.error("Error finalizando:", e);
+                    alert("Error de conexión al procesar la reserva.");
+                    finalSubmitBtn.disabled = false;
+                    finalSubmitBtn.innerText = originalText;
+                }
+            };
+        }
+
+        if (cancelVoucherBtn) {
+            cancelVoucherBtn.onclick = () => {
+                voucherContainer.classList.add('opacity-0', 'translate-x-4');
+
+                setTimeout(() => {
+                    voucherContainer.classList.add('hidden');
+                    voucherContainer.classList.remove('opacity-100', 'translate-x-0');
+                    selectorContainer.classList.add('mx-auto');
+                    // Restaurar foto
+                    photoContainer.classList.remove('hidden', 'translate-x-4');
+                    photoContainer.classList.add('opacity-0');
+                    setTimeout(() => {
+                        photoContainer.classList.remove('opacity-0');
+                        photoContainer.classList.add('opacity-100', 'translate-x-0');
+                    }, 50);
+                }, 500);
+            };
+        }
+
+        const adminEditBtn = document.getElementById('admin-edit-btn');
+        if (adminEditBtn) {
+            adminEditBtn.onclick = () => {
+                isAdminEditMode = !isAdminEditMode;
+                document.body.classList.toggle('edit-mode-active', isAdminEditMode);
+                renderSlots();
+            };
+        }
+
+        // Mostrar foto al cargar con animación
+        setTimeout(() => {
+            photoContainer.classList.remove('opacity-0', 'translate-x-4');
+            photoContainer.classList.add('opacity-100', 'translate-x-0');
+            selectorContainer.classList.remove('mx-auto');
+        }, 50);
+
+        // Aplicar límites al picker nativo
+        hiddenDatePicker.min = today.toISOString().split('T')[0];
+        hiddenDatePicker.max = maxDate.toISOString().split('T')[0];
+
+        const isDiaDisponible = (d) => config.diasSemana.includes((d.getDay() + 6) % 7);
+
+        prevBtn.onclick = () => {
+            if (!voucherContainer.classList.contains('hidden')) return;
+            if (selectedDate <= today) return;
+            do {
+                selectedDate.setDate(selectedDate.getDate() - 1);
+            } while (!isDiaDisponible(selectedDate) && selectedDate > today);
+            updateDateUI();
+        };
+
+        nextBtn.onclick = () => {
+            if (!voucherContainer.classList.contains('hidden')) return;
+            if (selectedDate >= maxDate) return;
+            do {
+                selectedDate.setDate(selectedDate.getDate() + 1);
+            } while (!isDiaDisponible(selectedDate) && selectedDate < maxDate);
+            updateDateUI();
+        };
+
+        document.getElementById('calendar-btn').onclick = () => {
+            if (!voucherContainer.classList.contains('hidden')) return;
+            if (typeof hiddenDatePicker.showPicker === 'function') {
+                hiddenDatePicker.showPicker();
+            } else {
+                hiddenDatePicker.click();
+            }
+        };
+
+        hiddenDatePicker.onchange = (e) => {
+            if (!voucherContainer.classList.contains('hidden')) return;
+            if (!e.target.value) return;
+            selectedDate = new Date(e.target.value + 'T00:00:00');
+            updateDateUI();
+        };
+
+        // Pre-seleccionar fecha y hora si vienen en la URL (al volver del login)
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramFecha = urlParams.get('fecha');
+        const paramHora = urlParams.get('hora');
+        if (paramFecha) {
+            const parsedDate = new Date(paramFecha + 'T00:00:00');
+            if (parsedDate >= today && parsedDate <= maxDate) {
+                selectedDate = parsedDate;
+            }
+        }
+
+        updateDateUI();
+
+        if (paramHora) {
+            // Esperar a que los slots se rendericen antes de seleccionar
+            setTimeout(() => {
+                const slots = timeGrid.querySelectorAll('.slot-available');
+                slots.forEach(slot => {
+                    if (slot.textContent.trim() === paramHora) {
+                        slot.click();
+                    }
+                });
+            }, 300);
+        }
+    });
+</script>
+
+{% if user.is_superuser %}
+<!-- Modal Bloqueo de Período -->
+<div id="modal-bloqueo-periodo"
+  class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+  role="dialog" aria-modal="true">
+  <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="cerrarModalBloqueoPeriodo()"></div>
+  <div class="relative bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col">
+
+    <!-- Header -->
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-2xl bg-orange-50 flex items-center justify-center shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </span>
+        <div>
+          <p class="font-black text-gray-900 text-base leading-tight">Bloquear período</p>
+          <p class="text-xs text-gray-400 font-medium mt-0.5">Estadio</p>
+        </div>
+      </div>
+      <button onclick="cerrarModalBloqueoPeriodo()"
+        class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-5 space-y-4">
+      <p class="text-sm text-gray-500 leading-relaxed">Los usuarios no podrán hacer ni editar reservas dentro de este rango de fechas.</p>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Desde</label>
+          <input type="date" id="bp-fecha-inicio" min="{{ hoy }}"
+            class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-orange-400 transition-all">
+        </div>
+        <div>
+          <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Hasta</label>
+          <input type="date" id="bp-fecha-fin" min="{{ hoy }}"
+            class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-orange-400 transition-all">
+        </div>
+      </div>
+      <div id="bp-error" class="hidden text-xs text-red-600 font-semibold bg-red-50 rounded-xl px-3 py-2"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
+      <button type="button" onclick="cerrarModalBloqueoPeriodo()"
+        class="flex-1 py-3 rounded-2xl border border-gray-200 text-gray-500 font-black text-[11px] uppercase tracking-widest hover:bg-gray-100 transition-all">
+        Cancelar
+      </button>
+      <button type="button" onclick="confirmarBloqueoPeriodo()"
+        class="flex-1 py-3 rounded-2xl bg-orange-500 text-white font-black text-[11px] uppercase tracking-widest hover:bg-orange-600 transition-all shadow-sm shadow-orange-200">
+        Confirmar
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast de aviso para bloqueo con reservas afectadas -->
+<div id="toast-bloqueo"
+  style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+         background:#1f2937;color:white;border-radius:16px;padding:12px 20px;
+         font-size:0.8rem;font-weight:700;box-shadow:0 4px 20px rgba(0,0,0,0.25);
+         z-index:9999;opacity:0;transition:opacity 0.3s ease,transform 0.3s ease;
+         max-width:340px;text-align:center;pointer-events:none;">
+</div>
+
+<script>
+  function mostrarAvisoBloqueo(mensaje) {
+    const toast = document.getElementById('toast-bloqueo');
+    toast.textContent = mensaje;
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(80px)';
+    }, 4500);
+  }
+</script>
+
+<script>
+  function getCookieBP(name) {
+    let v = null;
+    document.cookie.split(';').forEach(c => {
+      c = c.trim();
+      if (c.startsWith(name + '=')) v = decodeURIComponent(c.slice(name.length + 1));
+    });
+    return v;
+  }
+
+  async function confirmarBloqueoPeriodo() {
+    const inicio = document.getElementById('bp-fecha-inicio').value;
+    const fin = document.getElementById('bp-fecha-fin').value;
+    const errorEl = document.getElementById('bp-error');
+    errorEl.classList.add('hidden');
+
+    if (!inicio || !fin) {
+      errorEl.textContent = 'Debes ingresar ambas fechas.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+    if (fin < inicio) {
+      errorEl.textContent = 'La fecha de fin debe ser igual o posterior a la de inicio.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    try {
+      const res = await fetch("{% url 'bloquear_periodo' %}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookieBP('csrftoken') },
+        body: JSON.stringify({ cancha_id: {{ config_estadio.id }}, fecha_inicio: inicio, fecha_fin: fin })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        cerrarModalBloqueoPeriodo();
+        if (data.avisos && data.avisos > 0) {
+          const plural = data.avisos === 1 ? 'usuario' : 'usuarios';
+          mostrarAvisoBloqueo(`Período bloqueado. Se notificó a ${data.avisos} ${plural} con reservas en estas fechas.`);
+          setTimeout(() => location.reload(), 3000);
+        } else {
+          location.reload();
+        }
+      } else {
+        errorEl.textContent = data.message || 'Error al bloquear.';
+        errorEl.classList.remove('hidden');
+      }
+    } catch (e) {
+      errorEl.textContent = 'Error de conexión.';
+      errorEl.classList.remove('hidden');
+    }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModalBloqueoPeriodo(); });
+</script>
+{% endif %}
+{% endblock %}

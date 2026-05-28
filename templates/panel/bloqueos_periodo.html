@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% block title %}Restricciones de Período{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'panel_inicio' %}"
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+  </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto flex flex-col flex-1 pb-24 px-4 sm:px-6 pt-6">
+
+  <!-- Encabezado -->
+  <div class="mb-6">
+    <p class="text-[11px] font-black text-gray-400 uppercase tracking-[0.18em]">Administración</p>
+    <h1 class="text-2xl font-black text-gray-900 mt-1">Restricciones de período</h1>
+  </div>
+
+  <!-- Mensajes -->
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="mb-4 px-4 py-3 rounded-2xl text-sm font-bold
+    {% if msg.tags == 'success' %}bg-green-50 text-green-700 border border-green-100
+    {% else %}bg-red-50 text-red-700 border border-red-100{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- Tabla de bloqueos -->
+  <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-50 border-b border-gray-100">
+            <th class="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Complejo</th>
+            <th class="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Desde</th>
+            <th class="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hasta</th>
+            <th class="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Creado por</th>
+            <th class="px-5 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for bloqueo in bloqueos %}
+          <tr class="hover:bg-gray-50/50 transition-colors">
+
+            <!-- Complejo -->
+            <td class="px-5 py-4">
+              <p class="text-xs font-bold text-gray-900">{{ bloqueo.cancha.nombre }}</p>
+            </td>
+
+            <!-- Desde -->
+            <td class="px-5 py-4">
+              {% load l10n %}{% localize off %}
+              <p class="text-xs font-bold text-gray-900 whitespace-nowrap">{{ bloqueo.fecha_inicio|date:"d/m/Y" }}</p>
+              {% endlocalize %}
+            </td>
+
+            <!-- Hasta -->
+            <td class="px-5 py-4">
+              {% localize off %}
+              <p class="text-xs font-bold text-gray-900 whitespace-nowrap">{{ bloqueo.fecha_fin|date:"d/m/Y" }}</p>
+              {% endlocalize %}
+            </td>
+
+            <!-- Creado por -->
+            <td class="px-5 py-4">
+              <p class="text-xs text-gray-500">{{ bloqueo.creado_por.username|default:"—" }}</p>
+            </td>
+
+            <!-- Acciones -->
+            <td class="px-5 py-4">
+              <div class="flex items-center gap-2">
+
+                <!-- Botón Modificar hasta -->
+                <button
+                  onclick="abrirModalModificar({{ bloqueo.id }}, '{{ bloqueo.fecha_inicio|date:'Y-m-d' }}', '{{ bloqueo.fecha_fin|date:'Y-m-d' }}')"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-black transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/>
+                  </svg>
+                  Modificar hasta
+                </button>
+
+                <!-- Botón Eliminar -->
+                <button
+                  onclick="abrirModalEliminar({{ bloqueo.id }}, '{{ bloqueo.cancha.nombre }}', '{{ bloqueo.fecha_inicio|date:'d/m/Y' }}', '{{ bloqueo.fecha_fin|date:'d/m/Y' }}')"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-[11px] font-black transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                  </svg>
+                  Eliminar
+                </button>
+
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-6 py-12 text-center">
+              <div class="flex flex-col items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;color:#d1d5db;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-sm font-bold text-gray-400">No hay restricciones de período activas.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── Modal: Modificar fecha_fin ─── -->
+<div id="modal-modificar" class="fixed inset-0 z-50 hidden" style="background:rgba(0,0,0,0.45);">
+  <div class="flex items-center justify-center min-h-screen px-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6">
+
+      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Editar restricción</p>
+      <h2 class="text-lg font-black text-gray-900 mb-4">Modificar fecha de fin</h2>
+
+      <form id="form-modificar" method="post" action="">
+        {% csrf_token %}
+        <div class="mb-5">
+          <label class="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-1">Nueva fecha de fin</label>
+          <input
+            type="date"
+            id="input-fecha-fin"
+            name="fecha_fin"
+            required
+            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+          <p id="hint-fecha-inicio" class="mt-1 text-[10px] text-gray-400"></p>
+        </div>
+
+        <div class="flex gap-3">
+          <button type="button" onclick="cerrarModalModificar()"
+            class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-black text-gray-600 hover:bg-gray-50 transition-colors">
+            Cancelar
+          </button>
+          <button type="submit"
+            class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-black transition-colors">
+            Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: Confirmar eliminación ─── -->
+<div id="modal-eliminar" class="fixed inset-0 z-50 hidden" style="background:rgba(0,0,0,0.45);">
+  <div class="flex items-center justify-center min-h-screen px-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6">
+
+      <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Confirmar</p>
+      <h2 class="text-lg font-black text-gray-900 mb-2">¿Eliminar restricción?</h2>
+      <p id="texto-eliminar" class="text-sm text-gray-500 mb-6 leading-relaxed"></p>
+
+      <form id="form-eliminar" method="post" action="">
+        {% csrf_token %}
+        <div class="flex gap-3">
+          <button type="button" onclick="cerrarModalEliminar()"
+            class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-black text-gray-600 hover:bg-gray-50 transition-colors">
+            Cancelar
+          </button>
+          <button type="submit"
+            class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-black transition-colors">
+            Eliminar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function abrirModalModificar(id, fechaInicio, fechaFinActual) {
+    const modal = document.getElementById('modal-modificar');
+    const form = document.getElementById('form-modificar');
+    const input = document.getElementById('input-fecha-fin');
+    const hint = document.getElementById('hint-fecha-inicio');
+
+    form.action = `/panel/bloqueos-periodo/${id}/modificar/`;
+    input.value = fechaFinActual;
+    input.min = fechaInicio;
+
+    // Formatear fechaInicio para mostrar en hint (DD/MM/YYYY)
+    const partes = fechaInicio.split('-');
+    hint.textContent = `La fecha de inicio del período es ${partes[2]}/${partes[1]}/${partes[0]}.`;
+
+    modal.classList.remove('hidden');
+  }
+
+  function cerrarModalModificar() {
+    document.getElementById('modal-modificar').classList.add('hidden');
+  }
+
+  function abrirModalEliminar(id, complejo, desde, hasta) {
+    const modal = document.getElementById('modal-eliminar');
+    const form = document.getElementById('form-eliminar');
+    const texto = document.getElementById('texto-eliminar');
+
+    form.action = `/panel/bloqueos-periodo/${id}/eliminar/`;
+    texto.textContent = `Se eliminará la restricción de ${complejo} del ${desde} al ${hasta}. Las fechas quedarán disponibles nuevamente.`;
+
+    modal.classList.remove('hidden');
+  }
+
+  function cerrarModalEliminar() {
+    document.getElementById('modal-eliminar').classList.add('hidden');
+  }
+
+  // Cerrar modales al hacer clic en el fondo
+  document.getElementById('modal-modificar').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalModificar();
+  });
+  document.getElementById('modal-eliminar').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalEliminar();
+  });
+</script>
+
+<style>
+  .overflow-x-auto::-webkit-scrollbar { height: 4px; }
+  .overflow-x-auto::-webkit-scrollbar-track { background: #f1f1f1; }
+  .overflow-x-auto::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+</style>
+{% endblock %}
