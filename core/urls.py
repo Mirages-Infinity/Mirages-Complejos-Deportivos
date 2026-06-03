@@ -75,6 +75,9 @@ urlpatterns = [
     path('panel/bloqueos-periodo/<int:bloqueo_id>/eliminar/', views.panel_eliminar_bloqueo_periodo, name='panel_eliminar_bloqueo_periodo'),
     path('panel/historial-reservas/', views.panel_historial_reservas, name='panel_historial_reservas'),
     path('panel/cupones/', views.panel_cupones, name='panel_cupones'),
+    path('panel/cupones/crear-reserva/', views.panel_crear_cupon_reserva, name='panel_crear_cupon_reserva'),
+    path('panel/cupones/descuento/', views.panel_cupones_descuento, name='panel_cupones_descuento'),
+    path('panel/cupones/descuento/crear/', views.panel_crear_cupon_descuento, name='panel_crear_cupon_descuento'),
 
     # Perfil
     path('perfil/', views.perfil, name='perfil'),

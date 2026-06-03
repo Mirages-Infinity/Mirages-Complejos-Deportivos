@@ -14,7 +14,25 @@
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
   <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Panel de administración</p>
-  <h1 style="font-size:1.25rem;font-weight:800;color:#1f2937;margin-bottom:16px;">Cupones</h1>
+  <h1 style="font-size:1.25rem;font-weight:800;color:#1f2937;margin-bottom:12px;">Cupones</h1>
+
+  <!-- Navegación entre tipos de cupón -->
+  <div style="display:flex;gap:8px;margin-bottom:14px;">
+    <span style="flex:1;padding:8px 0;border-radius:10px;font-size:0.78rem;font-weight:700;text-align:center;background:#1f2937;color:white;">
+      Cupones de Reserva
+    </span>
+    <a href="{% url 'panel_cupones_descuento' %}" style="flex:1;padding:8px 0;border-radius:10px;font-size:0.78rem;font-weight:700;text-align:center;background:#f3f4f6;color:#6b7280;text-decoration:none;">
+      Cupones de Descuento
+    </a>
+  </div>
+
+  <!-- Botón crear cupón de reserva -->
+  <a href="{% url 'panel_crear_cupon_reserva' %}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;border-radius:12px;background:#16a34a;color:white;text-decoration:none;font-size:0.82rem;font-weight:700;margin-bottom:16px;">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+    </svg>
+    Crear cupón de reserva
+  </a>
 
   <!-- Contador de estados -->
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">

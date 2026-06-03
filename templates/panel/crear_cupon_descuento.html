@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Crear Cupón de Descuento — Panel{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'panel_cupones_descuento' %}"
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+  </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
+
+  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Panel de administración</p>
+  <h1 style="font-size:1.25rem;font-weight:800;color:#1f2937;margin-bottom:4px;">Crear Cupón de Descuento</h1>
+  <p style="font-size:0.8rem;color:#6b7280;margin-bottom:20px;">El código generado se podrá usar para aplicar un porcentaje de descuento.</p>
+
+  {% if messages %}
+  <div style="margin-bottom:16px;display:flex;flex-direction:column;gap:6px;">
+    {% for msg in messages %}
+    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:600;
+      {% if msg.tags == 'error' %}background:#fef2f2;color:#dc2626;{% else %}background:#f0fdf4;color:#16a34a;{% endif %}">
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:20px;display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Tipo de Organización -->
+      <div>
+        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Tipo de Organización *</label>
+        <select name="tipo_organizacion" required
+          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;background:white;appearance:none;">
+          <option value="">Selecciona un tipo...</option>
+          {% for value, label in tipo_choices %}
+          <option value="{{ value }}" {% if form_data.tipo_organizacion == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Nombre de Organización -->
+      <div>
+        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Nombre de Organización *</label>
+        <input type="text" name="nombre_organizacion" required maxlength="200"
+          value="{{ form_data.nombre_organizacion|default:'' }}"
+          placeholder="Ej: Universidad de Santiago"
+          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+      </div>
+
+      <!-- Autorizado por -->
+      <div>
+        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Autorizado por *</label>
+        <input type="text" name="autorizado_por" required maxlength="200"
+          value="{{ form_data.autorizado_por|default:'' }}"
+          placeholder="Nombre del funcionario o cargo que autoriza"
+          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+      </div>
+
+      <!-- Cantidad de Descuento -->
+      <div>
+        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Cantidad de Descuento (%) *</label>
+        <div style="position:relative;">
+          <input type="number" name="cantidad_descuento" required min="1" max="100"
+            value="{{ form_data.cantidad_descuento|default:'' }}"
+            placeholder="Ej: 25"
+            id="id_descuento"
+            style="width:100%;padding:10px 40px 10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:0.85rem;font-weight:700;color:#6b7280;">%</span>
+        </div>
+        <!-- TODO(human): Agrega aquí la lógica de previsualización del descuento -->
+        <p id="preview-descuento" style="font-size:0.72rem;color:#2563eb;margin-top:4px;font-weight:600;min-height:16px;"></p>
+        <p style="font-size:0.7rem;color:#9ca3af;margin-top:2px;">Ingresa un valor entre 1 y 100.</p>
+      </div>
+
+      <!-- Fecha de Vencimiento -->
+      <div>
+        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Fecha de Vencimiento *</label>
+        <input type="date" name="fecha_vencimiento" required
+          value="{{ form_data.fecha_vencimiento|default:'' }}"
+          id="id_fecha_vencimiento"
+          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+      </div>
+
+    </div>
+
+    <button type="submit"
+      style="width:100%;margin-top:16px;padding:13px;border-radius:12px;background:#2563eb;color:white;font-size:0.88rem;font-weight:700;border:none;cursor:pointer;">
+      Crear cupón de descuento
+    </button>
+  </form>
+
+</div>
+
+<script>
+  // Fecha mínima: mañana
+  const fechaInput = document.getElementById('id_fecha_vencimiento');
+  if (fechaInput && !fechaInput.value) {
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 1);
+    fechaInput.min = manana.toISOString().split('T')[0];
+    const unAnio = new Date();
+    unAnio.setFullYear(unAnio.getFullYear() + 1);
+    fechaInput.value = unAnio.toISOString().split('T')[0];
+  }
+</script>
+{% endblock %}

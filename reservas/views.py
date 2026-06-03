@@ -15,7 +15,7 @@ import json
 import re
 import logging
 from PIL import Image, UnidentifiedImageError
-from .models import UserProfile, Reserva, CambioEmailPendiente, Notificacion, Bitacora, Cupon
+from .models import UserProfile, Reserva, CambioEmailPendiente, Notificacion, Bitacora, Cupon, CuponDescuento
 from complejos.models import ConfigCancha, BloqueoHorario, BloqueoPeriodo, Salon, DatosTransferencia
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.tokens import default_token_generator
@@ -1848,6 +1848,163 @@ def panel_cupones(request):
         'expirado': Cupon.objects.filter(estado='EXPIRADO').count(),
     }
     return render(request, 'panel/cupones.html', {'cupones': cupones, 'filtro': filtro, 'conteos': conteos})
+
+
+@staff_required
+def panel_cupones_descuento(request):
+    hoy = timezone.now().date()
+    CuponDescuento.objects.filter(estado='ACTIVO', fecha_vencimiento__lt=hoy).update(estado='EXPIRADO')
+    filtro = request.GET.get('filtro', 'todos')
+    qs = CuponDescuento.objects.select_related('creado_por').order_by('-fecha_emision')
+    if filtro == 'activo':
+        qs = qs.filter(estado='ACTIVO')
+    elif filtro == 'expirado':
+        qs = qs.filter(estado='EXPIRADO')
+    paginator = Paginator(qs, 25)
+    page = request.GET.get('page', 1)
+    cupones = paginator.get_page(page)
+    conteos = {
+        'todos': CuponDescuento.objects.count(),
+        'activo': CuponDescuento.objects.filter(estado='ACTIVO').count(),
+        'expirado': CuponDescuento.objects.filter(estado='EXPIRADO').count(),
+    }
+    return render(request, 'panel/cupones_descuento.html', {
+        'cupones': cupones, 'filtro': filtro, 'conteos': conteos
+    })
+
+
+@staff_required
+def panel_crear_cupon_descuento(request):
+    if request.method == 'POST':
+        tipo_organizacion = request.POST.get('tipo_organizacion', '').strip()
+        nombre_organizacion = request.POST.get('nombre_organizacion', '').strip()
+        autorizado_por = request.POST.get('autorizado_por', '').strip()
+        cantidad_str = request.POST.get('cantidad_descuento', '').strip()
+        fecha_vencimiento_str = request.POST.get('fecha_vencimiento', '').strip()
+
+        errores = []
+        if not tipo_organizacion:
+            errores.append('El tipo de organización es requerido.')
+        if not nombre_organizacion:
+            errores.append('El nombre de organización es requerido.')
+        if not autorizado_por:
+            errores.append('El campo "Autorizado por" es requerido.')
+        cantidad = None
+        if not cantidad_str:
+            errores.append('La cantidad de descuento es requerida.')
+        else:
+            try:
+                cantidad = int(cantidad_str)
+                if not (1 <= cantidad <= 100):
+                    errores.append('El descuento debe estar entre 1 y 100.')
+            except ValueError:
+                errores.append('La cantidad de descuento debe ser un número entero.')
+        fecha_vencimiento = None
+        if not fecha_vencimiento_str:
+            errores.append('La fecha de vencimiento es requerida.')
+        else:
+            try:
+                fecha_vencimiento = date.fromisoformat(fecha_vencimiento_str)
+                if fecha_vencimiento <= date.today():
+                    errores.append('La fecha de vencimiento debe ser futura.')
+            except ValueError:
+                errores.append('Fecha de vencimiento inválida.')
+
+        if errores:
+            for e in errores:
+                messages.error(request, e)
+            return render(request, 'panel/crear_cupon_descuento.html', {
+                'tipo_choices': CuponDescuento.TIPO_ORGANIZACION_CHOICES,
+                'form_data': request.POST,
+            })
+
+        cupon = CuponDescuento.objects.create(
+            codigo=CuponDescuento.generar_codigo(),
+            tipo_organizacion=tipo_organizacion,
+            nombre_organizacion=nombre_organizacion,
+            autorizado_por=autorizado_por,
+            cantidad_descuento=cantidad,
+            fecha_vencimiento=fecha_vencimiento,
+            creado_por=request.user,
+        )
+        Bitacora.objects.create(
+            admin=request.user,
+            accion='Cupón de descuento creado',
+            detalles=f'Código: {cupon.codigo} | Org: {nombre_organizacion} | Descuento: {cantidad}%',
+        )
+        messages.success(request, f'Cupón de descuento {cupon.codigo} creado correctamente.')
+        return redirect('panel_cupones_descuento')
+
+    return render(request, 'panel/crear_cupon_descuento.html', {
+        'tipo_choices': CuponDescuento.TIPO_ORGANIZACION_CHOICES,
+        'form_data': {},
+    })
+
+
+@staff_required
+def panel_crear_cupon_reserva(request):
+    usuarios = User.objects.filter(is_staff=False, is_active=True).order_by('first_name', 'last_name', 'email')
+    canchas = ConfigCancha.objects.filter(activa=True).order_by('nombre')
+
+    if request.method == 'POST':
+        usuario_id = request.POST.get('usuario_id', '').strip()
+        nombre_recurso = request.POST.get('nombre_recurso', '').strip()
+        fecha_expiracion_str = request.POST.get('fecha_expiracion', '').strip()
+
+        errores = []
+        usuario = None
+        if not usuario_id:
+            errores.append('Debes seleccionar un usuario.')
+        else:
+            try:
+                usuario = User.objects.get(pk=int(usuario_id), is_staff=False, is_active=True)
+            except (User.DoesNotExist, ValueError):
+                errores.append('Usuario inválido.')
+
+        fecha_expiracion = None
+        if not fecha_expiracion_str:
+            errores.append('La fecha de expiración es requerida.')
+        else:
+            try:
+                fecha_expiracion = date.fromisoformat(fecha_expiracion_str)
+                if fecha_expiracion <= date.today():
+                    errores.append('La fecha de expiración debe ser futura.')
+            except ValueError:
+                errores.append('Fecha de expiración inválida.')
+
+        if errores:
+            for e in errores:
+                messages.error(request, e)
+            return render(request, 'panel/crear_cupon_reserva.html', {
+                'usuarios': usuarios, 'canchas': canchas, 'form_data': request.POST, 'today': date.today(),
+            })
+
+        cupon = Cupon.objects.create(
+            codigo=Cupon.generar_codigo(),
+            usuario=usuario,
+            nombre_recurso=nombre_recurso,
+            motivo='CANCELACION_SISTEMA',
+            fecha_expiracion=fecha_expiracion,
+        )
+        Notificacion.objects.create(
+            user=usuario,
+            tipo='CUPON_EMITIDO',
+            titulo='Cupón de reserva emitido',
+            mensaje=f'El administrador te ha emitido un cupón de reserva: {cupon.codigo}. '
+                    f'Válido hasta el {fecha_expiracion.strftime("%d/%m/%Y")}.'
+                    + (f' Cancha: {nombre_recurso}.' if nombre_recurso else ''),
+        )
+        Bitacora.objects.create(
+            admin=request.user,
+            accion='Cupón de reserva creado manualmente',
+            detalles=f'Código: {cupon.codigo} | Usuario: {usuario.email} | Vence: {fecha_expiracion}',
+        )
+        messages.success(request, f'Cupón de reserva {cupon.codigo} creado para {usuario.email}.')
+        return redirect('panel_cupones')
+
+    return render(request, 'panel/crear_cupon_reserva.html', {
+        'usuarios': usuarios, 'canchas': canchas, 'form_data': {}, 'today': date.today(),
+    })
 
 
 # ─── Panel de Administración ─────────────────────────────────────────────────

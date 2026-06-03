@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Crear Cupón de Reserva — Panel{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'panel_cupones' %}"
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+  </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
+
+  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Panel de administración</p>
+  <h1 style="font-size:1.25rem;font-weight:800;color:#1f2937;margin-bottom:4px;">Crear Cupón de Reserva</h1>
+  <p style="font-size:0.8rem;color:#6b7280;margin-bottom:20px;">El cupón permitirá al usuario realizar una reserva sin costo.</p>
+
+  {% if messages %}
+  <div style="margin-bottom:16px;display:flex;flex-direction:column;gap:6px;">
+    {% for msg in messages %}
+    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:600;
+      {% if msg.tags == 'error' %}background:#fef2f2;color:#dc2626;{% else %}background:#f0fdf4;color:#16a34a;{% endif %}">
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:20px;display:flex;flex-direction:column;gap:16px;">
+
+      <!-- Usuario -->
+      <div>
+        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Usuario *</label>
+        <select name="usuario_id" required
+          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;background:white;appearance:none;">
+          <option value="">Selecciona un usuario...</option>
+          {% for usuario in usuarios %}
+          <option value="{{ usuario.pk }}" {% if form_data.usuario_id == usuario.pk|stringformat:'s' %}selected{% endif %}>
+            {{ usuario.get_full_name|default:usuario.email }} — {{ usuario.email }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Instalación (opcional) -->
+      <div>
+        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Instalación (opcional)</label>
+        <select name="nombre_recurso"
+          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;background:white;appearance:none;">
+          <option value="">Sin restricción de instalación</option>
+          {% for cancha in canchas %}
+          <option value="{{ cancha.nombre }}" {% if form_data.nombre_recurso == cancha.nombre %}selected{% endif %}>
+            {{ cancha.nombre }}
+          </option>
+          {% endfor %}
+        </select>
+        <p style="font-size:0.7rem;color:#9ca3af;margin-top:4px;">Si seleccionas una cancha, el cupón solo será válido para esa instalación.</p>
+      </div>
+
+      <!-- Fecha de expiración -->
+      <div>
+        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Fecha de expiración *</label>
+        <input type="date" name="fecha_expiracion" required
+          value="{{ form_data.fecha_expiracion|default:'' }}"
+          min="{{ today|date:'Y-m-d' }}"
+          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+      </div>
+
+    </div>
+
+    <button type="submit"
+      style="width:100%;margin-top:16px;padding:13px;border-radius:12px;background:#16a34a;color:white;font-size:0.88rem;font-weight:700;border:none;cursor:pointer;">
+      Crear cupón de reserva
+    </button>
+  </form>
+
+</div>
+
+<script>
+  // Establece fecha mínima como mañana
+  const fechaInput = document.querySelector('input[name="fecha_expiracion"]');
+  if (fechaInput && !fechaInput.value) {
+    const manana = new Date();
+    manana.setDate(manana.getDate() + 90);
+    fechaInput.value = manana.toISOString().split('T')[0];
+  }
+</script>
+{% endblock %}

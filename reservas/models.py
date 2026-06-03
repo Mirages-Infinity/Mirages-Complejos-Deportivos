@@ -236,3 +236,58 @@ class Cupon(models.Model):
             codigo = f'{parte1}-{parte2}'
             if not cls.objects.filter(codigo=codigo).exists():
                 return codigo
+
+
+class CuponDescuento(models.Model):
+    TIPO_ORGANIZACION_CHOICES = [
+        ('UNIVERSIDAD', 'Universidad'),
+        ('EMPRESA', 'Empresa'),
+        ('ONG', 'ONG'),
+        ('CLUB_DEPORTIVO', 'Club Deportivo'),
+        ('GOBIERNO', 'Gobierno'),
+        ('MUNICIPALIDAD', 'Municipalidad'),
+        ('OTRO', 'Otro'),
+    ]
+    ESTADO_CHOICES = [
+        ('ACTIVO', 'Activo'),
+        ('EXPIRADO', 'Expirado'),
+    ]
+
+    codigo = models.CharField(max_length=15, unique=True, db_index=True)
+    tipo_organizacion = models.CharField(max_length=30, choices=TIPO_ORGANIZACION_CHOICES)
+    nombre_organizacion = models.CharField(max_length=200)
+    autorizado_por = models.CharField(max_length=200)
+    cantidad_descuento = models.PositiveIntegerField(help_text='Porcentaje de descuento (1–100)')
+    fecha_vencimiento = models.DateField()
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='ACTIVO')
+    creado_por = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name='cupones_descuento_creados'
+    )
+    fecha_emision = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Cupón de Descuento'
+        verbose_name_plural = 'Cupones de Descuento'
+        ordering = ['-fecha_emision']
+
+    def __str__(self):
+        return f'{self.codigo} — {self.nombre_organizacion} ({self.estado})'
+
+    def esta_vigente(self):
+        return self.estado == 'ACTIVO' and date.today() <= self.fecha_vencimiento
+
+    @classmethod
+    def generar_codigo(cls):
+        alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+        for _ in range(20):
+            parte1 = ''.join(secrets.choice(alphabet) for _ in range(4))
+            parte2 = ''.join(secrets.choice(alphabet) for _ in range(4))
+            codigo = f'D-{parte1}-{parte2}'
+            if not cls.objects.filter(codigo=codigo).exists():
+                return codigo
+        while True:
+            parte1 = ''.join(secrets.choice(alphabet) for _ in range(5))
+            parte2 = ''.join(secrets.choice(alphabet) for _ in range(5))
+            codigo = f'D-{parte1}-{parte2}'
+            if not cls.objects.filter(codigo=codigo).exists():
+                return codigo
