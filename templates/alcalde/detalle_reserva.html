@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load clp_tags %}
 {% block title %}Detalle Reserva — Alcaldía{% endblock %}
 
 {% block header_left %}
@@ -67,11 +68,11 @@
     <p style="font-size:0.68rem;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Precios</p>
     <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
       <span style="font-size:0.78rem;color:#9ca3af;">Precio original</span>
-      <span style="font-size:0.82rem;color:#374151;font-weight:700;">$ {{ reserva.precio_original|floatformat:0 }}</span>
+      <span style="font-size:0.82rem;color:#374151;font-weight:700;">{{ reserva.precio_original|clp }}</span>
     </div>
     <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #f3f4f6;">
       <span style="font-size:0.78rem;color:#15803d;font-weight:700;">Con descuento (50%)</span>
-      <span style="font-size:0.95rem;color:#16a34a;font-weight:800;">$ {{ reserva.precio_descuento|floatformat:0 }}</span>
+      <span style="font-size:0.95rem;color:#16a34a;font-weight:800;">{{ reserva.precio_descuento|clp }}</span>
     </div>
   </div>
   {% endif %}

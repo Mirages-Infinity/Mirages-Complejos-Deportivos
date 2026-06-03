@@ -733,7 +733,6 @@ def crear_reserva_organizacion(request):
         rep_rut = request.POST.get('representante_rut', '').strip()
         rep_telefono = request.POST.get('representante_telefono', '').strip()
         rep_email = request.POST.get('representante_email', '').strip()
-        precio_original_str = request.POST.get('precio_original', '').strip()
         motivo = request.POST.get('motivo', '').strip()
 
         errores = []
@@ -747,19 +746,11 @@ def crear_reserva_organizacion(request):
         if not rep_email:
             errores.append('El correo del representante es requerido.')
 
-        precio_original = None
-        precio_descuento = None
-        if not precio_original_str:
-            errores.append('El precio original es requerido.')
-        else:
-            try:
-                precio_original = int(precio_original_str)
-                if precio_original < 0:
-                    errores.append('El precio original no puede ser negativo.')
-                else:
-                    precio_descuento = precio_original // 2
-            except ValueError:
-                errores.append('El precio original debe ser un número entero.')
+        # Precio fijo desde la configuración de la cancha (no editable en el formulario)
+        precio_original = cancha.precio if cancha else 0
+        precio_descuento = precio_original // 2
+        if cancha and not cancha.precio:
+            errores.append('Esta cancha no tiene precio configurado. Ve a Panel → Precios para definirlo.')
 
         fecha = None
         hora_inicio = None
@@ -830,8 +821,14 @@ def crear_reserva_organizacion(request):
         )
         return redirect('panel_reservas')
 
+    precio_cancha = cancha.precio if cancha else 0
     return render(request, 'panel/crear_reserva_organizacion.html', {
-        'cancha': cancha, 'fecha': fecha_str, 'hora': hora_str, 'form_data': {},
+        'cancha': cancha,
+        'fecha': fecha_str,
+        'hora': hora_str,
+        'form_data': {},
+        'precio_cancha': precio_cancha,
+        'precio_descuento': precio_cancha // 2,
     })
 
 
@@ -2293,7 +2290,6 @@ def panel_reservas(request):
         'PENDIENTE': base_tipo.filter(estado__in=['PENDIENTE', 'PENDIENTE_ALCALDE']).count(),
         'APROBADA': base_tipo.filter(estado='APROBADA').count(),
         'RECHAZADA': base_tipo.filter(estado='RECHAZADA').count(),
-        'CANCELADA': base_tipo.filter(estado='CANCELADA').count(),
     }
 
     paginator = Paginator(qs, 20)
@@ -2368,7 +2364,17 @@ def panel_cancelar_reserva(request, reserva_id):
 def panel_editar_reserva(request, reserva_id):
     """Edición administrativa de una reserva con todas las restricciones del sistema."""
     reserva = get_object_or_404(Reserva, pk=reserva_id)
-    
+
+    # Reservas personales: solo editables cuando están PENDIENTE
+    if reserva.tipo_reserva == 'PERSONAL' and reserva.estado != 'PENDIENTE':
+        messages.error(request, 'Las reservas personales solo pueden editarse mientras están pendientes.')
+        return redirect('panel_reservas')
+
+    # Reservas de organización: solo editables cuando están PENDIENTE_ALCALDE
+    if reserva.tipo_reserva == 'ORGANIZACION' and reserva.estado != 'PENDIENTE_ALCALDE':
+        messages.error(request, 'Las reservas de organización solo pueden editarse mientras están pendientes de firma.')
+        return redirect('panel_reservas')
+
     # Datos para restricciones en el HTML
     hoy_val = date.today().strftime('%Y-%m-%d')
     limite_val = (date.today() + timedelta(days=31)).strftime('%Y-%m-%d')
@@ -2446,11 +2452,14 @@ def panel_editar_reserva(request, reserva_id):
             reserva.fecha = f
             reserva.hora_inicio = h_ini
             reserva.hora_fin = h_fin
-            reserva.estado = estado
             reserva.motivo = request.POST.get('motivo', '').strip()
-            reserva.save()
-            registrar_accion(request.user, f"Editó reserva {reserva.id}", f"Estado: {estado} | Fecha: {f.strftime('%d-%m-%Y')} | Hora: {h_ini.strftime('%H:%M')}")
+
+            reserva.estado = estado
+            estado_log = estado
             messages.success(request, 'Reserva actualizada correctamente.')
+
+            reserva.save()
+            registrar_accion(request.user, f"Editó reserva {reserva.id}", f"Estado: {estado_log} | Fecha: {f.strftime('%d-%m-%Y')} | Hora: {h_ini.strftime('%H:%M')}")
             return redirect('panel_reservas')
         except (ValueError, TypeError) as e:
             messages.error(request, f'Datos inválidos: {e}')

@@ -39,7 +39,7 @@
       <div class="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 flex items-center justify-between">
         <div>
           <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Solicitante</label>
-          <p class="text-sm font-black text-gray-800">{{ reserva.solicitante.get_full_name|default:reserva.solicitante.email }}</p>
+          <p class="text-sm font-black text-gray-800">{{ reserva.get_solicitante_display }}</p>
         </div>
         <div class="text-right hidden sm:block">
           <p class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em]">Creado</p>
@@ -74,6 +74,18 @@
       <!-- Fila 3: Estado y Motivo -->
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div class="lg:col-span-2">
+          {% if reserva.tipo_reserva == 'ORGANIZACION' %}
+          {# El estado de org se gestiona automáticamente, no se permite editar manualmente #}
+          <input type="hidden" name="estado" value="{{ reserva.estado }}">
+          <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Estado</label>
+          <div class="w-full bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm font-black text-amber-700">
+            {% if reserva.estado == 'APROBADA' %}
+            ↩ Al guardar vuelve a Pendiente firma
+            {% else %}
+            {{ reserva.get_estado_display }}
+            {% endif %}
+          </div>
+          {% else %}
           <label for="estado" class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Estado Maestro</label>
           <select name="estado" id="estado" class="w-full bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm font-black text-blue-700 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer disabled:bg-gray-50 disabled:text-gray-400">
             <option value="PENDIENTE" {% if reserva.estado == 'PENDIENTE' %}selected{% endif %}>SOLICITUD PENDIENTE</option>
@@ -82,6 +94,7 @@
             <option value="CANCELADA" {% if reserva.estado == 'CANCELADA' %}selected{% endif %}>RESERVA CANCELADA</option>
             <option value="ELIMINADA" {% if reserva.estado == 'ELIMINADA' %}selected{% endif %}>ELIMINADA (SÓLO LECTURA)</option>
           </select>
+          {% endif %}
         </div>
         <div class="lg:col-span-3">
           <label for="motivo" class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Motivo / Descripción Administrativa</label>
@@ -107,7 +120,6 @@
       </a>
     </div>
     {% endif %}
-  </form>
   </form>
 
   <div style="height: 70px;"></div>

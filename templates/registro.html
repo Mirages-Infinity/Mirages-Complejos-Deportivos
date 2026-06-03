@@ -79,8 +79,9 @@
                     <label class="text-sm font-semibold" style="color:#2d3a8c;">RUT <span class="text-red-500">*</span></label>
                     <input type="text" id="rut" name="rut" placeholder="Ej: 12345678-9" required
                            value="{{ datos.rut }}"
+                           oninput="formatearRut(this)" onblur="validarRut(this)"
                            class="w-full border {% if errores.rut %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
-                    <p id="rut-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">EL RUT DEBE TENER FORMATO 12345678-9 Y SER VÁLIDO</p>
+                    <p class="rut-error text-xs font-bold" style="color:#e53935;letter-spacing:0.04em;display:none;">RUT inválido — formato esperado: 12345678-9</p>
                 </div>
 
                 <!-- Fecha de nacimiento -->

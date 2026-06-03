@@ -200,6 +200,29 @@
         </div>
     </div>
 
+<script>
+/* ── Formateador / validador de RUT (disponible globalmente) ── */
+function formatearRut(input) {
+  let v = input.value.replace(/[^0-9kK]/g, '').toUpperCase();
+  if (v.length > 1) v = v.slice(0, -1) + '-' + v.slice(-1);
+  if (v.length > 10) v = v.slice(0, 10);
+  input.value = v;
+}
+function _dvRut(cuerpo) {
+  let s = 0, m = 2;
+  for (let i = cuerpo.length - 1; i >= 0; i--) { s += parseInt(cuerpo[i]) * m; m = m === 7 ? 2 : m + 1; }
+  const r = 11 - (s % 11);
+  return r === 11 ? '0' : r === 10 ? 'K' : String(r);
+}
+function validarRut(input) {
+  const errEl = input.parentElement?.querySelector('.rut-error');
+  const p = input.value.split('-');
+  const ok = p.length === 2 && /^\d{7,8}$/.test(p[0]) && _dvRut(p[0]) === p[1].toUpperCase();
+  input.style.borderColor = input.value ? (ok ? '#86efac' : '#fca5a5') : '';
+  if (errEl) errEl.style.display = ok || !input.value ? 'none' : 'block';
+  return ok;
+}
+</script>
 </body>
 
 </html>

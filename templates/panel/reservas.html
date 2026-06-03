@@ -251,6 +251,15 @@
   .btn-proof:hover {
     background: #dbeafe;
   }
+
+  .btn-edit {
+    background: #f0fdf4;
+    color: #15803d;
+  }
+
+  .btn-edit:hover {
+    background: #dcfce7;
+  }
 </style>
 
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1"
@@ -270,9 +279,6 @@
       </a>
       <a href="?estado=RECHAZADA&tipo={{ tipo_filtro }}" class="tab-filter tab-rechazada {% if estado_filtro == 'RECHAZADA' %}active{% endif %}">
         Rechazadas ({{ conteos.RECHAZADA }})
-      </a>
-      <a href="?estado=CANCELADA&tipo={{ tipo_filtro }}" class="tab-filter tab-cancelada {% if estado_filtro == 'CANCELADA' %}active{% endif %}">
-        Canceladas ({{ conteos.CANCELADA }})
       </a>
     </div>
 
@@ -409,14 +415,16 @@
 
       <!-- Acciones de Administración -->
       <div class="admin-actions">
-        <a href="{% url 'panel_eliminar_reserva' r.id %}" class="btn-action btn-delete"
-          onclick="return confirm('¿Estás seguro de eliminar permanentemente esta reserva? Esta acción no se puede deshacer.')">
+        <button type="button" onclick="abrirModalEliminar({{ r.id }}, '{{ r.get_estado_display }}')" class="btn-action btn-delete">
           Eliminar
+        </button>
+        {% if r.tipo_reserva == 'ORGANIZACION' and r.estado == 'PENDIENTE_ALCALDE' %}
+        <a href="{% url 'panel_editar_reserva' r.id %}" class="btn-action btn-edit">
+          Editar
         </a>
-        {% if r.estado == 'PENDIENTE' or r.estado == 'APROBADA' %}
-        <a href="{% url 'panel_cancelar_reserva' r.id %}" class="btn-action btn-cancel"
-           onclick="return confirm('¿Estás seguro de cancelar esta reserva? El usuario será notificado.')">
-          Cancelar
+        {% elif r.tipo_reserva == 'PERSONAL' and r.estado == 'PENDIENTE' %}
+        <a href="{% url 'panel_editar_reserva' r.id %}" class="btn-action btn-edit">
+          Editar
         </a>
         {% endif %}
         {% if r.estado == 'PENDIENTE' %}
@@ -471,4 +479,49 @@
   <div style="height: 90px;"></div>
 
 </div>
+
+<!-- Modal flotante de confirmación de eliminación -->
+<div id="modal-eliminar" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.45);">
+  <div style="background:white;border-radius:20px;padding:24px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="width:36px;height:36px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;color:#dc2626;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+        </svg>
+      </span>
+      <p style="font-size:1rem;font-weight:800;color:#1f2937;">Eliminar reserva</p>
+    </div>
+    <p id="modal-eliminar-texto" style="font-size:0.82rem;color:#6b7280;margin-bottom:20px;line-height:1.5;">
+      Esta acción moverá la reserva al historial y no se puede deshacer.
+    </p>
+    <div style="display:flex;gap:8px;">
+      <button type="button" onclick="cerrarModalEliminar()"
+        style="flex:1;padding:11px;border-radius:10px;background:#f3f4f6;color:#374151;border:none;cursor:pointer;font-weight:700;font-size:0.85rem;">
+        Cancelar
+      </button>
+      <form id="form-eliminar" method="post" style="flex:1;">
+        {% csrf_token %}
+        <button type="submit"
+          style="width:100%;padding:11px;border-radius:10px;background:#dc2626;color:white;border:none;cursor:pointer;font-weight:700;font-size:0.85rem;">
+          Eliminar
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function abrirModalEliminar(id, estado) {
+  document.getElementById('form-eliminar').action = `/panel/reservas/${id}/eliminar/`;
+  document.getElementById('modal-eliminar-texto').textContent =
+    `Vas a eliminar permanentemente la reserva #${id} (${estado}). Esta acción no se puede deshacer.`;
+  document.getElementById('modal-eliminar').classList.remove('hidden');
+}
+function cerrarModalEliminar() {
+  document.getElementById('modal-eliminar').classList.add('hidden');
+}
+document.getElementById('modal-eliminar').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalEliminar();
+});
+</script>
 {% endblock %}

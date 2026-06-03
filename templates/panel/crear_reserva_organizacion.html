@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load clp_tags %}
 {% block title %}Reserva de Organización — Panel{% endblock %}
 
 {% block header_left %}
@@ -79,10 +80,12 @@
         </div>
         <div>
           <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:5px;">RUT *</label>
-          <input type="text" name="representante_rut" required maxlength="12"
+          <input type="text" name="representante_rut" id="id_rep_rut" required maxlength="12"
             value="{{ form_data.representante_rut|default:'' }}"
             placeholder="Ej: 12345678-9"
-            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;"
+            oninput="formatearRut(this)" onblur="validarRut(this)">
+          <p id="rut-error" style="font-size:0.7rem;color:#dc2626;margin-top:4px;display:none;">RUT inválido</p>
         </div>
         <div>
           <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:5px;">Teléfono <span style="color:#9ca3af;font-weight:500;">(opcional)</span></label>
@@ -93,35 +96,36 @@
         </div>
         <div>
           <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:5px;">Correo electrónico *</label>
-          <input type="email" name="representante_email" required
+          <input type="email" name="representante_email" required id="id_rep_email"
             value="{{ form_data.representante_email|default:'' }}"
             placeholder="correo@organizacion.cl"
+            oninput="validarEmail(this)" onblur="validarEmail(this)"
             style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+          <p class="email-error" style="font-size:0.7rem;color:#dc2626;margin-top:4px;display:none;">Ingresa un correo electrónico válido</p>
         </div>
       </div>
     </div>
 
-    <!-- Precios -->
+    <!-- Precios (fijos desde configuración de cancha) -->
     <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:20px;margin-bottom:12px;">
       <p style="font-size:0.7rem;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Precios</p>
 
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div>
-          <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:5px;">Precio original (CLP) *</label>
-          <div style="position:relative;">
-            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:0.85rem;color:#6b7280;font-weight:600;">$</span>
-            <input type="number" name="precio_original" required min="0" id="id_precio_original"
-              value="{{ form_data.precio_original|default:'' }}"
-              placeholder="50000"
-              style="width:100%;padding:10px 12px 10px 24px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
-          </div>
-        </div>
-        <div style="background:#f0fdf4;border-radius:10px;padding:12px 14px;">
-          <p style="font-size:0.72rem;font-weight:700;color:#15803d;margin-bottom:4px;">Precio con descuento (50%)</p>
-          <p id="precio-descuento-display" style="font-size:1.1rem;font-weight:800;color:#16a34a;">—</p>
-          <p style="font-size:0.68rem;color:#9ca3af;margin-top:2px;">Las organizaciones reciben automáticamente un 50% de descuento.</p>
-        </div>
+      {% if precio_cancha %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6;margin-bottom:10px;">
+        <span style="font-size:0.78rem;color:#6b7280;font-weight:600;">Precio base</span>
+        <span style="font-size:0.85rem;color:#374151;font-weight:700;">{{ precio_cancha|clp }}</span>
       </div>
+      <div style="background:#f0fdf4;border-radius:10px;padding:12px 14px;">
+        <p style="font-size:0.72rem;font-weight:700;color:#15803d;margin-bottom:4px;">Precio con descuento (50%)</p>
+        <p style="font-size:1.15rem;font-weight:800;color:#16a34a;">{{ precio_descuento|clp }}</p>
+        <p style="font-size:0.68rem;color:#9ca3af;margin-top:2px;">Las organizaciones reciben automáticamente un 50% de descuento sobre el precio configurado.</p>
+      </div>
+      {% else %}
+      <div style="background:#fef2f2;border-radius:10px;padding:12px 14px;">
+        <p style="font-size:0.78rem;color:#dc2626;font-weight:700;">⚠ Esta cancha no tiene precio definido.</p>
+        <p style="font-size:0.72rem;color:#9ca3af;margin-top:4px;">Ve a <strong>Panel → Precios</strong> para configurarlo antes de crear una reserva de organización.</p>
+      </div>
+      {% endif %}
     </div>
 
     <!-- Motivo / descripción -->
@@ -141,20 +145,44 @@
 </div>
 
 <script>
-  const precioInput = document.getElementById('id_precio_original');
-  const precioDisplay = document.getElementById('precio-descuento-display');
-
-  function actualizarDescuento() {
-    const val = parseInt(precioInput.value);
-    if (!isNaN(val) && val >= 0) {
-      const descuento = Math.floor(val / 2);
-      precioDisplay.textContent = '$ ' + descuento.toLocaleString('es-CL');
-    } else {
-      precioDisplay.textContent = '—';
-    }
+  /* ── Formateador / validador de RUT ── */
+  function formatearRut(input) {
+    let v = input.value.replace(/[^0-9kK]/g, '').toUpperCase();
+    if (v.length > 1) v = v.slice(0, -1) + '-' + v.slice(-1);
+    if (v.length > 10) v = v.slice(0, 10);
+    input.value = v;
   }
 
-  precioInput.addEventListener('input', actualizarDescuento);
-  actualizarDescuento();
+  function digitoVerificador(cuerpo) {
+    let suma = 0, mul = 2;
+    for (let i = cuerpo.length - 1; i >= 0; i--) {
+      suma += parseInt(cuerpo[i]) * mul;
+      mul = mul === 7 ? 2 : mul + 1;
+    }
+    const r = 11 - (suma % 11);
+    return r === 11 ? '0' : r === 10 ? 'K' : String(r);
+  }
+
+  function validarEmail(input) {
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+    const err = input.parentElement?.querySelector('.email-error');
+    input.style.borderColor = input.value ? (ok ? '#86efac' : '#fca5a5') : '';
+    if (err) err.style.display = ok || !input.value ? 'none' : 'block';
+    return ok;
+  }
+
+  function validarRut(input) {
+    const err = document.getElementById('rut-error');
+    const partes = input.value.split('-');
+    if (partes.length !== 2 || !/^\d{7,8}$/.test(partes[0])) {
+      input.style.borderColor = '#fca5a5';
+      if (err) err.style.display = 'block';
+      return false;
+    }
+    const ok = digitoVerificador(partes[0]) === partes[1].toUpperCase();
+    input.style.borderColor = ok ? '#86efac' : '#fca5a5';
+    if (err) err.style.display = ok ? 'none' : 'block';
+    return ok;
+  }
 </script>
 {% endblock %}

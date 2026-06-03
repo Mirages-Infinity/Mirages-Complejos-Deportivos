@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load clp_tags %}
 {% block title %}Tesorería{% endblock %}
 
 {% block content %}
@@ -73,8 +74,8 @@
         <!-- Precios -->
         {% if reg.reserva.precio_descuento %}
         <p style="font-size:0.75rem;color:#374151;margin-bottom:8px;">
-          Monto: <strong style="color:#16a34a;">$ {{ reg.reserva.precio_descuento|floatformat:0 }}</strong>
-          <span style="color:#9ca3af;">(original $ {{ reg.reserva.precio_original|floatformat:0 }})</span>
+          Monto: <strong style="color:#16a34a;">{{ reg.reserva.precio_descuento|clp }}</strong>
+          <span style="color:#9ca3af;">(original {{ reg.reserva.precio_original|clp }})</span>
         </p>
         {% endif %}
 
