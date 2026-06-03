@@ -46,6 +46,7 @@ urlpatterns = [
     path('config-cancha/actualizar-horario/', views.actualizar_horario_cancha, name='actualizar_horario_cancha'),
     path('config-cancha/toggle-findes/', views.toggle_findes_semana_cancha, name='toggle_findes_semana_cancha'),
     path('canchas/admin/crear-reserva/', views.crear_reserva_admin, name='crear_reserva_admin'),
+    path('canchas/admin/crear-reserva/organizacion/', views.crear_reserva_organizacion, name='crear_reserva_organizacion'),
     path('reserva-tenis/finalizar/', views.finalizar_reserva_tenis, name='finalizar_reserva_tenis'),
 
     path('reserva-gimnasio/', views.reserva_gimnasio, name='reserva_gimnasio'),
@@ -68,6 +69,7 @@ urlpatterns = [
     path('panel/usuarios/<int:usuario_id>/editar/', views.panel_editar_usuario, name='panel_editar_usuario'),
     path('panel/usuarios/<int:usuario_id>/toggle/', views.panel_toggle_usuario, name='panel_toggle_usuario'),
     path('panel/usuarios/<int:usuario_id>/eliminar/', views.panel_eliminar_usuario, name='panel_eliminar_usuario'),
+    path('panel/precios/', views.panel_precios, name='panel_precios'),
     path('panel/datos-transferencia/', views.panel_datos_transferencia, name='panel_datos_transferencia'),
     path('panel/registro/', views.panel_registro, name='panel_registro'),
     path('panel/bloqueos-periodo/', views.panel_bloqueos_periodo, name='panel_bloqueos_periodo'),
@@ -76,8 +78,16 @@ urlpatterns = [
     path('panel/historial-reservas/', views.panel_historial_reservas, name='panel_historial_reservas'),
     path('panel/cupones/', views.panel_cupones, name='panel_cupones'),
     path('panel/cupones/crear-reserva/', views.panel_crear_cupon_reserva, name='panel_crear_cupon_reserva'),
-    path('panel/cupones/descuento/', views.panel_cupones_descuento, name='panel_cupones_descuento'),
-    path('panel/cupones/descuento/crear/', views.panel_crear_cupon_descuento, name='panel_crear_cupon_descuento'),
+
+    # Alcalde
+    path('alcalde/', views.perfil_alcalde, name='perfil_alcalde'),
+    path('alcalde/reserva/<int:reserva_id>/', views.alcalde_detalle_reserva, name='alcalde_detalle_reserva'),
+    path('alcalde/reserva/<int:reserva_id>/firmar/', views.alcalde_firmar_reserva, name='alcalde_firmar_reserva'),
+    path('alcalde/reserva/<int:reserva_id>/rechazar/', views.alcalde_rechazar_reserva, name='alcalde_rechazar_reserva'),
+
+    # Tesorero
+    path('tesorero/', views.perfil_tesorero, name='perfil_tesorero'),
+    path('tesorero/registro/<int:registro_id>/estado/', views.tesorero_actualizar_estado, name='tesorero_actualizar_estado'),
 
     # Perfil
     path('perfil/', views.perfil, name='perfil'),

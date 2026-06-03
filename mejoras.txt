@@ -1,2 +1,5 @@
-1. Crear un apartado para que el administrador pueda crear cupones de descuento y cupones de reservas.
-2. el cupon de descuento debe pedir lo siguiente: Tipo de Organizacion - Nombre Organizacion - Autorizado por - Cantidad de Descuento - Fecha de Vencimiento
+Agregar un precio que se editable por el administrador para cada complejo, dejalo como un boton mas en el panel de administracion
+Cuando se crea una reserva por administracion, esta tambien debe verse en el apartado de reservas, crea un boton cuadrado pequeño que permita alternar entre reservas de usuario y de organizacion, ubicalo a la derecha de canceladas
+Edita los estados de las reservas creadas para organizaciones, desde el punto de vista del tesorero, debe estar como default en pendiente, al clickearlo queda como visto y luego de revisarlo que pueda cambiarlo a ingresado; desde el punto de vista del alcalde es solo los estados por firmar y firmado. 
+
+

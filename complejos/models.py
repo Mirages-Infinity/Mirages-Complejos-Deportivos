@@ -35,6 +35,7 @@ class ConfigCancha(models.Model):
         verbose_name="Días disponibles",
     )
     intervalo_minutos = models.PositiveIntegerField(default=60)
+    precio = models.PositiveIntegerField(default=0, verbose_name="Precio por hora (CLP)")
     activo = models.BooleanField(default=True, verbose_name="Cancha Activa")
 
     def dias_semana_list(self):

@@ -17,6 +17,8 @@ class UserProfile(models.Model):
     rut = models.CharField(max_length=12, unique=True, blank=True, null=True)
     fecha_nacimiento = models.DateField(blank=True, null=True)
     foto = models.FileField(upload_to='perfiles/', blank=True, null=True)
+    es_alcalde = models.BooleanField(default=False, verbose_name='Es alcalde')
+    es_tesorero = models.BooleanField(default=False, verbose_name='Es tesorero')
 
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.user.email})"
@@ -76,10 +78,15 @@ class Notificacion(models.Model):
 class Reserva(models.Model):
     ESTADO_RESERVA = [
         ('PENDIENTE', 'Pendiente'),
+        ('PENDIENTE_ALCALDE', 'Pendiente firma alcalde'),
         ('APROBADA', 'Aprobada'),
         ('RECHAZADA', 'Rechazada'),
         ('CANCELADA', 'Cancelada'),
         ('ELIMINADA', 'Eliminada'),
+    ]
+    TIPO_RESERVA_CHOICES = [
+        ('PERSONAL', 'Personal'),
+        ('ORGANIZACION', 'Organización'),
     ]
 
     salon = models.ForeignKey(
@@ -108,6 +115,8 @@ class Reserva(models.Model):
     )
     solicitante_nombre = models.CharField(max_length=150, blank=True, default='')
     solicitante_email = models.EmailField(blank=True, default='')
+    solicitante_telefono = models.CharField(max_length=20, blank=True, default='')
+    solicitante_rut = models.CharField(max_length=12, blank=True, default='')
     fecha = models.DateField()
     hora_inicio = models.TimeField()
     hora_fin = models.TimeField()
@@ -124,6 +133,20 @@ class Reserva(models.Model):
         null=True,
         verbose_name='Comprobante de transferencia',
     )
+
+    # Tipo de reserva
+    tipo_reserva = models.CharField(
+        max_length=15, choices=TIPO_RESERVA_CHOICES, default='PERSONAL', verbose_name='Tipo de reserva'
+    )
+
+    # Campos para reservas de organizaciones
+    nombre_organizacion = models.CharField(max_length=200, blank=True, verbose_name='Nombre organización')
+    representante_nombre = models.CharField(max_length=150, blank=True, verbose_name='Nombre representante')
+    representante_rut = models.CharField(max_length=12, blank=True, verbose_name='RUT representante')
+    representante_telefono = models.CharField(max_length=20, blank=True, verbose_name='Teléfono representante')
+    representante_email = models.EmailField(blank=True, verbose_name='Email representante')
+    precio_original = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True, verbose_name='Precio original')
+    precio_descuento = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True, verbose_name='Precio con descuento')
 
     # Gestión admin
     gestionado_por = models.ForeignKey(
@@ -291,3 +314,27 @@ class CuponDescuento(models.Model):
             codigo = f'D-{parte1}-{parte2}'
             if not cls.objects.filter(codigo=codigo).exists():
                 return codigo
+
+
+class RegistroTesoreria(models.Model):
+    ESTADO_CHOICES = [
+        ('PENDIENTE', 'Pendiente'),
+        ('VISTO', 'Visto'),
+        ('INGRESADO', 'Ingresado'),
+    ]
+
+    reserva = models.OneToOneField(
+        'Reserva', on_delete=models.CASCADE, related_name='registro_tesoreria'
+    )
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='PENDIENTE')
+    notas = models.TextField(blank=True, verbose_name='Notas')
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Registro de Tesorería'
+        verbose_name_plural = 'Registros de Tesorería'
+        ordering = ['-creado_en']
+
+    def __str__(self):
+        return f'Tesorería #{self.reserva_id} — {self.get_estado_display()}'

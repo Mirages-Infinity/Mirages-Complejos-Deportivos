@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Detalle Reserva — Alcaldía{% endblock %}
+
+{% block header_left %}
+<a href="{% url 'perfil_alcalde' %}"
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+  </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
+
+  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Alcaldía</p>
+  <h1 style="font-size:1.25rem;font-weight:800;color:#1f2937;margin-bottom:16px;">Detalle de Reserva</h1>
+
+  <!-- Estado actual -->
+  <div style="background:{% if reserva.estado == 'PENDIENTE_ALCALDE' %}#fef3c7{% elif reserva.estado == 'APROBADA' %}#dcfce7{% else %}#fef2f2{% endif %};border-radius:12px;padding:10px 14px;margin-bottom:16px;">
+    <p style="font-size:0.78rem;font-weight:700;color:{% if reserva.estado == 'PENDIENTE_ALCALDE' %}#92400e{% elif reserva.estado == 'APROBADA' %}#15803d{% else %}#991b1b{% endif %};">
+      Estado: {{ reserva.get_estado_display }}
+    </p>
+  </div>
+
+  <!-- Organización -->
+  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:18px;margin-bottom:12px;">
+    <p style="font-size:0.68rem;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Organización</p>
+    <p style="font-size:1rem;font-weight:800;color:#1f2937;margin-bottom:8px;">{{ reserva.nombre_organizacion }}</p>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      {% if reserva.cancha %}<p style="font-size:0.78rem;color:#6b7280;">📍 {{ reserva.cancha.nombre }}</p>{% endif %}
+      <p style="font-size:0.78rem;color:#6b7280;">📅 {{ reserva.fecha|date:"l d/m/Y" }} · {{ reserva.hora_inicio|time:"H:i" }} – {{ reserva.hora_fin|time:"H:i" }}</p>
+      {% if reserva.motivo %}<p style="font-size:0.78rem;color:#6b7280;">📝 {{ reserva.motivo }}</p>{% endif %}
+    </div>
+  </div>
+
+  <!-- Representante -->
+  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:18px;margin-bottom:12px;">
+    <p style="font-size:0.68rem;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Representante Legal</p>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;justify-content:space-between;">
+        <span style="font-size:0.75rem;color:#9ca3af;font-weight:600;">Nombre</span>
+        <span style="font-size:0.78rem;color:#1f2937;font-weight:700;">{{ reserva.representante_nombre }}</span>
+      </div>
+      {% if reserva.representante_rut %}
+      <div style="display:flex;justify-content:space-between;">
+        <span style="font-size:0.75rem;color:#9ca3af;font-weight:600;">RUT</span>
+        <span style="font-size:0.78rem;color:#1f2937;font-weight:700;">{{ reserva.representante_rut }}</span>
+      </div>
+      {% endif %}
+      {% if reserva.representante_telefono %}
+      <div style="display:flex;justify-content:space-between;">
+        <span style="font-size:0.75rem;color:#9ca3af;font-weight:600;">Teléfono</span>
+        <span style="font-size:0.78rem;color:#1f2937;font-weight:700;">{{ reserva.representante_telefono }}</span>
+      </div>
+      {% endif %}
+      <div style="display:flex;justify-content:space-between;">
+        <span style="font-size:0.75rem;color:#9ca3af;font-weight:600;">Correo</span>
+        <span style="font-size:0.78rem;color:#1f2937;font-weight:700;">{{ reserva.representante_email }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Precios -->
+  {% if reserva.precio_original %}
+  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:18px;margin-bottom:20px;">
+    <p style="font-size:0.68rem;font-weight:800;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">Precios</p>
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:0.78rem;color:#9ca3af;">Precio original</span>
+      <span style="font-size:0.82rem;color:#374151;font-weight:700;">$ {{ reserva.precio_original|floatformat:0 }}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #f3f4f6;">
+      <span style="font-size:0.78rem;color:#15803d;font-weight:700;">Con descuento (50%)</span>
+      <span style="font-size:0.95rem;color:#16a34a;font-weight:800;">$ {{ reserva.precio_descuento|floatformat:0 }}</span>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if reserva.estado == 'PENDIENTE_ALCALDE' %}
+  <!-- Botones de acción -->
+  <form method="post" action="{% url 'alcalde_firmar_reserva' reserva.pk %}" style="margin-bottom:10px;">
+    {% csrf_token %}
+    <button type="submit"
+      style="width:100%;padding:13px;border-radius:12px;background:#16a34a;color:white;font-size:0.9rem;font-weight:700;border:none;cursor:pointer;">
+      ✓ Firmar y aprobar reserva
+    </button>
+  </form>
+
+  <button onclick="document.getElementById('modal-rechazo').classList.remove('hidden')"
+    style="width:100%;padding:13px;border-radius:12px;background:#fef2f2;color:#dc2626;font-size:0.88rem;font-weight:700;border:1.5px solid #fecaca;cursor:pointer;">
+    ✕ Rechazar reserva
+  </button>
+
+  <!-- Modal rechazo -->
+  <div id="modal-rechazo" class="hidden fixed inset-0 z-50 flex items-end justify-center p-4" style="background:rgba(0,0,0,0.5);">
+    <div style="background:white;border-radius:20px;padding:24px;width:100%;max-width:420px;">
+      <p style="font-size:1rem;font-weight:800;color:#1f2937;margin-bottom:8px;">Rechazar reserva</p>
+      <p style="font-size:0.8rem;color:#6b7280;margin-bottom:14px;">Ingresa el motivo del rechazo (opcional).</p>
+      <form method="post" action="{% url 'alcalde_rechazar_reserva' reserva.pk %}">
+        {% csrf_token %}
+        <textarea name="motivo_rechazo" rows="3" placeholder="Motivo del rechazo..."
+          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;margin-bottom:12px;resize:none;box-sizing:border-box;"></textarea>
+        <div style="display:flex;gap:8px;">
+          <button type="button" onclick="document.getElementById('modal-rechazo').classList.add('hidden')"
+            style="flex:1;padding:11px;border-radius:10px;background:#f3f4f6;color:#374151;border:none;cursor:pointer;font-weight:700;font-size:0.82rem;">
+            Cancelar
+          </button>
+          <button type="submit"
+            style="flex:1;padding:11px;border-radius:10px;background:#dc2626;color:white;border:none;cursor:pointer;font-weight:700;font-size:0.82rem;">
+            Confirmar rechazo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

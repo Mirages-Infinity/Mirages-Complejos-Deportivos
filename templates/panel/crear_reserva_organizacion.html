@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Reserva de Organización — Panel{% endblock %}
+
+{% block header_left %}
+<a href="javascript:history.back()"
+   style="width:34px;height:34px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;color:#4b5563;">
+  <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+  </svg>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
+
+  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Panel de administración</p>
+  <h1 style="font-size:1.25rem;font-weight:800;color:#1f2937;margin-bottom:4px;">Reserva de Organización</h1>
+
+  <!-- Info de horario -->
+  {% if cancha and fecha and hora %}
+  <div style="background:#eff6ff;border-radius:12px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#2563eb;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+    </svg>
+    <p style="font-size:0.8rem;color:#1d4ed8;font-weight:600;">{{ cancha.nombre }} · {{ fecha }} · {{ hora }}h</p>
+  </div>
+  {% endif %}
+
+  <div style="background:#fefce8;border-radius:12px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+    <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#ca8a04;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+    </svg>
+    <p style="font-size:0.78rem;color:#92400e;font-weight:600;">Esta reserva quedará <strong>pendiente de firma del alcalde</strong> antes de ser aprobada.</p>
+  </div>
+
+  {% if messages %}
+  <div style="margin-bottom:16px;display:flex;flex-direction:column;gap:6px;">
+    {% for msg in messages %}
+    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:600;
+      {% if msg.tags == 'error' %}background:#fef2f2;color:#dc2626;{% else %}background:#f0fdf4;color:#16a34a;{% endif %}">
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="cancha_id" value="{{ cancha.pk }}">
+    <input type="hidden" name="fecha" value="{{ fecha }}">
+    <input type="hidden" name="hora" value="{{ hora }}">
+
+    <!-- Datos de la organización -->
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:20px;margin-bottom:12px;">
+      <p style="font-size:0.7rem;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Datos de la organización</p>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:5px;">Nombre de la organización *</label>
+          <input type="text" name="nombre_organizacion" required maxlength="200"
+            value="{{ form_data.nombre_organizacion|default:'' }}"
+            placeholder="Ej: Club Deportivo Municipal"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Datos del representante legal -->
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:20px;margin-bottom:12px;">
+      <p style="font-size:0.7rem;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Representante legal</p>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:5px;">Nombre completo *</label>
+          <input type="text" name="representante_nombre" required maxlength="150"
+            value="{{ form_data.representante_nombre|default:'' }}"
+            placeholder="Nombre y apellido"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:5px;">RUT *</label>
+          <input type="text" name="representante_rut" required maxlength="12"
+            value="{{ form_data.representante_rut|default:'' }}"
+            placeholder="Ej: 12345678-9"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:5px;">Teléfono <span style="color:#9ca3af;font-weight:500;">(opcional)</span></label>
+          <input type="tel" name="representante_telefono" maxlength="20"
+            value="{{ form_data.representante_telefono|default:'' }}"
+            placeholder="Ej: +56912345678"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:5px;">Correo electrónico *</label>
+          <input type="email" name="representante_email" required
+            value="{{ form_data.representante_email|default:'' }}"
+            placeholder="correo@organizacion.cl"
+            style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Precios -->
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:20px;margin-bottom:12px;">
+      <p style="font-size:0.7rem;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Precios</p>
+
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:5px;">Precio original (CLP) *</label>
+          <div style="position:relative;">
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:0.85rem;color:#6b7280;font-weight:600;">$</span>
+            <input type="number" name="precio_original" required min="0" id="id_precio_original"
+              value="{{ form_data.precio_original|default:'' }}"
+              placeholder="50000"
+              style="width:100%;padding:10px 12px 10px 24px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="background:#f0fdf4;border-radius:10px;padding:12px 14px;">
+          <p style="font-size:0.72rem;font-weight:700;color:#15803d;margin-bottom:4px;">Precio con descuento (50%)</p>
+          <p id="precio-descuento-display" style="font-size:1.1rem;font-weight:800;color:#16a34a;">—</p>
+          <p style="font-size:0.68rem;color:#9ca3af;margin-top:2px;">Las organizaciones reciben automáticamente un 50% de descuento.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Motivo / descripción -->
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:20px;margin-bottom:16px;">
+      <p style="font-size:0.7rem;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px;">Descripción del evento</p>
+      <textarea name="motivo" rows="3" maxlength="500"
+        placeholder="Descripción del evento o motivo de la reserva (opcional)"
+        style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;resize:none;box-sizing:border-box;">{{ form_data.motivo|default:'' }}</textarea>
+    </div>
+
+    <button type="submit"
+      style="width:100%;padding:13px;border-radius:12px;background:#4f46e5;color:white;font-size:0.88rem;font-weight:700;border:none;cursor:pointer;">
+      Enviar para firma del alcalde
+    </button>
+  </form>
+
+</div>
+
+<script>
+  const precioInput = document.getElementById('id_precio_original');
+  const precioDisplay = document.getElementById('precio-descuento-display');
+
+  function actualizarDescuento() {
+    const val = parseInt(precioInput.value);
+    if (!isNaN(val) && val >= 0) {
+      const descuento = Math.floor(val / 2);
+      precioDisplay.textContent = '$ ' + descuento.toLocaleString('es-CL');
+    } else {
+      precioDisplay.textContent = '—';
+    }
+  }
+
+  precioInput.addEventListener('input', actualizarDescuento);
+  actualizarDescuento();
+</script>
+{% endblock %}

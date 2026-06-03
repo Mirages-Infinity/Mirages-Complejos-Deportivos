@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Panel Alcalde{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
+
+  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Alcaldía</p>
+  <h1 style="font-size:1.25rem;font-weight:800;color:#1f2937;margin-bottom:16px;">Panel del Alcalde</h1>
+
+  {% if messages %}
+  <div style="margin-bottom:14px;display:flex;flex-direction:column;gap:6px;">
+    {% for msg in messages %}
+    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:600;
+      {% if msg.tags == 'error' %}background:#fef2f2;color:#dc2626;{% else %}background:#f0fdf4;color:#16a34a;{% endif %}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Pendientes de firma -->
+  <div style="margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
+    <p style="font-size:0.78rem;font-weight:800;color:#374151;">Pendientes de firma</p>
+    {% if pendientes %}
+    <span style="background:#fef3c7;color:#d97706;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:999px;">{{ pendientes.count }}</span>
+    {% endif %}
+  </div>
+
+  {% if pendientes %}
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+    {% for reserva in pendientes %}
+    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;border-left:4px solid #f59e0b;">
+      <div style="padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <p style="font-size:0.9rem;font-weight:800;color:#1f2937;">{{ reserva.nombre_organizacion }}</p>
+          <span style="font-size:0.62rem;font-weight:700;background:#fef3c7;color:#d97706;padding:2px 8px;border-radius:999px;text-transform:uppercase;">Pendiente</span>
+        </div>
+        <p style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;">
+          📅 {{ reserva.fecha|date:"d/m/Y" }} · {{ reserva.hora_inicio|time:"H:i" }}–{{ reserva.hora_fin|time:"H:i" }}
+          {% if reserva.cancha %} · {{ reserva.cancha.nombre }}{% endif %}
+        </p>
+        <p style="font-size:0.73rem;color:#6b7280;">
+          👤 {{ reserva.representante_nombre }}
+          {% if reserva.representante_rut %} · {{ reserva.representante_rut }}{% endif %}
+        </p>
+        {% if reserva.precio_original %}
+        <p style="font-size:0.73rem;color:#374151;margin-top:4px;">
+          Precio original: <strong>$ {{ reserva.precio_original|floatformat:0 }}</strong>
+          → Con descuento: <strong style="color:#16a34a;">$ {{ reserva.precio_descuento|floatformat:0 }}</strong>
+        </p>
+        {% endif %}
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <a href="{% url 'alcalde_detalle_reserva' reserva.pk %}"
+            style="flex:1;padding:9px;border-radius:10px;background:#f3f4f6;color:#374151;text-align:center;text-decoration:none;font-size:0.78rem;font-weight:700;">
+            Ver detalle
+          </a>
+          <form method="post" action="{% url 'alcalde_firmar_reserva' reserva.pk %}" style="flex:1;">
+            {% csrf_token %}
+            <button type="submit"
+              style="width:100%;padding:9px;border-radius:10px;background:#16a34a;color:white;border:none;cursor:pointer;font-size:0.78rem;font-weight:700;">
+              ✓ Firmar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:32px 16px;text-align:center;margin-bottom:24px;">
+    <p style="color:#9ca3af;font-size:0.85rem;">No hay reservas pendientes de firma.</p>
+  </div>
+  {% endif %}
+
+  <!-- Firmadas recientemente -->
+  {% if firmadas %}
+  <p style="font-size:0.78rem;font-weight:800;color:#374151;margin-bottom:8px;">Firmadas recientemente</p>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+    {% for reserva in firmadas %}
+    <div style="background:white;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);padding:12px 14px;border-left:3px solid #16a34a;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <p style="font-size:0.82rem;font-weight:700;color:#1f2937;">{{ reserva.nombre_organizacion }}</p>
+          <p style="font-size:0.7rem;color:#6b7280;">{{ reserva.fecha|date:"d/m/Y" }} · {{ reserva.hora_inicio|time:"H:i" }}</p>
+        </div>
+        <span style="font-size:0.62rem;font-weight:700;background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:999px;">Aprobada</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Rechazadas -->
+  {% if rechazadas %}
+  <p style="font-size:0.78rem;font-weight:800;color:#374151;margin-bottom:8px;">Rechazadas</p>
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    {% for reserva in rechazadas %}
+    <div style="background:white;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);padding:12px 14px;border-left:3px solid #dc2626;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <p style="font-size:0.82rem;font-weight:700;color:#1f2937;">{{ reserva.nombre_organizacion }}</p>
+          <p style="font-size:0.7rem;color:#6b7280;">{{ reserva.fecha|date:"d/m/Y" }}</p>
+        </div>
+        <span style="font-size:0.62rem;font-weight:700;background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:999px;">Rechazada</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

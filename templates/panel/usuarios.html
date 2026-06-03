@@ -69,6 +69,74 @@
 
   </div>
 
+  <!-- Alcalde -->
+  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Alcalde</p>
+  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:24px;">
+    {% for u in alcaldes %}
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;">
+      <div style="width:42px;height:42px;border-radius:50%;background:#f5f3ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.25rem;">🏛️</div>
+      <div style="flex:1;min-width:0;">
+        <p style="font-size:0.875rem;font-weight:600;color:#1f2937;">{{ u.get_full_name|default:"Sin nombre" }}</p>
+        <p style="font-size:0.72rem;color:#6b7280;">{{ u.email }}</p>
+        <p style="font-size:0.68rem;font-weight:700;color:#7c3aed;">Alcalde</p>
+      </div>
+      <div style="flex-shrink:0;display:flex;gap:6px;">
+        <a href="{% url 'panel_editar_usuario' u.id %}" style="width:30px;height:30px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Editar datos">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#2d3a8c;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
+        </a>
+        <a href="{% url 'panel_eliminar_usuario' u.id %}" style="width:30px;height:30px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Eliminar">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#ef4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+        </a>
+      </div>
+    </div>
+    {% empty %}
+    <a href="{% url 'panel_crear_usuario' %}?rol=alcalde"
+       style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">
+      <div style="width:42px;height:42px;border-radius:50%;background:#f5f3ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#7c3aed;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+      </div>
+      <div>
+        <p style="font-size:0.875rem;font-weight:700;color:#7c3aed;">Crear perfil de alcalde</p>
+        <p style="font-size:0.72rem;color:#9ca3af;">Aún no hay un alcalde registrado.</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Tesorero -->
+  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Tesorero</p>
+  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:24px;">
+    {% for u in tesoreros %}
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;">
+      <div style="width:42px;height:42px;border-radius:50%;background:#ecfeff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.25rem;">💰</div>
+      <div style="flex:1;min-width:0;">
+        <p style="font-size:0.875rem;font-weight:600;color:#1f2937;">{{ u.get_full_name|default:"Sin nombre" }}</p>
+        <p style="font-size:0.72rem;color:#6b7280;">{{ u.email }}</p>
+        <p style="font-size:0.68rem;font-weight:700;color:#0891b2;">Tesorero</p>
+      </div>
+      <div style="flex-shrink:0;display:flex;gap:6px;">
+        <a href="{% url 'panel_editar_usuario' u.id %}" style="width:30px;height:30px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Editar datos">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#2d3a8c;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
+        </a>
+        <a href="{% url 'panel_eliminar_usuario' u.id %}" style="width:30px;height:30px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Eliminar">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#ef4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+        </a>
+      </div>
+    </div>
+    {% empty %}
+    <a href="{% url 'panel_crear_usuario' %}?rol=tesorero"
+       style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">
+      <div style="width:42px;height:42px;border-radius:50%;background:#ecfeff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#0891b2;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+      </div>
+      <div>
+        <p style="font-size:0.875rem;font-weight:700;color:#0891b2;">Crear perfil de tesorero</p>
+        <p style="font-size:0.72rem;color:#9ca3af;">Aún no hay un tesorero registrado.</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
   <!-- Usuarios normales -->
   <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">
     {{ usuarios.count }} usuario{{ usuarios.count|pluralize:"s" }} registrado{{ usuarios.count|pluralize:"s" }}

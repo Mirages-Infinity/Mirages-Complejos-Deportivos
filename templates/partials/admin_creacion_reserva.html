@@ -23,32 +23,69 @@
         </svg>
       </button>
     </div>
+
     <div class="px-6 py-5 space-y-4">
+
+      <!-- Tipo de reserva -->
       <div>
-        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Nombre del solicitante</label>
-        <input type="text" id="crv-nombre" placeholder="Ej: Juan Pérez"
-          class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-blue-400 transition-all">
-      </div>
-      <div>
-        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Email (opcional)</label>
-        <input type="email" id="crv-email" placeholder="ejemplo@correo.cl"
-          class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-blue-400 transition-all">
-      </div>
-      <div>
-        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Estado del pago</label>
+        <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Tipo de reserva</label>
         <div class="grid grid-cols-2 gap-2">
-          <button type="button" id="crv-pago-pagado" onclick="setPagoCreacion(true)" class="py-2.5 rounded-2xl border-2 font-black text-xs uppercase tracking-wider transition-all">Pagado</button>
-          <button type="button" id="crv-pago-nopagado" onclick="setPagoCreacion(false)" class="py-2.5 rounded-2xl border-2 font-black text-xs uppercase tracking-wider transition-all">No pagado</button>
+          <button type="button" id="crv-tipo-personal" onclick="setTipoReserva('personal')"
+            class="py-2.5 rounded-2xl border-2 font-black text-xs uppercase tracking-wider transition-all">
+            👤 Personal
+          </button>
+          <button type="button" id="crv-tipo-organizacion" onclick="setTipoReserva('organizacion')"
+            class="py-2.5 rounded-2xl border-2 font-black text-xs uppercase tracking-wider transition-all">
+            🏢 Organización
+          </button>
         </div>
-        <p class="text-[10px] text-gray-500 mt-2 leading-relaxed" id="crv-pago-help">Si está pagado se aprueba al instante. Si no, queda pendiente como una reserva normal.</p>
       </div>
+
+      <!-- Campos solo para tipo personal -->
+      <div id="crv-campos-personal">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Nombre del solicitante</label>
+            <input type="text" id="crv-nombre" placeholder="Ej: Juan Pérez"
+              class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-blue-400 transition-all">
+          </div>
+          <div>
+            <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">RUT (opcional)</label>
+            <input type="text" id="crv-rut" placeholder="Ej: 12345678-9"
+              class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-blue-400 transition-all">
+          </div>
+          <div>
+            <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Teléfono (opcional)</label>
+            <input type="tel" id="crv-telefono" placeholder="Ej: +56912345678"
+              class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-blue-400 transition-all">
+          </div>
+          <div>
+            <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Correo (opcional)</label>
+            <input type="email" id="crv-email" placeholder="ejemplo@correo.cl"
+              class="w-full border border-gray-200 rounded-2xl px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-blue-400 transition-all">
+          </div>
+          <p class="text-[10px] text-green-600 font-semibold bg-green-50 rounded-xl px-3 py-2">
+            La reserva quedará <strong>APROBADA</strong> al instante.
+          </p>
+        </div>
+      </div>
+
+      <!-- Info para tipo organización -->
+      <div id="crv-campos-organizacion" class="hidden">
+        <p class="text-xs text-blue-700 font-semibold bg-blue-50 rounded-xl px-3 py-2.5 leading-relaxed">
+          Se abrirá el formulario completo de organización.<br>
+          La reserva quedará <strong>pendiente de firma del alcalde</strong>.
+        </p>
+      </div>
+
       <div id="crv-error" class="hidden text-xs text-red-600 font-semibold bg-red-50 rounded-xl px-3 py-2 leading-relaxed"></div>
     </div>
+
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
       <button type="button" onclick="cerrarModalCrearReserva()"
         class="flex-1 py-3 rounded-2xl border border-gray-200 text-gray-500 font-black text-[11px] uppercase tracking-widest hover:bg-gray-100 transition-all">Cancelar</button>
       <button type="button" onclick="confirmarCrearReserva()"
-        class="flex-1 py-3 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-sm shadow-blue-200">Crear</button>
+        class="flex-1 py-3 rounded-2xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-sm shadow-blue-200">Continuar</button>
     </div>
   </div>
 </div>
@@ -56,7 +93,7 @@
 <script>
   (function() {
     const CANCHA_ID = {{ cancha_id }};
-    let pagoCreacionState = true;
+    let tipoReservaActual = 'personal';
     let crvFechaActual = null;
     let crvHoraActual = null;
 
@@ -69,20 +106,24 @@
       return v;
     }
 
-    window.setPagoCreacion = function(pagado) {
-      pagoCreacionState = pagado;
-      const btnPagado = document.getElementById('crv-pago-pagado');
-      const btnNo = document.getElementById('crv-pago-nopagado');
-      const help = document.getElementById('crv-pago-help');
+    window.setTipoReserva = function(tipo) {
+      tipoReservaActual = tipo;
+      const btnPersonal = document.getElementById('crv-tipo-personal');
+      const btnOrg = document.getElementById('crv-tipo-organizacion');
+      const camposPersonal = document.getElementById('crv-campos-personal');
+      const camposOrg = document.getElementById('crv-campos-organizacion');
       const baseInactivo = 'py-2.5 rounded-2xl border-2 border-gray-200 bg-white text-gray-500 font-black text-xs uppercase tracking-wider hover:border-gray-300 transition-all';
-      if (pagado) {
-        btnPagado.className = 'py-2.5 rounded-2xl border-2 border-green-500 bg-green-50 text-green-700 font-black text-xs uppercase tracking-wider transition-all';
-        btnNo.className = baseInactivo;
-        help.textContent = 'La reserva quedará APROBADA al instante (registrado como pagado en tarjeta).';
+
+      if (tipo === 'personal') {
+        btnPersonal.className = 'py-2.5 rounded-2xl border-2 border-blue-500 bg-blue-50 text-blue-700 font-black text-xs uppercase tracking-wider transition-all';
+        btnOrg.className = baseInactivo;
+        camposPersonal.classList.remove('hidden');
+        camposOrg.classList.add('hidden');
       } else {
-        btnNo.className = 'py-2.5 rounded-2xl border-2 border-yellow-500 bg-yellow-50 text-yellow-700 font-black text-xs uppercase tracking-wider transition-all';
-        btnPagado.className = baseInactivo;
-        help.textContent = 'La reserva quedará PENDIENTE y seguirá el flujo normal de aprobación.';
+        btnOrg.className = 'py-2.5 rounded-2xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-black text-xs uppercase tracking-wider transition-all';
+        btnPersonal.className = baseInactivo;
+        camposPersonal.classList.add('hidden');
+        camposOrg.classList.remove('hidden');
       }
     };
 
@@ -91,9 +132,11 @@
       crvHoraActual = horaStr;
       document.getElementById('crv-fecha-hora').textContent = `${fechaDisplay} • ${horaStr}`;
       document.getElementById('crv-nombre').value = '';
+      document.getElementById('crv-rut').value = '';
+      document.getElementById('crv-telefono').value = '';
       document.getElementById('crv-email').value = '';
       document.getElementById('crv-error').classList.add('hidden');
-      window.setPagoCreacion(true);
+      window.setTipoReserva('personal');
       const m = document.getElementById('modal-crear-reserva');
       m.classList.remove('hidden'); m.classList.add('flex');
       setTimeout(() => document.getElementById('crv-nombre').focus(), 50);
@@ -105,23 +148,23 @@
     };
 
     window.confirmarCrearReserva = async function() {
-      const nombre = document.getElementById('crv-nombre').value.trim();
-      const email = document.getElementById('crv-email').value.trim();
       const err = document.getElementById('crv-error');
       err.classList.add('hidden');
-      if (!nombre) { err.textContent = 'Debes ingresar el nombre del solicitante.'; err.classList.remove('hidden'); return; }
 
-      // Flujo "No pagado": delegar al voucher + modal de pago normal.
-      if (!pagoCreacionState) {
-        if (typeof window.adminTriggerVoucher !== 'function') {
-          err.textContent = 'Flujo de pago no disponible en esta página.'; err.classList.remove('hidden'); return;
-        }
+      // Flujo organización: redirigir a formulario completo
+      if (tipoReservaActual === 'organizacion') {
         window.cerrarModalCrearReserva();
-        window.adminTriggerVoucher(crvFechaActual, crvHoraActual, nombre, email);
+        const url = `{% url 'crear_reserva_organizacion' %}?cancha_id=${CANCHA_ID}&fecha=${crvFechaActual}&hora=${crvHoraActual}`;
+        window.location.href = url;
         return;
       }
 
-      // Flujo "Pagado": creación directa (APROBADA al instante).
+      // Flujo personal: creación directa (siempre APROBADA)
+      const nombre = document.getElementById('crv-nombre').value.trim();
+      const telefono = document.getElementById('crv-telefono').value.trim();
+      const email = document.getElementById('crv-email').value.trim();
+      if (!nombre) { err.textContent = 'Debes ingresar el nombre del solicitante.'; err.classList.remove('hidden'); return; }
+
       try {
         const res = await fetch("{% url 'crear_reserva_admin' %}", {
           method: 'POST',
@@ -131,8 +174,9 @@
             fecha: crvFechaActual,
             hora: crvHoraActual,
             solicitante_nombre: nombre,
+            solicitante_rut: document.getElementById('crv-rut').value.trim(),
+            solicitante_telefono: telefono,
             solicitante_email: email,
-            pagado: true
           })
         });
         const data = await res.json();

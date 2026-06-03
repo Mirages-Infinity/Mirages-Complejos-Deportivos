@@ -13,6 +13,22 @@
 {% block content %}
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
+  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Panel de administración</p>
+  <h1 style="font-size:1.2rem;font-weight:800;color:#1f2937;margin-bottom:{% if rol_fijo %}8{% else %}16{% endif %}px;">
+    {% if rol_fijo == 'alcalde' %}🏛️ Crear perfil de Alcalde
+    {% elif rol_fijo == 'tesorero' %}💰 Crear perfil de Tesorero
+    {% else %}Crear usuario{% endif %}
+  </h1>
+
+  {% if rol_fijo %}
+  <div style="background:{% if rol_fijo == 'alcalde' %}#faf5ff{% else %}#ecfeff{% endif %};border-radius:12px;padding:10px 14px;margin-bottom:16px;">
+    <p style="font-size:0.78rem;font-weight:600;color:{% if rol_fijo == 'alcalde' %}#7c3aed{% else %}#0891b2{% endif %};">
+      {% if rol_fijo == 'alcalde' %}El rol Alcalde quedará asignado automáticamente. Podrá firmar y aprobar reservas de organizaciones.
+      {% else %}El rol Tesorero quedará asignado automáticamente. Podrá gestionar el registro de ingresos.{% endif %}
+    </p>
+  </div>
+  {% endif %}
+
   {% if messages %}
     {% for m in messages %}
     <div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:{% if m.tags == 'error' %}#fef2f2{% else %}#f0fdf4{% endif %};color:{% if m.tags == 'error' %}#dc2626{% else %}#16a34a{% endif %};font-size:0.82rem;">
@@ -23,6 +39,7 @@
 
   <form method="post">
     {% csrf_token %}
+    {% if rol_fijo %}<input type="hidden" name="rol_fijo" value="{{ rol_fijo }}">{% endif %}
 
     <!-- Datos personales -->
     <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:16px;">
@@ -88,44 +105,69 @@
 
     </div>
 
-    <!-- Rol -->
+    <!-- Rol: solo si NO hay rol pre-fijo -->
+    {% if not rol_fijo %}
     <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:24px;">
-
       <div style="padding:14px 16px;">
-        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:10px;">Tipo de cuenta</label>
+        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:12px;">Tipo de cuenta</label>
 
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:10px;">
+        <!-- Usuario normal -->
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;" id="lbl-usuario">
           <input type="radio" name="rol" value="usuario"
-                 {% if datos.rol != 'admin' %}checked{% endif %}
-                 style="accent-color:#6abf4b;width:16px;height:16px;">
-          <span style="font-size:0.875rem;color:#1f2937;font-weight:500;">Usuario normal</span>
+                 {% if datos.rol != 'admin' and datos.rol != 'alcalde' and datos.rol != 'tesorero' %}checked{% endif %}
+                 onchange="highlightRol()"
+                 style="accent-color:#6b7280;width:16px;height:16px;">
+          <div>
+            <span style="font-size:0.875rem;color:#1f2937;font-weight:600;">👤 Usuario normal</span>
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">Puede realizar reservas en el sistema.</span>
+          </div>
         </label>
 
-        <label style="display:flex;align-items:{% if total_superusuarios >= max_superusuarios %}flex-start{% else %}center{% endif %};gap:10px;cursor:{% if total_superusuarios >= max_superusuarios %}not-allowed{% else %}pointer{% endif %};">
+        <!-- Administrador -->
+        <label style="display:flex;align-items:center;gap:10px;cursor:{% if total_superusuarios >= max_superusuarios %}not-allowed{% else %}pointer{% endif %};margin-bottom:12px;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;" id="lbl-admin">
           <input type="radio" name="rol" value="admin"
                  {% if datos.rol == 'admin' %}checked{% endif %}
                  {% if total_superusuarios >= max_superusuarios %}disabled{% endif %}
-                 style="accent-color:#6abf4b;width:16px;height:16px;margin-top:2px;">
-          <span>
-            <span style="font-size:0.875rem;color:{% if total_superusuarios >= max_superusuarios %}#9ca3af{% else %}#1f2937{% endif %};font-weight:500;">Administrador (superusuario)</span>
-            {% if total_superusuarios >= max_superusuarios %}
-            <span style="display:block;font-size:0.7rem;color:#dc2626;margin-top:2px;">
-              Límite alcanzado ({{ total_superusuarios }}/{{ max_superusuarios }} superusuarios)
+                 onchange="highlightRol()"
+                 style="accent-color:#d97706;width:16px;height:16px;">
+          <div>
+            <span style="font-size:0.875rem;color:{% if total_superusuarios >= max_superusuarios %}#9ca3af{% else %}#1f2937{% endif %};font-weight:600;">⚙️ Administrador</span>
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">
+              {% if total_superusuarios >= max_superusuarios %}Límite alcanzado ({{ total_superusuarios }}/{{ max_superusuarios }}){% else %}Acceso total al panel — {{ total_superusuarios }}/{{ max_superusuarios }} activos{% endif %}
             </span>
-            {% else %}
-            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:2px;">
-              {{ total_superusuarios }}/{{ max_superusuarios }} superusuarios activos
-            </span>
-            {% endif %}
-          </span>
+          </div>
+        </label>
+
+        <!-- Alcalde -->
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;" id="lbl-alcalde">
+          <input type="radio" name="rol" value="alcalde"
+                 {% if datos.rol == 'alcalde' %}checked{% endif %}
+                 onchange="highlightRol()"
+                 style="accent-color:#7c3aed;width:16px;height:16px;">
+          <div>
+            <span style="font-size:0.875rem;color:#1f2937;font-weight:600;">🏛️ Alcalde</span>
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">Firma y aprueba reservas de organizaciones.</span>
+          </div>
+        </label>
+
+        <!-- Tesorero -->
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;" id="lbl-tesorero">
+          <input type="radio" name="rol" value="tesorero"
+                 {% if datos.rol == 'tesorero' %}checked{% endif %}
+                 onchange="highlightRol()"
+                 style="accent-color:#0891b2;width:16px;height:16px;">
+          <div>
+            <span style="font-size:0.875rem;color:#1f2937;font-weight:600;">💰 Tesorero</span>
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">Gestiona el registro de ingresos de organizaciones.</span>
+          </div>
         </label>
 
         {% if errores.rol %}
         <p style="font-size:0.7rem;color:#dc2626;margin-top:8px;">{{ errores.rol }}</p>
         {% endif %}
       </div>
-
     </div>
+    {% endif %}
 
     <button type="submit"
             style="width:100%;padding:13px;border-radius:999px;background:#6abf4b;color:white;font-weight:600;font-size:0.9rem;border:none;cursor:pointer;">
@@ -135,4 +177,20 @@
   </form>
 
 </div>
+
+<script>
+  function highlightRol() {
+    const roles = ['usuario', 'admin', 'alcalde', 'tesorero'];
+    const colores = { usuario: '#6b7280', admin: '#d97706', alcalde: '#7c3aed', tesorero: '#0891b2' };
+    roles.forEach(r => {
+      const lbl = document.getElementById('lbl-' + r);
+      const inp = lbl?.querySelector('input');
+      if (lbl && inp) {
+        lbl.style.borderColor = inp.checked ? colores[r] : '#e5e7eb';
+        lbl.style.background = inp.checked ? (r === 'usuario' ? '#f9fafb' : r === 'admin' ? '#fffbeb' : r === 'alcalde' ? '#faf5ff' : '#ecfeff') : 'white';
+      }
+    });
+  }
+  highlightRol();
+</script>
 {% endblock %}

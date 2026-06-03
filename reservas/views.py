@@ -15,7 +15,7 @@ import json
 import re
 import logging
 from PIL import Image, UnidentifiedImageError
-from .models import UserProfile, Reserva, CambioEmailPendiente, Notificacion, Bitacora, Cupon, CuponDescuento
+from .models import UserProfile, Reserva, CambioEmailPendiente, Notificacion, Bitacora, Cupon, RegistroTesoreria
 from complejos.models import ConfigCancha, BloqueoHorario, BloqueoPeriodo, Salon, DatosTransferencia
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.tokens import default_token_generator
@@ -35,6 +35,9 @@ from .emails import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Estados que bloquean un slot horario (reserva activa u organización esperando firma)
+ESTADOS_OCUPAN_SLOT = ['PENDIENTE', 'PENDIENTE_ALCALDE', 'APROBADA']
 
 RUT_REGEX = re.compile(r'^\d{7,8}-[\dkK]$')
 
@@ -82,6 +85,30 @@ def staff_required(view_func):
     return wrapper
 
 
+def alcalde_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        perfil = getattr(request.user, 'perfil', None)
+        if not (perfil and perfil.es_alcalde):
+            return redirect('inicio')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def tesorero_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        perfil = getattr(request.user, 'perfil', None)
+        if not (perfil and perfil.es_tesorero):
+            return redirect('inicio')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
 def _rate_limit_exceeded(request, action, limit=5, period=300):
     """Devuelve True si la IP superó el límite de intentos para la acción dada."""
     ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', 'unknown'))
@@ -95,6 +122,10 @@ def _rate_limit_exceeded(request, action, limit=5, period=300):
 
 
 def inicio(request):
+    if request.user.is_authenticated:
+        perfil = getattr(request.user, 'perfil', None)
+        if perfil and perfil.es_alcalde:
+            return redirect('perfil_alcalde')
     return render(request, 'inicio.html')
 
 
@@ -112,7 +143,7 @@ def _reserva_generica(request, nombre_cancha, template_name, context_key):
                 reservas = Reserva.objects.filter(
                     cancha=config,
                     fecha=fecha,
-                    estado__in=['PENDIENTE', 'APROBADA'],
+                    estado__in=ESTADOS_OCUPAN_SLOT,
                 )
                 bloqueado_periodo = BloqueoPeriodo.objects.filter(
                     cancha=config,
@@ -230,7 +261,7 @@ def toggle_bloqueo(request):
                 cancha=cancha,
                 fecha=fecha,
                 hora_inicio=hora,
-                estado__in=['PENDIENTE', 'APROBADA'],
+                estado__in=ESTADOS_OCUPAN_SLOT,
             ).select_related('solicitante')
 
             for reserva in reservas_afectadas:
@@ -296,7 +327,7 @@ def check_hora_reservada(request):
             cancha_id=cancha_id,
             fecha=fecha,
             hora_inicio=hora,
-            estado__in=['PENDIENTE', 'APROBADA'],
+            estado__in=ESTADOS_OCUPAN_SLOT,
         )
         if reserva_id:
             qs = qs.exclude(pk=reserva_id)
@@ -391,7 +422,7 @@ def bloquear_periodo(request):
                     cancha=cancha,
                     fecha__gte=fecha_inicio,
                     fecha__lte=fecha_fin,
-                    estado__in=['PENDIENTE', 'APROBADA'],
+                    estado__in=ESTADOS_OCUPAN_SLOT,
                 )
                 .select_related('solicitante')
                 .order_by('fecha', 'hora_inicio')
@@ -484,7 +515,7 @@ def toggle_findes_semana_cancha(request):
             hoy = date.today()
             reservas_finde = (
                 Reserva.objects
-                .filter(cancha=cancha, estado__in=['PENDIENTE', 'APROBADA'], fecha__gte=hoy)
+                .filter(cancha=cancha, estado__in=ESTADOS_OCUPAN_SLOT, fecha__gte=hoy)
                 .order_by('-fecha')
             )
             reservas_finde = [r for r in reservas_finde if r.fecha.weekday() in DIAS_FINDE]
@@ -561,13 +592,13 @@ def actualizar_horario_cancha(request):
             hoy = date.today()
             ultima_reserva = (
                 Reserva.objects
-                .filter(cancha=cancha, estado__in=['PENDIENTE', 'APROBADA'], fecha__gte=hoy)
+                .filter(cancha=cancha, estado__in=ESTADOS_OCUPAN_SLOT, fecha__gte=hoy)
                 .order_by('-fecha')
                 .first()
             )
             if ultima_reserva:
                 total = Reserva.objects.filter(
-                    cancha=cancha, estado__in=['PENDIENTE', 'APROBADA'], fecha__gte=hoy
+                    cancha=cancha, estado__in=ESTADOS_OCUPAN_SLOT, fecha__gte=hoy
                 ).count()
                 disponible_desde = ultima_reserva.fecha + timedelta(days=1)
                 plural = 'reserva activa' if total == 1 else 'reservas activas'
@@ -605,8 +636,7 @@ def actualizar_horario_cancha(request):
 
 @login_required
 def crear_reserva_admin(request):
-    """Permite a un superuser crear una reserva manualmente, ya sea ya pagada
-    (APROBADA al instante) o no pagada (PENDIENTE, sigue el flujo normal)."""
+    """Permite a un superuser crear una reserva personal manualmente (siempre APROBADA)."""
     if not request.user.is_superuser:
         return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
     if request.method != 'POST':
@@ -618,31 +648,27 @@ def crear_reserva_admin(request):
         fecha = datetime.strptime(data.get('fecha'), "%Y-%m-%d").date()
         hora_inicio = datetime.strptime(data.get('hora'), "%H:%M").time()
         nombre = (data.get('solicitante_nombre') or '').strip()
+        rut = normalizar_rut((data.get('solicitante_rut') or '').strip())
+        telefono = (data.get('solicitante_telefono') or '').strip()
         email = (data.get('solicitante_email') or '').strip()
-        pagado = bool(data.get('pagado'))
 
         if not nombre:
             return JsonResponse({'status': 'error', 'message': 'Debes ingresar el nombre del solicitante.'}, status=400)
 
-        # Validar día de semana habilitado
         if fecha.weekday() not in cancha.dias_semana_list():
             return JsonResponse({'status': 'error', 'message': 'Ese día no está habilitado para este recinto.'}, status=400)
 
-        # Bloqueo de período aplica también al admin (debe desbloquear primero)
         if BloqueoPeriodo.objects.filter(cancha=cancha, fecha_inicio__lte=fecha, fecha_fin__gte=fecha).exists():
             return JsonResponse({'status': 'error', 'message': 'Esa fecha está dentro de un período bloqueado.'}, status=400)
 
         hora_fin_dt = datetime.combine(fecha, hora_inicio) + timedelta(minutes=cancha.intervalo_minutos)
         hora_fin = hora_fin_dt.time()
 
-        estado = 'APROBADA' if pagado else 'PENDIENTE'
-        metodo_pago = 'TARJETA' if pagado else 'TRANSFERENCIA'
-
         with transaction.atomic():
             if BloqueoHorario.objects.select_for_update().filter(cancha=cancha, fecha=fecha, hora=hora_inicio).exists():
                 return JsonResponse({'status': 'error', 'message': 'Ese horario está bloqueado.'}, status=400)
             if Reserva.objects.select_for_update().filter(
-                cancha=cancha, fecha=fecha, hora_inicio=hora_inicio, estado__in=['PENDIENTE', 'APROBADA']
+                cancha=cancha, fecha=fecha, hora_inicio=hora_inicio, estado__in=ESTADOS_OCUPAN_SLOT
             ).exists():
                 return JsonResponse({'status': 'error', 'message': 'Ese horario ya está reservado.'}, status=400)
 
@@ -650,30 +676,149 @@ def crear_reserva_admin(request):
                 cancha=cancha,
                 solicitante=None,
                 solicitante_nombre=nombre,
+                solicitante_rut=rut if rut_valido(rut) else '',
                 solicitante_email=email,
+                solicitante_telefono=telefono,
                 fecha=fecha,
                 hora_inicio=hora_inicio,
                 hora_fin=hora_fin,
-                estado=estado,
-                metodo_pago=metodo_pago,
-                gestionado_por=request.user if pagado else None,
+                estado='APROBADA',
+                metodo_pago='TARJETA',
+                tipo_reserva='PERSONAL',
+                gestionado_por=request.user,
             )
 
         registrar_accion(
             request.user,
-            "Creó reserva manualmente",
-            f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')} "
-            f"para {nombre} ({'pagada' if pagado else 'no pagada'})",
+            "Creó reserva personal manualmente",
+            f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')} para {nombre}",
         )
 
         return JsonResponse({
             'status': 'success',
             'reserva_id': reserva.id,
-            'estado': estado,
-            'message': f'Reserva creada como {estado.lower()}.',
+            'estado': 'APROBADA',
+            'message': 'Reserva creada y aprobada.',
         })
     except (ValueError, TypeError, json.JSONDecodeError) as e:
         return JsonResponse({'status': 'error', 'message': f'Datos inválidos: {e}'}, status=400)
+
+
+@staff_required
+def crear_reserva_organizacion(request):
+    """Página completa para crear una reserva de organización (requiere firma del alcalde)."""
+    cancha_id = request.GET.get('cancha_id') or request.POST.get('cancha_id')
+    fecha_str = request.GET.get('fecha') or request.POST.get('fecha')
+    hora_str = request.GET.get('hora') or request.POST.get('hora')
+
+    cancha = get_object_or_404(ConfigCancha, id=cancha_id) if cancha_id else None
+
+    if request.method == 'POST':
+        nombre_org = request.POST.get('nombre_organizacion', '').strip()
+        rep_nombre = request.POST.get('representante_nombre', '').strip()
+        rep_rut = request.POST.get('representante_rut', '').strip()
+        rep_telefono = request.POST.get('representante_telefono', '').strip()
+        rep_email = request.POST.get('representante_email', '').strip()
+        precio_original_str = request.POST.get('precio_original', '').strip()
+        motivo = request.POST.get('motivo', '').strip()
+
+        errores = []
+        if not nombre_org:
+            errores.append('El nombre de la organización es requerido.')
+        if not rep_nombre:
+            errores.append('El nombre del representante legal es requerido.')
+        rep_rut_norm = normalizar_rut(rep_rut) if rep_rut else ''
+        if rep_rut and not rut_valido(rep_rut_norm):
+            errores.append('El RUT del representante no es válido.')
+        if not rep_email:
+            errores.append('El correo del representante es requerido.')
+
+        precio_original = None
+        precio_descuento = None
+        if not precio_original_str:
+            errores.append('El precio original es requerido.')
+        else:
+            try:
+                precio_original = int(precio_original_str)
+                if precio_original < 0:
+                    errores.append('El precio original no puede ser negativo.')
+                else:
+                    precio_descuento = precio_original // 2
+            except ValueError:
+                errores.append('El precio original debe ser un número entero.')
+
+        fecha = None
+        hora_inicio = None
+        if not fecha_str or not hora_str or not cancha:
+            errores.append('Faltan datos del horario. Vuelve al calendario e intenta de nuevo.')
+        else:
+            try:
+                fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+                hora_inicio = datetime.strptime(hora_str, "%H:%M").time()
+            except ValueError:
+                errores.append('Fecha u hora inválida.')
+
+        if errores:
+            for e in errores:
+                messages.error(request, e)
+            return render(request, 'panel/crear_reserva_organizacion.html', {
+                'cancha': cancha, 'fecha': fecha_str, 'hora': hora_str, 'form_data': request.POST,
+            })
+
+        hora_fin_dt = datetime.combine(fecha, hora_inicio) + timedelta(minutes=cancha.intervalo_minutos)
+        hora_fin = hora_fin_dt.time()
+
+        with transaction.atomic():
+            if BloqueoHorario.objects.select_for_update().filter(cancha=cancha, fecha=fecha, hora=hora_inicio).exists():
+                messages.error(request, 'Ese horario está bloqueado.')
+                return render(request, 'panel/crear_reserva_organizacion.html', {
+                    'cancha': cancha, 'fecha': fecha_str, 'hora': hora_str, 'form_data': request.POST,
+                })
+            if Reserva.objects.select_for_update().filter(
+                cancha=cancha, fecha=fecha, hora_inicio=hora_inicio, estado__in=ESTADOS_OCUPAN_SLOT
+            ).exists():
+                messages.error(request, 'Ese horario ya está reservado.')
+                return render(request, 'panel/crear_reserva_organizacion.html', {
+                    'cancha': cancha, 'fecha': fecha_str, 'hora': hora_str, 'form_data': request.POST,
+                })
+
+            reserva = Reserva.objects.create(
+                cancha=cancha,
+                solicitante=None,
+                solicitante_nombre=rep_nombre,
+                solicitante_email=rep_email,
+                fecha=fecha,
+                hora_inicio=hora_inicio,
+                hora_fin=hora_fin,
+                motivo=motivo,
+                estado='PENDIENTE_ALCALDE',
+                metodo_pago='TARJETA',
+                tipo_reserva='ORGANIZACION',
+                nombre_organizacion=nombre_org,
+                representante_nombre=rep_nombre,
+                representante_rut=rep_rut_norm,
+                representante_telefono=rep_telefono,
+                representante_email=rep_email,
+                precio_original=precio_original,
+                precio_descuento=precio_descuento,
+                gestionado_por=request.user,
+            )
+
+        registrar_accion(
+            request.user,
+            "Creó reserva de organización",
+            f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')} "
+            f"— Org: {nombre_org} — Pendiente firma alcalde",
+        )
+        messages.success(
+            request,
+            f'Reserva creada para {nombre_org}. Pendiente de firma del alcalde.'
+        )
+        return redirect('panel_reservas')
+
+    return render(request, 'panel/crear_reserva_organizacion.html', {
+        'cancha': cancha, 'fecha': fecha_str, 'hora': hora_str, 'form_data': {},
+    })
 
 
 @login_required
@@ -817,7 +962,7 @@ def finalizar_reserva_cancha(request):
                     cancha=cancha,
                     fecha=fecha,
                     hora_inicio=hora_inicio,
-                    estado__in=['PENDIENTE', 'APROBADA'],
+                    estado__in=ESTADOS_OCUPAN_SLOT,
                 ).exists()
 
                 if existe_bloqueo or existe_reserva:
@@ -1019,8 +1164,13 @@ def login_view(request):
             login(request, user)
             if next_url:
                 return redirect(next_url)
-            if user.is_superuser:
+            if user.is_superuser or user.is_staff:
                 return redirect('panel_inicio')
+            perfil = getattr(user, 'perfil', None)
+            if perfil and perfil.es_tesorero:
+                return redirect('perfil_tesorero')
+            if perfil and perfil.es_alcalde:
+                return redirect('perfil_alcalde')
             return redirect('inicio')
         else:
             try:
@@ -1337,7 +1487,7 @@ def editar_mi_reserva(request, reserva_id):
                     raise Exception('El horario seleccionado está bloqueado por el administrador. Por favor elige otro horario disponible.')
 
             # Disponibilidad: verificar que no choque con otra reserva del mismo recurso
-            choca_query = Reserva.objects.filter(fecha=f, estado__in=['PENDIENTE', 'APROBADA']).exclude(pk=reserva.pk)
+            choca_query = Reserva.objects.filter(fecha=f, estado__in=ESTADOS_OCUPAN_SLOT).exclude(pk=reserva.pk)
             if reserva.salon:
                 choca_query = choca_query.filter(salon=reserva.salon)
             else:
@@ -1851,97 +2001,6 @@ def panel_cupones(request):
 
 
 @staff_required
-def panel_cupones_descuento(request):
-    hoy = timezone.now().date()
-    CuponDescuento.objects.filter(estado='ACTIVO', fecha_vencimiento__lt=hoy).update(estado='EXPIRADO')
-    filtro = request.GET.get('filtro', 'todos')
-    qs = CuponDescuento.objects.select_related('creado_por').order_by('-fecha_emision')
-    if filtro == 'activo':
-        qs = qs.filter(estado='ACTIVO')
-    elif filtro == 'expirado':
-        qs = qs.filter(estado='EXPIRADO')
-    paginator = Paginator(qs, 25)
-    page = request.GET.get('page', 1)
-    cupones = paginator.get_page(page)
-    conteos = {
-        'todos': CuponDescuento.objects.count(),
-        'activo': CuponDescuento.objects.filter(estado='ACTIVO').count(),
-        'expirado': CuponDescuento.objects.filter(estado='EXPIRADO').count(),
-    }
-    return render(request, 'panel/cupones_descuento.html', {
-        'cupones': cupones, 'filtro': filtro, 'conteos': conteos
-    })
-
-
-@staff_required
-def panel_crear_cupon_descuento(request):
-    if request.method == 'POST':
-        tipo_organizacion = request.POST.get('tipo_organizacion', '').strip()
-        nombre_organizacion = request.POST.get('nombre_organizacion', '').strip()
-        autorizado_por = request.POST.get('autorizado_por', '').strip()
-        cantidad_str = request.POST.get('cantidad_descuento', '').strip()
-        fecha_vencimiento_str = request.POST.get('fecha_vencimiento', '').strip()
-
-        errores = []
-        if not tipo_organizacion:
-            errores.append('El tipo de organización es requerido.')
-        if not nombre_organizacion:
-            errores.append('El nombre de organización es requerido.')
-        if not autorizado_por:
-            errores.append('El campo "Autorizado por" es requerido.')
-        cantidad = None
-        if not cantidad_str:
-            errores.append('La cantidad de descuento es requerida.')
-        else:
-            try:
-                cantidad = int(cantidad_str)
-                if not (1 <= cantidad <= 100):
-                    errores.append('El descuento debe estar entre 1 y 100.')
-            except ValueError:
-                errores.append('La cantidad de descuento debe ser un número entero.')
-        fecha_vencimiento = None
-        if not fecha_vencimiento_str:
-            errores.append('La fecha de vencimiento es requerida.')
-        else:
-            try:
-                fecha_vencimiento = date.fromisoformat(fecha_vencimiento_str)
-                if fecha_vencimiento <= date.today():
-                    errores.append('La fecha de vencimiento debe ser futura.')
-            except ValueError:
-                errores.append('Fecha de vencimiento inválida.')
-
-        if errores:
-            for e in errores:
-                messages.error(request, e)
-            return render(request, 'panel/crear_cupon_descuento.html', {
-                'tipo_choices': CuponDescuento.TIPO_ORGANIZACION_CHOICES,
-                'form_data': request.POST,
-            })
-
-        cupon = CuponDescuento.objects.create(
-            codigo=CuponDescuento.generar_codigo(),
-            tipo_organizacion=tipo_organizacion,
-            nombre_organizacion=nombre_organizacion,
-            autorizado_por=autorizado_por,
-            cantidad_descuento=cantidad,
-            fecha_vencimiento=fecha_vencimiento,
-            creado_por=request.user,
-        )
-        Bitacora.objects.create(
-            admin=request.user,
-            accion='Cupón de descuento creado',
-            detalles=f'Código: {cupon.codigo} | Org: {nombre_organizacion} | Descuento: {cantidad}%',
-        )
-        messages.success(request, f'Cupón de descuento {cupon.codigo} creado correctamente.')
-        return redirect('panel_cupones_descuento')
-
-    return render(request, 'panel/crear_cupon_descuento.html', {
-        'tipo_choices': CuponDescuento.TIPO_ORGANIZACION_CHOICES,
-        'form_data': {},
-    })
-
-
-@staff_required
 def panel_crear_cupon_reserva(request):
     usuarios = User.objects.filter(is_staff=False, is_active=True).order_by('first_name', 'last_name', 'email')
     canchas = ConfigCancha.objects.filter(activa=True).order_by('nombre')
@@ -2007,6 +2066,129 @@ def panel_crear_cupon_reserva(request):
     })
 
 
+# ─── Perfil Alcalde ──────────────────────────────────────────────────────────
+
+@alcalde_required
+def perfil_alcalde(request):
+    pendientes = Reserva.objects.filter(
+        estado='PENDIENTE_ALCALDE', tipo_reserva='ORGANIZACION'
+    ).order_by('fecha', 'hora_inicio')
+    firmadas = Reserva.objects.filter(
+        tipo_reserva='ORGANIZACION', estado='APROBADA'
+    ).order_by('-fecha')[:20]
+    rechazadas = Reserva.objects.filter(
+        tipo_reserva='ORGANIZACION', estado='RECHAZADA'
+    ).order_by('-fecha')[:10]
+    return render(request, 'alcalde/inicio.html', {
+        'pendientes': pendientes,
+        'firmadas': firmadas,
+        'rechazadas': rechazadas,
+    })
+
+
+@alcalde_required
+def alcalde_detalle_reserva(request, reserva_id):
+    reserva = get_object_or_404(Reserva, pk=reserva_id, tipo_reserva='ORGANIZACION')
+    return render(request, 'alcalde/detalle_reserva.html', {'reserva': reserva})
+
+
+@alcalde_required
+def alcalde_firmar_reserva(request, reserva_id):
+    if request.method != 'POST':
+        return redirect('perfil_alcalde')
+    reserva = get_object_or_404(Reserva, pk=reserva_id, estado='PENDIENTE_ALCALDE')
+    reserva.estado = 'APROBADA'
+    reserva.gestionado_por = request.user
+    reserva.save(update_fields=['estado', 'gestionado_por', 'actualizado_en'])
+
+    RegistroTesoreria.objects.create(reserva=reserva)
+
+    Bitacora.objects.create(
+        admin=request.user,
+        accion='Alcalde firmó reserva de organización',
+        detalles=f'Reserva #{reserva.pk} — {reserva.nombre_organizacion} — '
+                 f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}',
+    )
+    messages.success(request, f'Reserva de {reserva.nombre_organizacion} firmada y aprobada.')
+    return redirect('perfil_alcalde')
+
+
+@alcalde_required
+def alcalde_rechazar_reserva(request, reserva_id):
+    if request.method != 'POST':
+        return redirect('perfil_alcalde')
+    reserva = get_object_or_404(Reserva, pk=reserva_id, estado='PENDIENTE_ALCALDE')
+    motivo_rechazo = request.POST.get('motivo_rechazo', '').strip()
+    reserva.estado = 'RECHAZADA'
+    reserva.motivo_rechazo = motivo_rechazo
+    reserva.gestionado_por = request.user
+    reserva.save(update_fields=['estado', 'motivo_rechazo', 'gestionado_por', 'actualizado_en'])
+
+    Bitacora.objects.create(
+        admin=request.user,
+        accion='Alcalde rechazó reserva de organización',
+        detalles=f'Reserva #{reserva.pk} — {reserva.nombre_organizacion} — Motivo: {motivo_rechazo}',
+    )
+    messages.success(request, f'Reserva de {reserva.nombre_organizacion} rechazada.')
+    return redirect('perfil_alcalde')
+
+
+# ─── Perfil Tesorero ──────────────────────────────────────────────────────────
+
+@tesorero_required
+def perfil_tesorero(request):
+    filtro = request.GET.get('filtro', 'todos')
+    qs = RegistroTesoreria.objects.select_related(
+        'reserva', 'reserva__cancha'
+    ).order_by('-creado_en')
+
+    if filtro == 'pendiente':
+        qs = qs.filter(estado='PENDIENTE')
+    elif filtro == 'visto':
+        qs = qs.filter(estado='VISTO')
+    elif filtro == 'ingresado':
+        qs = qs.filter(estado='INGRESADO')
+
+    paginator = Paginator(qs, 20)
+    page = request.GET.get('page', 1)
+    registros = paginator.get_page(page)
+
+    conteos = {
+        'todos': RegistroTesoreria.objects.count(),
+        'pendiente': RegistroTesoreria.objects.filter(estado='PENDIENTE').count(),
+        'visto': RegistroTesoreria.objects.filter(estado='VISTO').count(),
+        'ingresado': RegistroTesoreria.objects.filter(estado='INGRESADO').count(),
+    }
+    filtros_labels = [
+        ('todos', f'Todos ({conteos["todos"]})'  ),
+        ('pendiente', f'Pendientes ({conteos["pendiente"]})'  ),
+        ('visto', f'Vistos ({conteos["visto"]})'  ),
+        ('ingresado', f'Ingresados ({conteos["ingresado"]})'  ),
+    ]
+    return render(request, 'tesorero/inicio.html', {
+        'registros': registros,
+        'filtro': filtro,
+        'conteos': conteos,
+        'filtros': filtros_labels,
+        'estado_choices': RegistroTesoreria.ESTADO_CHOICES,
+    })
+
+
+@tesorero_required
+def tesorero_actualizar_estado(request, registro_id):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+    registro = get_object_or_404(RegistroTesoreria, pk=registro_id)
+    nuevo_estado = request.POST.get('estado', '').strip()
+    estados_validos = [e[0] for e in RegistroTesoreria.ESTADO_CHOICES]
+    if nuevo_estado not in estados_validos:
+        return JsonResponse({'status': 'error', 'message': 'Estado inválido'}, status=400)
+    registro.estado = nuevo_estado
+    registro.notas = request.POST.get('notas', registro.notas).strip()
+    registro.save(update_fields=['estado', 'notas', 'actualizado_en'])
+    return JsonResponse({'status': 'success', 'estado': nuevo_estado, 'estado_display': registro.get_estado_display()})
+
+
 # ─── Panel de Administración ─────────────────────────────────────────────────
 
 
@@ -2038,19 +2220,27 @@ def panel_inicio(request):
 def panel_reservas(request):
     """Listado maestro de todas las reservas del sistema."""
     estado_filtro = request.GET.get('estado', '')
-    # Ordenar por fecha más cercana (ASC) - Excluir borradas lógicamente
-    qs = Reserva.objects.exclude(estado='ELIMINADA').select_related('salon', 'cancha', 'solicitante').order_by('fecha', 'hora_inicio')
-    
+    tipo_filtro = request.GET.get('tipo', 'personal')  # 'personal' u 'organizacion'
+
+    base = Reserva.objects.exclude(estado='ELIMINADA').select_related('salon', 'cancha', 'solicitante')
+
+    if tipo_filtro == 'organizacion':
+        qs = base.filter(tipo_reserva='ORGANIZACION')
+    else:
+        qs = base.filter(tipo_reserva='PERSONAL')
+
+    qs = qs.order_by('fecha', 'hora_inicio')
+
     if estado_filtro:
         qs = qs.filter(estado=estado_filtro)
 
-    # Conteos para los botones de filtro
-    todas = Reserva.objects.exclude(estado='ELIMINADA')
+    # Conteos sobre el tipo activo
+    base_tipo = base.filter(tipo_reserva='ORGANIZACION' if tipo_filtro == 'organizacion' else 'PERSONAL')
     conteos = {
-        'PENDIENTE': todas.filter(estado='PENDIENTE').count(),
-        'APROBADA': todas.filter(estado='APROBADA').count(),
-        'RECHAZADA': todas.filter(estado='RECHAZADA').count(),
-        'CANCELADA': todas.filter(estado='CANCELADA').count(),
+        'PENDIENTE': base_tipo.filter(estado__in=['PENDIENTE', 'PENDIENTE_ALCALDE']).count(),
+        'APROBADA': base_tipo.filter(estado='APROBADA').count(),
+        'RECHAZADA': base_tipo.filter(estado='RECHAZADA').count(),
+        'CANCELADA': base_tipo.filter(estado='CANCELADA').count(),
     }
 
     paginator = Paginator(qs, 20)
@@ -2059,7 +2249,8 @@ def panel_reservas(request):
     return render(request, 'panel/reservas.html', {
         'reservas': reservas,
         'estado_filtro': estado_filtro,
-        'total': todas.count(),
+        'tipo_filtro': tipo_filtro,
+        'total': base_tipo.count(),
         'conteos': conteos
     })
 
@@ -2174,7 +2365,7 @@ def panel_editar_reserva(request, reserva_id):
             # 4. Disponibilidad: No chocar con otras reservas (excluyendo esta misma)
             choca = Reserva.objects.filter(
                 fecha=f,
-                estado__in=['PENDIENTE', 'APROBADA']
+                estado__in=ESTADOS_OCUPAN_SLOT
             ).exclude(pk=reserva.pk)
             
             # Filtro según recurso (Salón o Cancha)
@@ -2211,12 +2402,26 @@ def panel_editar_reserva(request, reserva_id):
 
 @staff_required
 def panel_usuarios(request):
-    usuarios = User.objects.filter(is_staff=False).select_related('perfil').order_by('-date_joined')
+    # Usuarios con rol especial (alcalde / tesorero)
+    alcaldes = User.objects.filter(
+        is_staff=False, perfil__es_alcalde=True
+    ).select_related('perfil').order_by('first_name', 'last_name')
+    tesoreros = User.objects.filter(
+        is_staff=False, perfil__es_tesorero=True
+    ).select_related('perfil').order_by('first_name', 'last_name')
+
+    # Usuarios normales (sin ningún rol especial)
+    usuarios = User.objects.filter(
+        is_staff=False, perfil__es_alcalde=False, perfil__es_tesorero=False
+    ).select_related('perfil').order_by('-date_joined')
+
     admins = User.objects.filter(is_staff=True).select_related('perfil').order_by('-date_joined')
     total_superusuarios = User.objects.filter(is_superuser=True).count()
     return render(request, 'panel/usuarios.html', {
         'usuarios': usuarios,
         'admins': admins,
+        'alcaldes': alcaldes,
+        'tesoreros': tesoreros,
         'total_superusuarios': total_superusuarios,
         'max_superusuarios': 3,
     })
@@ -2225,6 +2430,18 @@ def panel_usuarios(request):
 @staff_required
 def panel_crear_usuario(request):
     MAX_SUPERUSUARIOS = settings.MAX_SUPERUSUARIOS
+
+    # Rol pre-definido desde URL (?rol=alcalde o ?rol=tesorero)
+    rol_fijo = request.GET.get('rol', '') if request.method == 'GET' else request.POST.get('rol_fijo', '')
+    rol_fijo = rol_fijo if rol_fijo in ('alcalde', 'tesorero') else ''
+
+    # Bloquear creación si ya existe ese rol único
+    if rol_fijo == 'alcalde' and UserProfile.objects.filter(es_alcalde=True).exists():
+        messages.error(request, 'Ya existe un perfil de alcalde. Edítalo desde la lista.')
+        return redirect('panel_usuarios')
+    if rol_fijo == 'tesorero' and UserProfile.objects.filter(es_tesorero=True).exists():
+        messages.error(request, 'Ya existe un perfil de tesorero. Edítalo desde la lista.')
+        return redirect('panel_usuarios')
 
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
@@ -2235,7 +2452,8 @@ def panel_crear_usuario(request):
         rut = normalizar_rut(rut_ingresado)
         clave = request.POST.get('contrasena', '')
         clave2 = request.POST.get('contrasena2', '')
-        rol = request.POST.get('rol', 'usuario')  # 'usuario' o 'admin'
+        # Si hay rol_fijo, ese manda; si no, leer del formulario (solo usuario/admin)
+        rol = rol_fijo if rol_fijo else request.POST.get('rol', 'usuario')
 
         errores = {}
 
@@ -2256,42 +2474,38 @@ def panel_crear_usuario(request):
         if rol == 'admin' and User.objects.filter(is_superuser=True).count() >= MAX_SUPERUSUARIOS:
             errores['rol'] = f'Ya se alcanzó el límite de {MAX_SUPERUSUARIOS} superusuarios.'
 
-        if not errores:
-            es_admin = rol == 'admin'
-            user = User.objects.create_user(
-                username=email,
-                email=email,
-                password=clave,
-                first_name=nombre,
-                last_name=apellido,
-                is_staff=es_admin,
-                is_superuser=es_admin,
-            )
-            UserProfile.objects.create(
-                user=user,
-                telefono=telefono,
-                rut=rut if rut_valido(rut) else None,
-            )
-            registrar_accion(
-                request.user,
-                f"Creó {'administrador' if es_admin else 'usuario'} {email}",
-                f"Nombre: {nombre} {apellido}",
-            )
-            messages.success(request, f'{"Administrador" if es_admin else "Usuario"} creado correctamente.')
-            return redirect('panel_usuarios')
+        ctx = {
+            'errores': errores, 'datos': request.POST,
+            'total_superusuarios': User.objects.filter(is_superuser=True).count(),
+            'max_superusuarios': MAX_SUPERUSUARIOS, 'rol_fijo': rol_fijo,
+        }
 
-        total_superusuarios = User.objects.filter(is_superuser=True).count()
-        return render(request, 'panel/crear_usuario.html', {
-            'errores': errores,
-            'datos': request.POST,
-            'total_superusuarios': total_superusuarios,
-            'max_superusuarios': MAX_SUPERUSUARIOS,
-        })
+        if errores:
+            return render(request, 'panel/crear_usuario.html', ctx)
+
+        es_admin = rol == 'admin'
+        user = User.objects.create_user(
+            username=email, email=email, password=clave,
+            first_name=nombre, last_name=apellido,
+            is_staff=es_admin, is_superuser=es_admin,
+        )
+        UserProfile.objects.create(
+            user=user,
+            telefono=telefono,
+            rut=rut if rut_valido(rut) else None,
+            es_alcalde=(rol == 'alcalde'),
+            es_tesorero=(rol == 'tesorero'),
+        )
+        rol_display = {'admin': 'Administrador', 'alcalde': 'Alcalde', 'tesorero': 'Tesorero'}.get(rol, 'Usuario')
+        registrar_accion(request.user, f"Creó {rol_display.lower()} {email}", f"Nombre: {nombre} {apellido}")
+        messages.success(request, f'{rol_display} creado correctamente.')
+        return redirect('panel_usuarios')
 
     total_superusuarios = User.objects.filter(is_superuser=True).count()
     return render(request, 'panel/crear_usuario.html', {
         'total_superusuarios': total_superusuarios,
         'max_superusuarios': MAX_SUPERUSUARIOS,
+        'rol_fijo': rol_fijo,
     })
 
 
@@ -2299,6 +2513,8 @@ def panel_crear_usuario(request):
 def panel_editar_usuario(request, usuario_id):
     usuario = get_object_or_404(User, pk=usuario_id, is_staff=False)
     perfil_obj, _ = UserProfile.objects.get_or_create(user=usuario)
+
+    ctx = {'u': usuario, 'perfil_obj': perfil_obj}
 
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
@@ -2309,19 +2525,16 @@ def panel_editar_usuario(request, usuario_id):
 
         if not nombre:
             messages.error(request, 'El nombre es obligatorio.')
-            return render(request, 'panel/editar_usuario.html', {'u': usuario, 'perfil_obj': perfil_obj})
-
+            return render(request, 'panel/editar_usuario.html', ctx)
         if rut and not rut_valido(rut):
             messages.error(request, 'Ingresa un RUT válido.')
-            return render(request, 'panel/editar_usuario.html', {'u': usuario, 'perfil_obj': perfil_obj})
-
+            return render(request, 'panel/editar_usuario.html', ctx)
         if User.objects.filter(email=email).exclude(pk=usuario.pk).exists():
             messages.error(request, 'Ese correo ya está en uso por otra cuenta.')
-            return render(request, 'panel/editar_usuario.html', {'u': usuario, 'perfil_obj': perfil_obj})
-
+            return render(request, 'panel/editar_usuario.html', ctx)
         if rut and UserProfile.objects.filter(rut=rut).exclude(user=usuario).exists():
             messages.error(request, 'Ese RUT ya está en uso por otra cuenta.')
-            return render(request, 'panel/editar_usuario.html', {'u': usuario, 'perfil_obj': perfil_obj})
+            return render(request, 'panel/editar_usuario.html', ctx)
 
         usuario.first_name = nombre
         usuario.last_name = apellido
@@ -2330,14 +2543,14 @@ def panel_editar_usuario(request, usuario_id):
         usuario.save()
 
         perfil_obj.telefono = telefono
-        perfil_obj.rut = rut
+        perfil_obj.rut = rut if rut_valido(rut) else perfil_obj.rut
         perfil_obj.save()
 
-        registrar_accion(request.user, f"Editó usuario {usuario.username}", f"Campos actualizados: Nombre, RUT, Email, etc.")
+        registrar_accion(request.user, f'Editó usuario {usuario.username}', 'Datos personales actualizados.')
         messages.success(request, 'Usuario actualizado correctamente.')
         return redirect('panel_usuarios')
 
-    return render(request, 'panel/editar_usuario.html', {'u': usuario, 'perfil_obj': perfil_obj})
+    return render(request, 'panel/editar_usuario.html', ctx)
 
 
 @staff_required
@@ -2368,6 +2581,26 @@ def panel_eliminar_usuario(request, usuario_id):
         return redirect('panel_usuarios')
 
     return render(request, 'panel/eliminar_usuario.html', {'u': usuario})
+
+
+@staff_required
+def panel_precios(request):
+    """Permite al administrador editar el precio por hora de cada cancha."""
+    canchas = ConfigCancha.objects.order_by('nombre')
+
+    if request.method == 'POST':
+        for cancha in canchas:
+            val = request.POST.get(f'precio_{cancha.pk}', '').strip()
+            try:
+                cancha.precio = max(0, int(val))
+                cancha.save(update_fields=['precio'])
+            except (ValueError, TypeError):
+                pass
+        registrar_accion(request.user, 'Actualizó precios de canchas')
+        messages.success(request, 'Precios actualizados correctamente.')
+        return redirect('panel_precios')
+
+    return render(request, 'panel/precios.html', {'canchas': canchas})
 
 
 @staff_required

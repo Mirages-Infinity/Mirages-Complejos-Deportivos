@@ -62,6 +62,7 @@
             </th>
             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Recinto</th>
             <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Usuario</th>
+            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo</th>
             <th class="px-6 py-4 relative">
               <button onclick="toggleEstadoMenu(event)" id="btn-estado" 
                       class="flex items-center gap-1 transition-colors focus:outline-none text-[10px] font-black uppercase tracking-widest
@@ -87,6 +88,7 @@
                 Pago{% if pago_filtro %}: {% if pago_filtro == 'TARJETA' %}Tarjeta{% elif pago_filtro == 'TRANSFERENCIA' %}Transf.{% elif pago_filtro == 'CUPON' %}Cupón{% endif %}{% endif %}
               </a>
             </th>
+            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Detalle</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
@@ -116,6 +118,17 @@
               <p class="text-xs font-bold text-gray-700">{{ r.get_solicitante_display }}</p>
               <p class="text-[10px] text-gray-400 truncate max-w-[150px]">{{ r.solicitante_email }}</p>
             </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              {% if r.tipo_reserva == 'ORGANIZACION' %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-violet-100 text-violet-700">
+                🏢 Organización
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-gray-100 text-gray-500">
+                👤 Usuario
+              </span>
+              {% endif %}
+            </td>
             <td class="px-6 py-4">
               <span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider
                 {% if r.estado == 'PENDIENTE' %}bg-amber-100 text-amber-700
@@ -127,29 +140,45 @@
               </span>
             </td>
             <td class="px-6 py-4 truncate">
-              {% if r.metodo_pago == 'TRANSFERENCIA' and r.comprobante_transferencia %}
-              <a href="{{ r.comprobante_transferencia.url }}" target="_blank" rel="noopener noreferrer"
-                 class="text-[10px] font-black text-blue-600 uppercase hover:underline">
-                {{ r.get_metodo_pago_display }}
-              </a>
+              {% if r.tipo_reserva == 'ORGANIZACION' %}
+              <span class="text-[10px] text-gray-300">—</span>
+              {% elif r.metodo_pago == 'TRANSFERENCIA' %}
+              <p class="text-[10px] font-bold text-blue-600 uppercase">{{ r.get_metodo_pago_display }}</p>
               {% elif r.metodo_pago == 'CUPON' %}
-              <p class="text-[10px] font-bold uppercase" style="color:#ea580c;">
-                Cupón
-              </p>
+              <p class="text-[10px] font-bold uppercase" style="color:#ea580c;">Cupón</p>
               {% elif r.metodo_pago == 'TARJETA' %}
-              <p class="text-[10px] font-bold text-green-600 uppercase">
-                {{ r.get_metodo_pago_display }}
-              </p>
+              <p class="text-[10px] font-bold text-green-600 uppercase">{{ r.get_metodo_pago_display }}</p>
               {% else %}
-              <p class="text-[10px] font-bold text-blue-600 uppercase">
-                {{ r.get_metodo_pago_display }}
-              </p>
+              <p class="text-[10px] font-bold text-blue-600 uppercase">{{ r.get_metodo_pago_display }}</p>
+              {% endif %}
+            </td>
+
+            <!-- Columna Detalle -->
+            <td class="px-6 py-4">
+              {% if r.tipo_reserva == 'ORGANIZACION' %}
+              {# Futuro: botón PDF voucher de organización #}
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 text-gray-300 cursor-not-allowed" title="Voucher PDF (próximamente)">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                </svg>
+              </span>
+              {% elif r.metodo_pago == 'TRANSFERENCIA' and r.comprobante_transferencia %}
+              <a href="{{ r.comprobante_transferencia.url }}" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                 title="Ver comprobante">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </a>
+              {% else %}
+              <span class="text-[10px] text-gray-300">—</span>
               {% endif %}
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" class="px-6 py-12 text-center text-gray-400 text-sm font-bold">
+            <td colspan="8" class="px-6 py-12 text-center text-gray-400 text-sm font-bold">
               No hay registros de reservas.
             </td>
           </tr>

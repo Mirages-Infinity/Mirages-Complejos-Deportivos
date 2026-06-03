@@ -102,7 +102,13 @@
         <div
             style="max-width:672px;margin:0 auto;display:flex;justify-content:space-around;align-items:center;padding:8px 24px;">
 
-            {% if user.is_staff or user.is_superuser %}
+            {% if user.is_authenticated and user.perfil.es_alcalde %}
+            <!-- === SIN BARRA PARA ALCALDE (usa solo el header) === -->
+
+            {% elif user.is_authenticated and user.perfil.es_tesorero %}
+            <!-- === SIN BARRA PARA TESORERO (usa solo el header) === -->
+
+            {% elif user.is_staff or user.is_superuser %}
             <!-- === BOTONES PARA ADMINISTRACIÓN === -->
             <!-- 1. Inicio -->
             <a href="{% url 'inicio' %}"
