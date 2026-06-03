@@ -1,0 +1,2 @@
+1. Crear un apartado para que el administrador pueda crear cupones de descuento y cupones de reservas.
+2. el cupon de descuento debe pedir lo siguiente: Tipo de Organizacion - Nombre Organizacion - Autorizado por - Cantidad de Descuento - Fecha de Vencimiento
