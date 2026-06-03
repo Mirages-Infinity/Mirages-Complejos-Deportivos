@@ -100,3 +100,20 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
 # Cantidad máxima de superusuarios permitidos
 MAX_SUPERUSUARIOS = 3
+
+# ─── Seguridad HTTP (producción) ─────────────────────────────────────────────
+# Estas opciones solo aplican cuando DEBUG=False (producción con HTTPS).
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True                 # Redirige HTTP → HTTPS automáticamente
+    SECURE_HSTS_SECONDS = 31536000             # 1 año de HSTS
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True               # Cookie de sesión solo por HTTPS
+    CSRF_COOKIE_SECURE = True                  # Cookie CSRF solo por HTTPS
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+
+# IPs de proxies de confianza para el rate limiter (dejar vacío si no hay proxy)
+# Ejemplo con nginx local: TRUSTED_PROXY_IPS = ['127.0.0.1']
+TRUSTED_PROXY_IPS = config('TRUSTED_PROXY_IPS', default='', cast=Csv())

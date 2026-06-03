@@ -61,7 +61,7 @@
                 {% elif n.tipo == 'CUPON_USADO' %}text-amber-400
                 {% else %}text-blue-400{% endif %}">{{ n.creada_en|date:"d/m H:i" }}</span>
             </div>
-            <p class="text-xs text-gray-500 mt-1">{{ n.mensaje|safe }}</p>
+            <p class="text-xs text-gray-500 mt-1">{{ n.mensaje }}</p>
           </div>
         </div>
         {% if n.tipo == 'CUPON_EMITIDO' %}

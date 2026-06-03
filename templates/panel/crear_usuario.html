@@ -139,26 +139,32 @@
         </label>
 
         <!-- Alcalde -->
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;" id="lbl-alcalde">
+        <label style="display:flex;align-items:center;gap:10px;cursor:{% if hay_alcalde %}not-allowed{% else %}pointer{% endif %};margin-bottom:12px;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;{% if hay_alcalde %}opacity:0.45;{% endif %}" id="lbl-alcalde">
           <input type="radio" name="rol" value="alcalde"
                  {% if datos.rol == 'alcalde' %}checked{% endif %}
+                 {% if hay_alcalde %}disabled{% endif %}
                  onchange="highlightRol()"
                  style="accent-color:#7c3aed;width:16px;height:16px;">
           <div>
-            <span style="font-size:0.875rem;color:#1f2937;font-weight:600;">🏛️ Alcalde</span>
-            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">Firma y aprueba reservas de organizaciones.</span>
+            <span style="font-size:0.875rem;color:{% if hay_alcalde %}#9ca3af{% else %}#1f2937{% endif %};font-weight:600;">🏛️ Alcalde</span>
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">
+              {% if hay_alcalde %}Límite alcanzado (1/1){% else %}Firma y aprueba reservas de organizaciones.{% endif %}
+            </span>
           </div>
         </label>
 
         <!-- Tesorero -->
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;" id="lbl-tesorero">
+        <label style="display:flex;align-items:center;gap:10px;cursor:{% if hay_tesorero %}not-allowed{% else %}pointer{% endif %};padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;{% if hay_tesorero %}opacity:0.45;{% endif %}" id="lbl-tesorero">
           <input type="radio" name="rol" value="tesorero"
                  {% if datos.rol == 'tesorero' %}checked{% endif %}
+                 {% if hay_tesorero %}disabled{% endif %}
                  onchange="highlightRol()"
                  style="accent-color:#0891b2;width:16px;height:16px;">
           <div>
-            <span style="font-size:0.875rem;color:#1f2937;font-weight:600;">💰 Tesorero</span>
-            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">Gestiona el registro de ingresos de organizaciones.</span>
+            <span style="font-size:0.875rem;color:{% if hay_tesorero %}#9ca3af{% else %}#1f2937{% endif %};font-weight:600;">💰 Tesorero</span>
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">
+              {% if hay_tesorero %}Límite alcanzado (1/1){% else %}Gestiona el registro de ingresos de organizaciones.{% endif %}
+            </span>
           </div>
         </label>
 

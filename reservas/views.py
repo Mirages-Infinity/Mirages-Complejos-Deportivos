@@ -110,9 +110,23 @@ def tesorero_required(view_func):
 
 
 def _rate_limit_exceeded(request, action, limit=5, period=300):
-    """Devuelve True si la IP superó el límite de intentos para la acción dada."""
-    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', 'unknown'))
-    ip = ip.split(',')[0].strip()
+    """Devuelve True si la IP superó el límite de intentos para la acción dada.
+
+    Usa REMOTE_ADDR directamente para evitar que clientes malintencionados
+    falsifiquen X-Forwarded-For y evadan el límite. Si el sistema se despliega
+    detrás de un proxy de confianza configurable, TRUSTED_PROXY_IPS puede
+    habilitarse en settings.py.
+    """
+    trusted_proxies = getattr(settings, 'TRUSTED_PROXY_IPS', [])
+    remote_addr = request.META.get('REMOTE_ADDR', 'unknown')
+
+    if trusted_proxies and remote_addr in trusted_proxies:
+        # Solo confiar en X-Forwarded-For si el proxy está en la lista blanca
+        forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
+        ip = forwarded.split(',')[0].strip() if forwarded else remote_addr
+    else:
+        ip = remote_addr
+
     key = f'rl:{action}:{ip}'
     count = cache.get(key, 0)
     if count >= limit:
@@ -1040,9 +1054,12 @@ def finalizar_reserva_cancha(request):
                 'mensaje': 'Reserva creada con éxito'
             })
             
-        except Exception as e:
+        except (ValueError, TypeError, json.JSONDecodeError) as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-            
+        except Exception:
+            logger.exception('Error inesperado en finalizar_reserva_cancha')
+            return JsonResponse({'status': 'error', 'message': 'Error interno al procesar la reserva.'}, status=500)
+
     return JsonResponse({'status': 'error', 'message': 'Solo POST permitido'}, status=405)
 
 # Alias para compatibilidad si fuera necesario (aunque se recomienda usar finalizar_reserva_cancha)
@@ -1188,6 +1205,8 @@ def login_view(request):
 
 
 def logout_view(request):
+    if request.method != 'POST':
+        return redirect('inicio')
     logout(request)
     return redirect('inicio')
 
@@ -1747,7 +1766,30 @@ def perfil(request):
     perfil_obj, _ = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST' and request.FILES.get('foto'):
-        perfil_obj.foto = request.FILES['foto']
+        foto = request.FILES['foto']
+
+        # Validar tamaño (máx 5 MB)
+        if foto.size > 5 * 1024 * 1024:
+            messages.error(request, 'La imagen no puede superar los 5 MB.')
+            return redirect('perfil')
+
+        # Validar content-type declarado
+        content_type = (getattr(foto, 'content_type', '') or '').lower()
+        if not content_type.startswith('image/'):
+            messages.error(request, 'Solo se permiten imágenes como foto de perfil.')
+            return redirect('perfil')
+
+        # Validar magic bytes con PIL (evita archivos disfrazados de imagen)
+        try:
+            foto.seek(0)
+            img = Image.open(foto)
+            img.verify()
+            foto.seek(0)
+        except (UnidentifiedImageError, OSError, ValueError):
+            messages.error(request, 'El archivo subido no es una imagen válida.')
+            return redirect('perfil')
+
+        perfil_obj.foto = foto
         perfil_obj.save()
         messages.success(request, 'Foto actualizada.')
         return redirect('perfil')
@@ -2180,9 +2222,20 @@ def tesorero_actualizar_estado(request, registro_id):
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
     registro = get_object_or_404(RegistroTesoreria, pk=registro_id)
     nuevo_estado = request.POST.get('estado', '').strip()
+
+    # Validar que el estado sea reconocido
     estados_validos = [e[0] for e in RegistroTesoreria.ESTADO_CHOICES]
     if nuevo_estado not in estados_validos:
         return JsonResponse({'status': 'error', 'message': 'Estado inválido'}, status=400)
+
+    # Validar secuencia estricta: solo se permite avanzar, nunca retroceder
+    orden = {e: i for i, e in enumerate(estados_validos)}
+    if orden[nuevo_estado] <= orden[registro.estado]:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'No se puede cambiar de "{registro.get_estado_display()}" a "{dict(RegistroTesoreria.ESTADO_CHOICES)[nuevo_estado]}".'
+        }, status=400)
+
     registro.estado = nuevo_estado
     registro.notas = request.POST.get('notas', registro.notas).strip()
     registro.save(update_fields=['estado', 'notas', 'actualizado_en'])
@@ -2334,7 +2387,12 @@ def panel_editar_reserva(request, reserva_id):
         hora_inicio_str = request.POST.get('hora_inicio')
         hora_fin_str = request.POST.get('hora_fin')
         estado = request.POST.get('estado')
-        
+
+        estados_validos = [e[0] for e in Reserva.ESTADO_RESERVA]
+        if estado not in estados_validos:
+            messages.error(request, 'Estado de reserva no válido.')
+            return render(request, 'panel/editar_reserva.html', contexto)
+
         try:
             f = datetime.strptime(fecha_str, "%Y-%m-%d").date()
             h_ini = datetime.strptime(hora_inicio_str, "%H:%M").time()
@@ -2394,9 +2452,12 @@ def panel_editar_reserva(request, reserva_id):
             registrar_accion(request.user, f"Editó reserva {reserva.id}", f"Estado: {estado} | Fecha: {f.strftime('%d-%m-%Y')} | Hora: {h_ini.strftime('%H:%M')}")
             messages.success(request, 'Reserva actualizada correctamente.')
             return redirect('panel_reservas')
-        except Exception as e:
-            messages.error(request, f'Error al actualizar: {str(e)}')
-            
+        except (ValueError, TypeError) as e:
+            messages.error(request, f'Datos inválidos: {e}')
+        except Exception:
+            logger.exception('Error inesperado en panel_editar_reserva')
+            messages.error(request, 'Ocurrió un error interno al guardar los cambios.')
+
     return render(request, 'panel/editar_reserva.html', contexto)
 
 
@@ -2502,10 +2563,14 @@ def panel_crear_usuario(request):
         return redirect('panel_usuarios')
 
     total_superusuarios = User.objects.filter(is_superuser=True).count()
+    hay_alcalde = UserProfile.objects.filter(es_alcalde=True).exists()
+    hay_tesorero = UserProfile.objects.filter(es_tesorero=True).exists()
     return render(request, 'panel/crear_usuario.html', {
         'total_superusuarios': total_superusuarios,
         'max_superusuarios': MAX_SUPERUSUARIOS,
         'rol_fijo': rol_fijo,
+        'hay_alcalde': hay_alcalde,
+        'hay_tesorero': hay_tesorero,
     })
 
 
