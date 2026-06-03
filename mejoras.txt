@@ -1,5 +1,11 @@
-Agregar un precio que se editable por el administrador para cada complejo, dejalo como un boton mas en el panel de administracion
-Cuando se crea una reserva por administracion, esta tambien debe verse en el apartado de reservas, crea un boton cuadrado pequeño que permita alternar entre reservas de usuario y de organizacion, ubicalo a la derecha de canceladas
-Edita los estados de las reservas creadas para organizaciones, desde el punto de vista del tesorero, debe estar como default en pendiente, al clickearlo queda como visto y luego de revisarlo que pueda cambiarlo a ingresado; desde el punto de vista del alcalde es solo los estados por firmar y firmado. 
+Que el administrador pueda editar las reservas que el cree, tanto para organizaciones como para usuarios
 
+Formato rut que tenga una regla que sea verificable que sea un rut correcto
 
+Formato CLP a los precios de todas las pestañas
+
+El precio para el formulario de organizaciones debe ser fijo, que solo aplique el descuento
+
+Cuando el alcalde firme la carta, el admin no podra editar la reserva, solo cuando este pendiente
+
+eliminar el boton de "Cancelar" en el panel del administrador, y que el mensaje de "Esta seguro de eliminar" aparezca en la pagina como un mensaje flotante.
