@@ -71,36 +71,12 @@
         </div>
       </div>
 
-      <!-- Fila 3: Estado y Motivo -->
-      <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <div class="lg:col-span-2">
-          {% if reserva.tipo_reserva == 'ORGANIZACION' %}
-          {# El estado de org se gestiona automáticamente, no se permite editar manualmente #}
-          <input type="hidden" name="estado" value="{{ reserva.estado }}">
-          <label class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Estado</label>
-          <div class="w-full bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm font-black text-amber-700">
-            {% if reserva.estado == 'APROBADA' %}
-            ↩ Al guardar vuelve a Pendiente firma
-            {% else %}
-            {{ reserva.get_estado_display }}
-            {% endif %}
-          </div>
-          {% else %}
-          <label for="estado" class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Estado Maestro</label>
-          <select name="estado" id="estado" class="w-full bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm font-black text-blue-700 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer disabled:bg-gray-50 disabled:text-gray-400">
-            <option value="PENDIENTE" {% if reserva.estado == 'PENDIENTE' %}selected{% endif %}>SOLICITUD PENDIENTE</option>
-            <option value="APROBADA" {% if reserva.estado == 'APROBADA' %}selected{% endif %}>RESERVA APROBADA</option>
-            <option value="RECHAZADA" {% if reserva.estado == 'RECHAZADA' %}selected{% endif %}>RESERVA RECHAZADA</option>
-            <option value="CANCELADA" {% if reserva.estado == 'CANCELADA' %}selected{% endif %}>RESERVA CANCELADA</option>
-            <option value="ELIMINADA" {% if reserva.estado == 'ELIMINADA' %}selected{% endif %}>ELIMINADA (SÓLO LECTURA)</option>
-          </select>
-          {% endif %}
-        </div>
-        <div class="lg:col-span-3">
-          <label for="motivo" class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Motivo / Descripción Administrativa</label>
-          <textarea name="motivo" id="motivo" rows="1" placeholder="Ej: Cambio solicitado por el usuario..."
-                    class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:border-blue-500 outline-none transition-all resize-none disabled:bg-gray-50 disabled:text-gray-400">{{ reserva.motivo|default:"" }}</textarea>
-        </div>
+      <!-- Fila 3: Motivo (estado no editable, se mantiene el actual) -->
+      <input type="hidden" name="estado" value="{{ reserva.estado }}">
+      <div>
+        <label for="motivo" class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Motivo / Descripción Administrativa</label>
+        <textarea name="motivo" id="motivo" rows="1" placeholder="Ej: Cambio solicitado por el usuario..."
+                  class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:border-blue-500 outline-none transition-all resize-none disabled:bg-gray-50 disabled:text-gray-400">{{ reserva.motivo|default:"" }}</textarea>
       </div>
 
     </fieldset>

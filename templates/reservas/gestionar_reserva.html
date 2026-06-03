@@ -86,7 +86,7 @@
         <div>
           <label for="motivo_rechazo" class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-3 ml-1 text-center">Justificación Administrativa</label>
           <textarea name="motivo_rechazo" id="motivo_rechazo" rows="3" 
-                    placeholder="Escribe aquí el motivo si decides rechazar o cancelar la solicitud..."
+                    placeholder="Escribe aquí el motivo si decides rechazar la solicitud..."
                     class="w-full bg-gray-50 border border-gray-100 rounded-[30px] px-6 py-5 text-sm font-medium focus:bg-white focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/5 outline-none transition-all resize-none"></textarea>
         </div>
 
@@ -99,22 +99,13 @@
             </span>
           </button>
 
-          <div class="grid grid-cols-2 gap-3">
-            <button type="submit" name="accion" value="rechazar"
-                    class="group w-full bg-white border-2 border-red-100 hover:border-red-500 text-red-500 font-black py-4 px-4 rounded-2xl transition-all text-[9.5px] uppercase tracking-widest transform hover:-translate-y-0.5 active:scale-95">
-              <span class="flex flex-col items-center gap-1">
-                <span class="text-base">❌</span>
-                Rechazar
-              </span>
-            </button>
-            <button type="submit" name="accion" value="cancelar"
-                    class="group w-full bg-white border-2 border-amber-100 hover:border-amber-500 text-amber-500 font-black py-4 px-4 rounded-2xl transition-all text-[9.5px] uppercase tracking-widest transform hover:-translate-y-0.5 active:scale-95">
-              <span class="flex flex-col items-center gap-1">
-                <span class="text-base">⚠️</span>
-                Cancelar
-              </span>
-            </button>
-          </div>
+          <button type="submit" name="accion" value="rechazar"
+                  class="group w-full bg-white border-2 border-red-100 hover:border-red-500 text-red-500 font-black py-4 px-4 rounded-2xl transition-all text-[9.5px] uppercase tracking-widest transform hover:-translate-y-0.5 active:scale-95">
+            <span class="flex flex-col items-center gap-1">
+              <span class="text-base">❌</span>
+              Rechazar
+            </span>
+          </button>
         </div>
 
         <p class="text-[9px] text-center text-gray-300 font-bold uppercase tracking-widest px-4">
