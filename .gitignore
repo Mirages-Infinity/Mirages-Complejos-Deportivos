@@ -44,3 +44,6 @@ static/css/output.css
 
 #versiones
 versiones/*
+
+# Worktrees de agentes Claude (repositorios temporales)
+.claude/worktrees/

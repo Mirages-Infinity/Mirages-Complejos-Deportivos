@@ -15,78 +15,76 @@
 
     <!-- Contenido principal -->
     <div class="w-full max-w-lg mx-auto px-4 py-5 pb-28">
-        <div class="bg-white rounded-2xl shadow-sm px-5 py-6">
+        <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:20px;">
 
             {% if enviado %}
             <!-- Confirmación de envío -->
-            <div class="flex flex-col items-center gap-4 py-4">
-                <span class="text-5xl">📧</span>
-                <p class="text-center text-gray-700 font-semibold text-base">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px 0;">
+                <span style="font-size:2.5rem;">📧</span>
+                <p style="text-align:center;font-weight:500;color:#1c1b1f;font-size:0.9rem;">
                     Si existe una cuenta asociada, recibirás un correo con las instrucciones para recuperar tu contraseña.
                 </p>
-                <p class="text-center text-sm text-gray-400">Revisa también tu carpeta de spam.</p>
+                <p style="text-align:center;font-size:0.75rem;color:#9ca3af;font-weight:400;">Revisa también tu carpeta de spam.</p>
                 <a href="{% url 'login' %}"
-                   class="w-full py-3 rounded-full text-white font-semibold text-base text-center block mt-2"
-                   style="background-color: #6abf4b;">
+                   style="width:100%;padding:10px 20px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.9rem;border:none;text-align:center;text-decoration:none;display:block;box-sizing:border-box;margin-top:8px;">
                     Volver al inicio de sesión
                 </a>
             </div>
 
             {% else %}
 
+            <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Cuenta</p>
+            <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:16px;">Recuperar contraseña</h1>
+
             <!-- Sección 1: Opciones -->
-            <div id="seccion-opciones" class="flex flex-col gap-4">
-                <p class="text-center text-gray-700 font-semibold text-base">
+            <div id="seccion-opciones" style="display:flex;flex-direction:column;gap:10px;">
+                <p style="text-align:center;font-weight:500;color:#374151;font-size:0.875rem;">
                     Elige una opción para recuperar tu cuenta
                 </p>
                 <button type="button" onclick="mostrarSeccion('email')"
-                        class="w-full py-3 rounded-full text-white font-semibold text-base"
-                        style="background-color: #6abf4b;">
+                        style="width:100%;padding:10px 20px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.9rem;border:none;cursor:pointer;">
                     Por email
                 </button>
                 <button type="button" onclick="mostrarSeccion('rut')"
-                        class="w-full py-3 rounded-full text-white font-semibold text-base"
-                        style="background-color: #2d3a8c;">
+                        style="width:100%;padding:10px 20px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.9rem;border:0.5px solid #e5e7eb;cursor:pointer;">
                     Por número de documento
                 </button>
             </div>
 
             <!-- Sección 2: Formulario por email -->
-            <div id="seccion-email" class="flex flex-col gap-4 hidden">
-                <p class="text-center text-sm text-gray-500">Ingresa el email de tu cuenta</p>
+            <div id="seccion-email" style="display:none;flex-direction:column;gap:10px;">
+                <p style="text-align:center;font-size:0.8rem;color:#6b7280;font-weight:400;">Ingresa el email de tu cuenta</p>
 
                 <form method="post" action="{% url 'recuperar_clave' %}" novalidate>
                     {% csrf_token %}
                     <input type="hidden" name="metodo" value="email">
-                    <div class="flex flex-col gap-1 mb-4">
+                    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">
                         <input type="email" id="email-input" name="email" placeholder="Email"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-blue-400 bg-white">
-                        <p id="email-error" class="text-xs font-bold hidden" style="color: #e53935; letter-spacing: 0.04em;">EL CORREO DEBE SER VÁLIDO</p>
+                               style="width:100%;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
+                        <p id="email-error" class="text-xs font-bold hidden" style="color:#991b1b;letter-spacing:0.04em;">EL CORREO DEBE SER VÁLIDO</p>
                     </div>
                     <button type="submit" id="btn-email" disabled
-                            class="w-full py-3 rounded-full text-white font-semibold text-base opacity-50 cursor-not-allowed"
-                            style="background-color: #6abf4b;">
+                            style="width:100%;padding:10px 20px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.9rem;border:none;cursor:pointer;opacity:0.5;">
                         Recuperar clave
                     </button>
                 </form>
             </div>
 
             <!-- Sección 3: Formulario por RUT -->
-            <div id="seccion-rut" class="flex flex-col gap-4 hidden">
-                <p class="text-center text-sm text-gray-500">Ingresa tu número de documento (RUT)</p>
+            <div id="seccion-rut" style="display:none;flex-direction:column;gap:10px;">
+                <p style="text-align:center;font-size:0.8rem;color:#6b7280;font-weight:400;">Ingresa tu número de documento (RUT)</p>
 
                 <form method="post" action="{% url 'recuperar_clave' %}" novalidate>
                     {% csrf_token %}
                     <input type="hidden" name="metodo" value="rut">
-                    <div class="flex flex-col gap-1 mb-4">
+                    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">
                         <input type="text" id="rut-input" name="rut" placeholder="Ej: 12.345.678-9"
                                maxlength="12"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-blue-400 bg-white">
-                        <p id="rut-error" class="text-xs font-bold hidden" style="color: #e53935; letter-spacing: 0.04em;">EL RUT NO ES VÁLIDO</p>
+                               style="width:100%;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
+                        <p id="rut-error" class="text-xs font-bold hidden" style="color:#991b1b;letter-spacing:0.04em;">EL RUT NO ES VÁLIDO</p>
                     </div>
                     <button type="submit" id="btn-rut" disabled
-                            class="w-full py-3 rounded-full text-white font-semibold text-base opacity-50 cursor-not-allowed"
-                            style="background-color: #2d3a8c;">
+                            style="width:100%;padding:10px 20px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.9rem;border:none;cursor:pointer;opacity:0.5;">
                         Recuperar clave
                     </button>
                 </form>
@@ -98,16 +96,16 @@
 
     <script>
         function mostrarSeccion(tipo) {
-            document.getElementById('seccion-opciones').classList.add('hidden');
-            document.getElementById('seccion-email').classList.add('hidden');
-            document.getElementById('seccion-rut').classList.add('hidden');
-            document.getElementById('seccion-' + tipo).classList.remove('hidden');
+            document.getElementById('seccion-opciones').style.display = 'none';
+            document.getElementById('seccion-email').style.display = 'none';
+            document.getElementById('seccion-rut').style.display = 'none';
+            document.getElementById('seccion-' + tipo).style.display = 'flex';
         }
 
         function volverOpciones() {
-            document.getElementById('seccion-opciones').classList.remove('hidden');
-            document.getElementById('seccion-email').classList.add('hidden');
-            document.getElementById('seccion-rut').classList.add('hidden');
+            document.getElementById('seccion-opciones').style.display = 'flex';
+            document.getElementById('seccion-email').style.display = 'none';
+            document.getElementById('seccion-rut').style.display = 'none';
         }
 
         // Validación email
@@ -127,10 +125,12 @@
                 }
                 if (valido) {
                     btnEmail.disabled = false;
-                    btnEmail.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btnEmail.style.opacity = '1';
+                    btnEmail.style.cursor = 'pointer';
                 } else {
                     btnEmail.disabled = true;
-                    btnEmail.classList.add('opacity-50', 'cursor-not-allowed');
+                    btnEmail.style.opacity = '0.5';
+                    btnEmail.style.cursor = 'not-allowed';
                 }
             });
         }
@@ -179,10 +179,12 @@
                 }
                 if (valido) {
                     btnRut.disabled = false;
-                    btnRut.classList.remove('opacity-50', 'cursor-not-allowed');
+                    btnRut.style.opacity = '1';
+                    btnRut.style.cursor = 'pointer';
                 } else {
                     btnRut.disabled = true;
-                    btnRut.classList.add('opacity-50', 'cursor-not-allowed');
+                    btnRut.style.opacity = '0.5';
+                    btnRut.style.cursor = 'not-allowed';
                 }
             });
         }

@@ -13,16 +13,16 @@
 {% block content %}
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
-  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Panel de administración</p>
-  <h1 style="font-size:1.2rem;font-weight:800;color:#1f2937;margin-bottom:{% if rol_fijo %}8{% else %}16{% endif %}px;">
-    {% if rol_fijo == 'alcalde' %}🏛️ Crear perfil de Alcalde
-    {% elif rol_fijo == 'tesorero' %}💰 Crear perfil de Tesorero
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Panel de administración</p>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:{% if rol_fijo %}8{% else %}16{% endif %}px;">
+    {% if rol_fijo == 'alcalde' %}Crear perfil de Alcalde
+    {% elif rol_fijo == 'tesorero' %}Crear perfil de Tesorero
     {% else %}Crear usuario{% endif %}
   </h1>
 
   {% if rol_fijo %}
-  <div style="background:{% if rol_fijo == 'alcalde' %}#faf5ff{% else %}#ecfeff{% endif %};border-radius:12px;padding:10px 14px;margin-bottom:16px;">
-    <p style="font-size:0.78rem;font-weight:600;color:{% if rol_fijo == 'alcalde' %}#7c3aed{% else %}#0891b2{% endif %};">
+  <div style="background:{% if rol_fijo == 'alcalde' %}#ede9fe{% else %}#e0f2fe{% endif %};border-radius:10px;padding:10px 14px;margin-bottom:16px;border:0.5px solid {% if rol_fijo == 'alcalde' %}#c4b5f4{% else %}#93c5fd{% endif %};">
+    <p style="font-size:0.78rem;font-weight:500;color:{% if rol_fijo == 'alcalde' %}#4a3880{% else %}#0c5a8a{% endif %};">
       {% if rol_fijo == 'alcalde' %}El rol Alcalde quedará asignado automáticamente. Podrá firmar y aprobar reservas de organizaciones.
       {% else %}El rol Tesorero quedará asignado automáticamente. Podrá gestionar el registro de ingresos.{% endif %}
     </p>
@@ -31,7 +31,7 @@
 
   {% if messages %}
     {% for m in messages %}
-    <div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:{% if m.tags == 'error' %}#fef2f2{% else %}#f0fdf4{% endif %};color:{% if m.tags == 'error' %}#dc2626{% else %}#16a34a{% endif %};font-size:0.82rem;">
+    <div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:{% if m.tags == 'error' %}#fee2e2{% else %}#d7f3e0{% endif %};color:{% if m.tags == 'error' %}#991b1b{% else %}#1a6e30{% endif %};font-size:0.82rem;font-weight:500;">
       {{ m }}
     </div>
     {% endfor %}
@@ -42,143 +42,143 @@
     {% if rol_fijo %}<input type="hidden" name="rol_fijo" value="{{ rol_fijo }}">{% endif %}
 
     <!-- Datos personales -->
-    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:16px;">
 
       <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
-        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Nombre *</label>
+        <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Nombre *</label>
         <input type="text" name="nombre" value="{{ datos.nombre }}" required
-               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+               style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
         {% if errores.nombre %}
-        <p style="font-size:0.7rem;color:#dc2626;margin-top:4px;">{{ errores.nombre }}</p>
+        <p style="font-size:0.7rem;color:#991b1b;margin-top:4px;">{{ errores.nombre }}</p>
         {% endif %}
       </div>
 
       <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
-        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Apellido</label>
+        <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Apellido</label>
         <input type="text" name="apellido" value="{{ datos.apellido }}"
-               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+               style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
       </div>
 
       <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
-        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Correo electrónico *</label>
+        <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Correo electrónico *</label>
         <input type="email" name="email" value="{{ datos.email }}" required
-               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+               style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
         {% if errores.email %}
-        <p style="font-size:0.7rem;color:#dc2626;margin-top:4px;">{{ errores.email }}</p>
+        <p style="font-size:0.7rem;color:#991b1b;margin-top:4px;">{{ errores.email }}</p>
         {% endif %}
       </div>
 
       <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
-        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Teléfono</label>
+        <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Teléfono</label>
         <input type="tel" name="telefono" value="{{ datos.telefono }}"
-               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+               style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
       </div>
 
       <div style="padding:12px 16px;">
-        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">RUT</label>
+        <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">RUT</label>
         <input type="text" name="rut" value="{{ datos.rut }}" placeholder="12345678-9"
                oninput="formatearRut(this)" onblur="validarRut(this)"
-               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
-        <p class="rut-error" style="font-size:0.7rem;color:#dc2626;margin-top:4px;display:none;">RUT inválido</p>
+               style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
+        <p class="rut-error" style="font-size:0.7rem;color:#991b1b;margin-top:4px;display:none;">RUT inválido</p>
         {% if errores.rut %}
-        <p style="font-size:0.7rem;color:#dc2626;margin-top:4px;">{{ errores.rut }}</p>
+        <p style="font-size:0.7rem;color:#991b1b;margin-top:4px;">{{ errores.rut }}</p>
         {% endif %}
       </div>
 
     </div>
 
     <!-- Contraseña -->
-    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:16px;">
 
       <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
-        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Contraseña *</label>
+        <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Contraseña *</label>
         <input type="password" name="contrasena" required minlength="6"
-               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+               style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
         {% if errores.contrasena %}
-        <p style="font-size:0.7rem;color:#dc2626;margin-top:4px;">{{ errores.contrasena }}</p>
+        <p style="font-size:0.7rem;color:#991b1b;margin-top:4px;">{{ errores.contrasena }}</p>
         {% endif %}
       </div>
 
       <div style="padding:12px 16px;">
-        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Repetir contraseña *</label>
+        <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Repetir contraseña *</label>
         <input type="password" name="contrasena2" required
-               style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+               style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
       </div>
 
     </div>
 
     <!-- Rol: solo si NO hay rol pre-fijo -->
     {% if not rol_fijo %}
-    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:24px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px;">
       <div style="padding:14px 16px;">
-        <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:12px;">Tipo de cuenta</label>
+        <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:12px;">Tipo de cuenta</label>
 
         <!-- Usuario normal -->
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;" id="lbl-usuario">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px;padding:10px 12px;border-radius:8px;border:0.5px solid #e5e7eb;" id="lbl-usuario">
           <input type="radio" name="rol" value="usuario"
                  {% if datos.rol != 'admin' and datos.rol != 'alcalde' and datos.rol != 'tesorero' %}checked{% endif %}
                  onchange="highlightRol()"
                  style="accent-color:#6b7280;width:16px;height:16px;">
           <div>
-            <span style="font-size:0.875rem;color:#1f2937;font-weight:600;">👤 Usuario normal</span>
-            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">Puede realizar reservas en el sistema.</span>
+            <span style="font-size:0.875rem;color:#1c1b1f;font-weight:500;">👤 Usuario normal</span>
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;font-weight:400;">Puede realizar reservas en el sistema.</span>
           </div>
         </label>
 
         <!-- Administrador -->
-        <label style="display:flex;align-items:center;gap:10px;cursor:{% if total_superusuarios >= max_superusuarios %}not-allowed{% else %}pointer{% endif %};margin-bottom:12px;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;" id="lbl-admin">
+        <label style="display:flex;align-items:center;gap:10px;cursor:{% if total_superusuarios >= max_superusuarios %}not-allowed{% else %}pointer{% endif %};margin-bottom:12px;padding:10px 12px;border-radius:8px;border:0.5px solid #e5e7eb;" id="lbl-admin">
           <input type="radio" name="rol" value="admin"
                  {% if datos.rol == 'admin' %}checked{% endif %}
                  {% if total_superusuarios >= max_superusuarios %}disabled{% endif %}
                  onchange="highlightRol()"
-                 style="accent-color:#d97706;width:16px;height:16px;">
+                 style="accent-color:#b06000;width:16px;height:16px;">
           <div>
-            <span style="font-size:0.875rem;color:{% if total_superusuarios >= max_superusuarios %}#9ca3af{% else %}#1f2937{% endif %};font-weight:600;">⚙️ Administrador</span>
-            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">
+            <span style="font-size:0.875rem;color:{% if total_superusuarios >= max_superusuarios %}#9ca3af{% else %}#1c1b1f{% endif %};font-weight:500;">⚙️ Administrador</span>
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;font-weight:400;">
               {% if total_superusuarios >= max_superusuarios %}Límite alcanzado ({{ total_superusuarios }}/{{ max_superusuarios }}){% else %}Acceso total al panel — {{ total_superusuarios }}/{{ max_superusuarios }} activos{% endif %}
             </span>
           </div>
         </label>
 
         <!-- Alcalde -->
-        <label style="display:flex;align-items:center;gap:10px;cursor:{% if hay_alcalde %}not-allowed{% else %}pointer{% endif %};margin-bottom:12px;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;{% if hay_alcalde %}opacity:0.45;{% endif %}" id="lbl-alcalde">
+        <label style="display:flex;align-items:center;gap:10px;cursor:{% if hay_alcalde %}not-allowed{% else %}pointer{% endif %};margin-bottom:12px;padding:10px 12px;border-radius:8px;border:0.5px solid #e5e7eb;{% if hay_alcalde %}opacity:0.45;{% endif %}" id="lbl-alcalde">
           <input type="radio" name="rol" value="alcalde"
                  {% if datos.rol == 'alcalde' %}checked{% endif %}
                  {% if hay_alcalde %}disabled{% endif %}
                  onchange="highlightRol()"
-                 style="accent-color:#7c3aed;width:16px;height:16px;">
+                 style="accent-color:#4a3880;width:16px;height:16px;">
           <div>
-            <span style="font-size:0.875rem;color:{% if hay_alcalde %}#9ca3af{% else %}#1f2937{% endif %};font-weight:600;">🏛️ Alcalde</span>
-            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">
+            <span style="font-size:0.875rem;color:{% if hay_alcalde %}#9ca3af{% else %}#1c1b1f{% endif %};font-weight:500;">🏛️ Alcalde</span>
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;font-weight:400;">
               {% if hay_alcalde %}Límite alcanzado (1/1){% else %}Firma y aprueba reservas de organizaciones.{% endif %}
             </span>
           </div>
         </label>
 
         <!-- Tesorero -->
-        <label style="display:flex;align-items:center;gap:10px;cursor:{% if hay_tesorero %}not-allowed{% else %}pointer{% endif %};padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;{% if hay_tesorero %}opacity:0.45;{% endif %}" id="lbl-tesorero">
+        <label style="display:flex;align-items:center;gap:10px;cursor:{% if hay_tesorero %}not-allowed{% else %}pointer{% endif %};padding:10px 12px;border-radius:8px;border:0.5px solid #e5e7eb;{% if hay_tesorero %}opacity:0.45;{% endif %}" id="lbl-tesorero">
           <input type="radio" name="rol" value="tesorero"
                  {% if datos.rol == 'tesorero' %}checked{% endif %}
                  {% if hay_tesorero %}disabled{% endif %}
                  onchange="highlightRol()"
-                 style="accent-color:#0891b2;width:16px;height:16px;">
+                 style="accent-color:#0c5a8a;width:16px;height:16px;">
           <div>
-            <span style="font-size:0.875rem;color:{% if hay_tesorero %}#9ca3af{% else %}#1f2937{% endif %};font-weight:600;">💰 Tesorero</span>
-            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;">
+            <span style="font-size:0.875rem;color:{% if hay_tesorero %}#9ca3af{% else %}#1c1b1f{% endif %};font-weight:500;">💰 Tesorero</span>
+            <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;font-weight:400;">
               {% if hay_tesorero %}Límite alcanzado (1/1){% else %}Gestiona el registro de ingresos de organizaciones.{% endif %}
             </span>
           </div>
         </label>
 
         {% if errores.rol %}
-        <p style="font-size:0.7rem;color:#dc2626;margin-top:8px;">{{ errores.rol }}</p>
+        <p style="font-size:0.7rem;color:#991b1b;margin-top:8px;">{{ errores.rol }}</p>
         {% endif %}
       </div>
     </div>
     {% endif %}
 
     <button type="submit"
-            style="width:100%;padding:13px;border-radius:999px;background:#6abf4b;color:white;font-weight:600;font-size:0.9rem;border:none;cursor:pointer;">
+            style="width:100%;padding:11px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.9rem;border:none;cursor:pointer;">
       Crear usuario
     </button>
 
@@ -189,13 +189,13 @@
 <script>
   function highlightRol() {
     const roles = ['usuario', 'admin', 'alcalde', 'tesorero'];
-    const colores = { usuario: '#6b7280', admin: '#d97706', alcalde: '#7c3aed', tesorero: '#0891b2' };
+    const colores = { usuario: '#6b7280', admin: '#b06000', alcalde: '#4a3880', tesorero: '#0c5a8a' };
     roles.forEach(r => {
       const lbl = document.getElementById('lbl-' + r);
       const inp = lbl?.querySelector('input');
       if (lbl && inp) {
         lbl.style.borderColor = inp.checked ? colores[r] : '#e5e7eb';
-        lbl.style.background = inp.checked ? (r === 'usuario' ? '#f9fafb' : r === 'admin' ? '#fffbeb' : r === 'alcalde' ? '#faf5ff' : '#ecfeff') : 'white';
+        lbl.style.background = inp.checked ? (r === 'usuario' ? '#f9fafb' : r === 'admin' ? '#fffbeb' : r === 'alcalde' ? '#ede9fe' : '#e0f2fe') : 'white';
       }
     });
   }

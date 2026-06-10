@@ -16,127 +16,47 @@
 <style>
   .tabs-container {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     overflow-x: auto;
-    padding-bottom: 14px;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-
-  .tabs-container::-webkit-scrollbar {
-    display: none;
-  }
+  .tabs-container::-webkit-scrollbar { display: none; }
 
   .tab-filter {
     flex-shrink: 0;
     padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 600;
+    border-radius: 8px;
+    font-size: 0.73rem;
+    font-weight: 500;
     text-decoration: none;
-    transition: all 0.2s;
-  }
-
-  .tab-all {
-    background: #f3f4f6;
+    border: 0.5px solid #e5e7eb;
+    background: white;
     color: #6b7280;
   }
-
-  .tab-all.active {
-    background: #1f2937;
+  .tab-filter.active {
+    background: #1c1b1f;
     color: white;
+    border-color: transparent;
   }
-
-  .tab-pendiente {
-    background: #fef3c7;
-    color: #d97706;
-  }
-
-  .tab-pendiente.active {
-    background: #d97706;
-    color: white;
-  }
-
-  .tab-aprobada {
-    background: #dcfce7;
-    color: #15803d;
-  }
-
-  .tab-aprobada.active {
-    background: #15803d;
-    color: white;
-  }
-
-  .tab-rechazada {
-    background: #fee2e2;
-    color: #b91c1c;
-  }
-
-  .tab-rechazada.active {
-    background: #b91c1c;
-    color: white;
-  }
-
-  .tab-cancelada {
-    background: #f3f4f6;
-    color: #6b7280;
-  }
-
-  .tab-cancelada {
-    background: #f3f4f6;
-    color: #6b7280;
-  }
-
-  .tab-cancelada.active {
-    background: #6b7280;
-    color: white;
-  }
-
-  /* Estilos para las tarjetas de reserva */
-  .badge-status {
-    flex-shrink: 0;
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 999px;
-  }
-
-  .status-pendiente {
-    background: #fef3c7;
-    color: #d97706;
-  }
-
-  .status-aprobada {
-    background: #dcfce7;
-    color: #15803d;
-  }
-
-  .status-rechazada {
-    background: #fee2e2;
-    color: #b91c1c;
-  }
-
-  .status-cancelada {
-    background: #f3f4f6;
-    color: #6b7280;
-  }
+  .tab-filter.tab-pendiente { background: #fef3c7; color: #854f0b; border-color: #fcd34d; }
+  .tab-filter.tab-pendiente.active { background: #1c1b1f; color: white; border-color: transparent; }
+  .tab-filter.tab-aprobada { background: #d7f3e0; color: #1a6e30; border-color: #86efac; }
+  .tab-filter.tab-aprobada.active { background: #1c1b1f; color: white; border-color: transparent; }
+  .tab-filter.tab-rechazada { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+  .tab-filter.tab-rechazada.active { background: #1c1b1f; color: white; border-color: transparent; }
 
   .payment-label {
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 500;
     margin-top: 2px;
     display: flex;
     align-items: center;
     gap: 4px;
+    color: #6b7280;
   }
-
-  .payment-tarjeta {
-    color: #15803d;
-  }
-
-  .payment-transferencia {
-    color: #1d4ed8;
-  }
+  .payment-tarjeta { color: #1a6e30; }
+  .payment-transferencia { color: #1d4ed8; }
 
   .reservation-data {
     display: flex;
@@ -147,45 +67,22 @@
   .cambio-box {
     margin-top: 8px;
     padding: 8px 12px;
-    border-radius: 12px;
+    border-radius: 10px;
     display: flex;
     flex-direction: column;
     gap: 3px;
-    border: 1px solid transparent;
+    border: 0.5px solid transparent;
   }
-
-  .cambio-pendiente {
-    background: #fffbeb;
-    border-color: #fef3c7;
-  }
-
-  .cambio-aprobado {
-    background: #f0fdf4;
-    border-color: #dcfce7;
-  }
-
-  .cambio-header {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .cambio-pendiente .cambio-header { color: #d97706; }
-  .cambio-aprobado .cambio-header { color: #15803d; }
-
-  .cambio-subtexto {
-    font-size: 0.72rem;
-    font-weight: 500;
-  }
-
+  .cambio-pendiente { background: #fffbeb; border-color: #fcd34d; }
+  .cambio-aprobado { background: #d7f3e0; border-color: #86efac; }
+  .cambio-header { display: flex; align-items: center; gap: 5px; }
+  .cambio-pendiente .cambio-header { color: #854f0b; }
+  .cambio-aprobado .cambio-header { color: #1a6e30; }
+  .cambio-subtexto { font-size: 0.72rem; font-weight: 500; }
   .cambio-pendiente .cambio-subtexto { color: #92400e; }
   .cambio-aprobado .cambio-subtexto { color: #166534; }
+  .margin-pending { margin-bottom: 10px; }
 
-  .margin-pending {
-    margin-bottom: 10px;
-  }
-
-  /* Botones de acción admin */
   .admin-actions {
     display: flex;
     justify-content: flex-end;
@@ -196,79 +93,25 @@
 
   .btn-action {
     font-size: 0.72rem;
-    font-weight: 700;
+    font-weight: 500;
     padding: 6px 14px;
-    border-radius: 999px;
+    border-radius: 8px;
     text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
   }
-
-  .btn-edit {
-    background: #eff6ff;
-    color: #2563eb;
-  }
-
-  .btn-edit:hover {
-    background: #dbeafe;
-  }
-
-  .btn-cancel {
-    background: #fff7ed;
-    color: #ea580c;
-  }
-
-  .btn-cancel:hover {
-    background: #ffedd5;
-  }
-
-  .btn-delete {
-    background: #fef2f2;
-    color: #dc2626;
-  }
-
-  .btn-delete:hover {
-    background: #fee2e2;
-  }
-
-  .btn-manage {
-    background: #6abf4b;
-    color: white;
-    padding: 6px 18px;
-  }
-
-  .btn-manage:hover {
-    background: #5aab3d;
-    transform: scale(1.02);
-  }
-
-  .btn-proof {
-    background: #eff6ff;
-    color: #2563eb;
-  }
-
-  .btn-proof:hover {
-    background: #dbeafe;
-  }
-
-  .btn-edit {
-    background: #f0fdf4;
-    color: #15803d;
-  }
-
-  .btn-edit:hover {
-    background: #dcfce7;
-  }
+  .btn-edit { background: #e0f2fe; color: #0c5a8a; }
+  .btn-delete { background: #fee2e2; color: #991b1b; }
+  .btn-manage { background: #1c1b1f; color: white; padding: 6px 18px; }
+  .btn-proof { background: #1d4ed8; color: white; }
 </style>
 
-<div class="w-full max-w-2xl mx-auto flex flex-col flex-1"
-  style="padding:16px 16px; zoom: 0.9; transform-origin: top center;">
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1" style="padding:16px 16px;">
 
-  <!-- Tabs de filtro (Alineación perfecta con botón pegado a la derecha) -->
-  <div class="flex items-center gap-2 mb-4 px-1">
-    <div class="tabs-container flex-1" style="padding-bottom: 0px !important;">
-      <a href="?estado=&tipo={{ tipo_filtro }}" class="tab-filter tab-all {% if not estado_filtro %}active{% endif %}">
+  <!-- Tabs de filtro -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+    <div class="tabs-container" style="flex:1;">
+      <a href="?estado=&tipo={{ tipo_filtro }}" class="tab-filter {% if not estado_filtro %}active{% endif %}">
         Todas ({{ total }})
       </a>
       <a href="?estado=PENDIENTE&tipo={{ tipo_filtro }}" class="tab-filter tab-pendiente {% if estado_filtro == 'PENDIENTE' %}active{% endif %}">
@@ -285,9 +128,9 @@
     <!-- Toggle Personal / Organización -->
     <a href="?estado={{ estado_filtro }}&tipo={% if tipo_filtro == 'organizacion' %}personal{% else %}organizacion{% endif %}"
        title="{% if tipo_filtro == 'organizacion' %}Ver reservas personales{% else %}Ver reservas de organizaciones{% endif %}"
-       style="flex-shrink:0;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;text-decoration:none;
-              background:{% if tipo_filtro == 'organizacion' %}#4f46e5{% else %}#0891b2{% endif %};
-              color:white;">
+       style="flex-shrink:0;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;text-decoration:none;border:0.5px solid #e5e7eb;
+              background:{% if tipo_filtro == 'organizacion' %}#ede9fe{% else %}#e0f2fe{% endif %};
+              color:{% if tipo_filtro == 'organizacion' %}#4a3880{% else %}#0c5a8a{% endif %};">
       {% if tipo_filtro == 'organizacion' %}
       <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>
@@ -299,11 +142,11 @@
       {% endif %}
     </a>
 
-    <!-- Botón Historial (Pegado a la derecha y perfectamente alineado) -->
-    <a href="{% url 'panel_historial_reservas' %}" 
-       class="shrink-0 w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white shadow-sm hover:bg-black transition-all active:scale-95"
+    <!-- Botón Historial -->
+    <a href="{% url 'panel_historial_reservas' %}"
+       style="flex-shrink:0;width:32px;height:32px;border-radius:8px;background:#1c1b1f;display:flex;align-items:center;justify-content:center;text-decoration:none;"
        title="Ver historial completo">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     </a>
@@ -313,7 +156,7 @@
   <div style="display:flex;flex-direction:column;gap:10px;">
     {% for r in reservas %}
 
-    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:14px 16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;">
 
       <!-- Encabezado: salón + estado -->
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
@@ -326,29 +169,30 @@
             {% elif 'Gimnasio' in r.cancha.nombre %}🏋️
             {% else %}🎾{% endif %}
           </span>
-          <p style="font-size:0.9rem;font-weight:700;color:#1f2937;margin:0;line-height:1.2;">
+          <p style="font-size:0.9rem;font-weight:500;color:#1c1b1f;margin:0;line-height:1.2;">
             {% if r.salon %}{{ r.salon.nombre }}{% else %}{{ r.cancha.nombre }}{% endif %}</p>
         </div>
-        <span class="badge-status 
-          {% if r.estado == 'PENDIENTE' %}status-pendiente
-          {% elif r.estado == 'APROBADA' %}status-aprobada
-          {% elif r.estado == 'RECHAZADA' %}status-rechazada
-          {% else %}status-cancelada{% endif %}">
+        <span style="flex-shrink:0;font-size:0.62rem;font-weight:500;padding:3px 10px;border-radius:6px;border:0.5px solid;
+          {% if r.estado == 'PENDIENTE' %}background:#fef3c7;color:#854f0b;border-color:#fcd34d;
+          {% elif r.estado == 'APROBADA' %}background:#d7f3e0;color:#1a6e30;border-color:#86efac;
+          {% elif r.estado == 'RECHAZADA' %}background:#fee2e2;color:#991b1b;border-color:#fca5a5;
+          {% elif r.estado == 'PENDIENTE_ALCALDE' %}background:#ede9fe;color:#4a3880;border-color:#c4b5f4;
+          {% else %}background:#f3f4f6;color:#6b7280;border-color:#d1d5db;{% endif %}">
           {{ r.get_estado_display }}
         </span>
       </div>
 
       <!-- Datos -->
       <div class="reservation-data margin-pending">
-        <p style="font-size:0.78rem;color:#4b5563;font-weight:500;">
+        <p style="font-size:0.78rem;color:#374151;font-weight:500;">
           {{ r.get_solicitante_display }}
         </p>
         {% if r.solicitante_email %}
-        <p style="font-size:0.7rem;color:#9ca3af;margin-top:1px;">
+        <p style="font-size:0.7rem;color:#9ca3af;font-weight:400;margin-top:1px;">
           {{ r.solicitante_email }}
         </p>
         {% endif %}
-        <p style="font-size:0.78rem;color:#6b7280;margin-top:1px;">
+        <p style="font-size:0.78rem;color:#6b7280;font-weight:400;margin-top:1px;">
           <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;display:inline;vertical-align:-1px;"
             fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -400,14 +244,14 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
             {% endif %}
-            <span style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.02em;">
+            <span style="font-size:0.68rem;font-weight:500;text-transform:uppercase;letter-spacing:0.02em;">
               {% if r.estado == 'APROBADA' %}Cambio de Horario Aprobado{% else %}Cambio de Horario Detectado{% endif %}
             </span>
           </div>
           <p class="cambio-subtexto">
             <span style="opacity:0.6;">{{ r.fecha_anterior|date:"d/m/Y" }} ({{ r.hora_inicio_anterior|time:"H:i" }} - {{ r.hora_fin_anterior|time:"H:i" }})</span>
-            <span style="margin:0 4px;">➔</span>
-            <span style="font-weight:700;">Actual</span>
+            <span style="margin:0 4px;">→</span>
+            <span style="font-weight:500;">Actual</span>
           </p>
         </div>
         {% endif %}
@@ -442,37 +286,44 @@
 
     {% empty %}
     <div style="text-align:center;padding:48px 0;">
-      <div
-        style="width:56px;height:56px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+      <div style="width:56px;height:56px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
         <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;color:#9ca3af;" fill="none"
           viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
         </svg>
       </div>
-      <p style="color:#6b7280;font-size:0.875rem;font-weight:600;margin-bottom:4px;">Sin reservas</p>
-      <p style="color:#9ca3af;font-size:0.8rem;">No hay reservas en esta categoría.</p>
+      <p style="color:#6b7280;font-size:0.875rem;font-weight:500;margin-bottom:4px;">Sin reservas</p>
+      <p style="color:#9ca3af;font-size:0.8rem;font-weight:400;">No hay reservas en esta categoría.</p>
     </div>
     {% endfor %}
   </div>
 
   {% if reservas.has_other_pages %}
-  <div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:20px 0 4px;">
-    {% if reservas.has_previous %}
-    <a href="?estado={{ estado_filtro }}&page={{ reservas.previous_page_number }}"
-       style="padding:6px 14px;border-radius:999px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:0.8rem;font-weight:600;">
-      ← Anterior
-    </a>
-    {% endif %}
-    <span style="font-size:0.78rem;color:#6b7280;">
-      Página {{ reservas.number }} de {{ reservas.paginator.num_pages }}
-    </span>
-    {% if reservas.has_next %}
-    <a href="?estado={{ estado_filtro }}&page={{ reservas.next_page_number }}"
-       style="padding:6px 14px;border-radius:999px;background:#f3f4f6;color:#374151;text-decoration:none;font-size:0.8rem;font-weight:600;">
-      Siguiente →
-    </a>
-    {% endif %}
+  <div style="display:flex;justify-content:center;align-items:center;margin-top:20px;">
+    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #e5e7eb;padding:3px;gap:2px;">
+      {% if reservas.has_previous %}
+      <a href="?estado={{ estado_filtro }}&tipo={{ tipo_filtro }}&page={{ reservas.previous_page_number }}"
+         style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      {% else %}
+      <span style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#d1d5db;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </span>
+      {% endif %}
+      <span style="padding:0 14px;font-size:0.72rem;font-weight:500;color:#374151;">Pág {{ reservas.number }} de {{ reservas.paginator.num_pages }}</span>
+      {% if reservas.has_next %}
+      <a href="?estado={{ estado_filtro }}&tipo={{ tipo_filtro }}&page={{ reservas.next_page_number }}"
+         style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </a>
+      {% else %}
+      <span style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#d1d5db;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </span>
+      {% endif %}
+    </div>
   </div>
   {% endif %}
 
@@ -482,27 +333,27 @@
 
 <!-- Modal flotante de confirmación de eliminación -->
 <div id="modal-eliminar" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.45);">
-  <div style="background:white;border-radius:20px;padding:24px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:24px;width:100%;max-width:420px;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <span style="width:36px;height:36px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;color:#dc2626;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <span style="width:36px;height:36px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;color:#991b1b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
         </svg>
       </span>
-      <p style="font-size:1rem;font-weight:800;color:#1f2937;">Eliminar reserva</p>
+      <p style="font-size:1rem;font-weight:500;color:#1c1b1f;">Eliminar reserva</p>
     </div>
-    <p id="modal-eliminar-texto" style="font-size:0.82rem;color:#6b7280;margin-bottom:20px;line-height:1.5;">
+    <p id="modal-eliminar-texto" style="font-size:0.82rem;color:#6b7280;font-weight:400;margin-bottom:20px;line-height:1.5;">
       Esta acción moverá la reserva al historial y no se puede deshacer.
     </p>
     <div style="display:flex;gap:8px;">
       <button type="button" onclick="cerrarModalEliminar()"
-        style="flex:1;padding:11px;border-radius:10px;background:#f3f4f6;color:#374151;border:none;cursor:pointer;font-weight:700;font-size:0.85rem;">
+        style="flex:1;padding:11px;border-radius:8px;background:white;color:#374151;border:0.5px solid #e5e7eb;cursor:pointer;font-weight:500;font-size:0.85rem;">
         Cancelar
       </button>
       <form id="form-eliminar" method="post" style="flex:1;">
         {% csrf_token %}
         <button type="submit"
-          style="width:100%;padding:11px;border-radius:10px;background:#dc2626;color:white;border:none;cursor:pointer;font-weight:700;font-size:0.85rem;">
+          style="width:100%;padding:11px;border-radius:8px;background:#fee2e2;color:#991b1b;border:none;cursor:pointer;font-weight:500;font-size:0.85rem;">
           Eliminar
         </button>
       </form>

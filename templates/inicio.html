@@ -8,74 +8,79 @@
     <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24 px-4 sm:px-6">
 
         <!-- Botón sesión -->
-        <div class="py-4 sm:py-5">
+        <div style="padding:16px 0 20px;">
             {% if user.is_authenticated %}
-            <span class="flex items-center justify-center gap-2 w-full py-3 sm:py-4 rounded-full text-white font-semibold text-base sm:text-lg"
-                  style="background-color: #6abf4b;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;border-radius:16px;border:0.5px solid #e5e7eb;background:white;">
                 <span>👤</span>
-                {% if user.is_superuser %}Admin:{% endif %}
-                {{ user.first_name }} {{ user.last_name }}
-            </span>
+                <p style="font-size:1.35rem;font-weight:500;color:#1c1b1f;">
+                    {% if user.is_superuser %}Admin:{% endif %}
+                    {{ user.first_name }} {{ user.last_name }}
+                </p>
+            </div>
             {% else %}
-            <a href="{% url 'login' %}" class="flex items-center justify-center gap-2 w-full py-3 sm:py-4 rounded-full text-white font-semibold text-base sm:text-lg"
-               style="background-color: #6abf4b;">
+            <a href="{% url 'login' %}"
+               style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 20px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.9rem;border:none;text-decoration:none;box-sizing:border-box;">
                 <span>👤</span> Inicia sesión aquí
             </a>
             {% endif %}
         </div>
 
+        <!-- Labels de sección -->
+        <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:4px;">Instalaciones</p>
+        <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:14px;">Complejos deportivos</h1>
+
         <!-- Grid de complejos -->
         <div class="grid grid-cols-2 gap-3 sm:gap-4">
 
             <!-- Cancha de tenis -->
-            <a href="{% url 'reserva_tenis' %}" class="card-hover rounded-2xl overflow-hidden shadow-md flex flex-row justify-between items-center"
-               style="background-color: #4caf50; min-height: 100px;">
-                <div class="p-3 sm:p-4">
-                    <p class="text-white font-bold text-sm sm:text-base leading-tight">Cancha de<br>Tenis</p>
+            <a href="{% url 'reserva_tenis' %}" class="card-hover"
+               style="border-radius:16px;border:0.5px solid #e5e7eb;background:#4caf50;overflow:hidden;display:flex;flex-direction:row;justify-content:space-between;align-items:center;min-height:100px;text-decoration:none;">
+                <div style="padding:12px 14px;">
+                    <p style="color:white;font-weight:500;font-size:0.875rem;line-height:1.35;">Cancha de<br>Tenis</p>
                 </div>
-                <div class="pr-3 sm:pr-4">
-                    <span class="text-4xl sm:text-5xl">🎾</span>
+                <div style="padding-right:12px;">
+                    <span style="font-size:2.5rem;">🎾</span>
                 </div>
             </a>
 
             <!-- Gimnasio municipal -->
-            <a href="{% url 'reserva_gimnasio' %}" class="card-hover rounded-2xl overflow-hidden shadow-md flex flex-row justify-between items-center"
-               style="background-color: #2d3a8c; min-height: 100px;">
-                <div class="p-3 sm:p-4">
-                    <p class="text-white font-bold text-sm sm:text-base leading-tight">Gimnasio<br>Municipal</p>
+            <a href="{% url 'reserva_gimnasio' %}" class="card-hover"
+               style="border-radius:16px;border:0.5px solid #e5e7eb;background:#2d3a8c;overflow:hidden;display:flex;flex-direction:row;justify-content:space-between;align-items:center;min-height:100px;text-decoration:none;">
+                <div style="padding:12px 14px;">
+                    <p style="color:white;font-weight:500;font-size:0.875rem;line-height:1.35;">Gimnasio<br>Municipal</p>
                 </div>
-                <div class="pr-3 sm:pr-4">
-                    <span class="text-4xl sm:text-5xl">🏋️</span>
+                <div style="padding-right:12px;">
+                    <span style="font-size:2.5rem;">🏋️</span>
                 </div>
             </a>
 
             <!-- Cancha de futbolito -->
-            <a href="{% url 'reserva_futbolito' %}" class="card-hover rounded-2xl overflow-hidden shadow-md flex flex-row justify-between items-center"
-               style="background-color: #f5a623; min-height: 100px;">
-                <div class="p-3 sm:p-4">
-                    <p class="text-white font-bold text-sm sm:text-base leading-tight">Cancha de<br>Futbolito</p>
+            <a href="{% url 'reserva_futbolito' %}" class="card-hover"
+               style="border-radius:16px;border:0.5px solid #e5e7eb;background:#f5a623;overflow:hidden;display:flex;flex-direction:row;justify-content:space-between;align-items:center;min-height:100px;text-decoration:none;">
+                <div style="padding:12px 14px;">
+                    <p style="color:white;font-weight:500;font-size:0.875rem;line-height:1.35;">Cancha de<br>Futbolito</p>
                 </div>
-                <div class="pr-3 sm:pr-4">
-                    <span class="text-4xl sm:text-5xl">⚽</span>
+                <div style="padding-right:12px;">
+                    <span style="font-size:2.5rem;">⚽</span>
                 </div>
             </a>
 
             <!-- Estadio municipal -->
-            <a href="{% url 'reserva_estadio' %}" class="card-hover rounded-2xl overflow-hidden shadow-md flex flex-row justify-between items-center"
-               style="background-color: #6c5ce7; min-height: 100px;">
-                <div class="p-3 sm:p-4">
-                    <p class="text-white font-bold text-sm sm:text-base leading-tight">Estadio<br>Municipal</p>
+            <a href="{% url 'reserva_estadio' %}" class="card-hover"
+               style="border-radius:16px;border:0.5px solid #e5e7eb;background:#6c5ce7;overflow:hidden;display:flex;flex-direction:row;justify-content:space-between;align-items:center;min-height:100px;text-decoration:none;">
+                <div style="padding:12px 14px;">
+                    <p style="color:white;font-weight:500;font-size:0.875rem;line-height:1.35;">Estadio<br>Municipal</p>
                 </div>
-                <div class="pr-3 sm:pr-4">
-                    <span class="text-4xl sm:text-5xl">🏟️</span>
+                <div style="padding-right:12px;">
+                    <span style="font-size:2.5rem;">🏟️</span>
                 </div>
             </a>
 
         </div> <!-- Cierre del grid -->
 
         <!-- Municipalidad -->
-        <div class="flex justify-center mt-6 sm:mt-8">
-            <p class="font-bold text-base sm:text-lg text-gray-600 tracking-wide text-center">
+        <div style="display:flex;justify-content:center;margin-top:24px;">
+            <p style="font-weight:500;font-size:0.875rem;color:#6b7280;letter-spacing:0.03em;text-align:center;">
                 Municipalidad de Empedrado
             </p>
         </div>

@@ -13,13 +13,12 @@
         }
 
         .card-hover {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.2s ease;
             will-change: transform;
         }
 
         .card-hover:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
         }
 
         .bottom-nav-item {
@@ -28,7 +27,7 @@
             align-items: center;
             gap: 2px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 500;
             color: #9ca3af;
             cursor: pointer;
             text-decoration: none;
@@ -36,11 +35,11 @@
         }
 
         .bottom-nav-item:hover {
-            color: #2d3a8c;
+            color: #1c1b1f;
         }
 
         .bottom-nav-item.active {
-            color: #2d3a8c;
+            color: #1c1b1f;
         }
     </style>
 </head>
@@ -49,13 +48,13 @@
 
     <!-- ── Banner superior ───────────────────────────────────────────────── -->
     {% block top_header %}
-    <div style="position:sticky;top:0;z-index:40;background:white;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+    <div style="position:sticky;top:0;z-index:40;background:white;border-bottom:0.5px solid #e5e7eb;">
         <div
             style="max-width:672px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;">
             <div style="width:80px;">{% block header_left %}&nbsp;{% endblock %}</div>
             <a href="{% url 'inicio' %}" style="display:flex;align-items:center;gap:6px;text-decoration:none;">
                 <span style="font-size:1.5rem;">🏟️</span>
-                <span style="font-size:1.1rem;font-weight:700;color:#374151;">
+                <span style="font-size:1.1rem;font-weight:500;color:#374151;">
                     Complejos <span style="color:#22c55e;">Deportivos</span>
                 </span>
             </a>
@@ -72,7 +71,7 @@
                             d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                     {% if notificaciones_sin_leer > 0 %}<span
-                        style="position:absolute;top:1px;right:0;min-width:17px;height:17px;border-radius:999px;background:#ef4444;color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;">{{notificaciones_sin_leer }}</span>{% endif %}
+                        style="position:absolute;top:1px;right:0;min-width:17px;height:17px;border-radius:999px;background:#ef4444;color:white;font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;padding:0 4px;line-height:1;">{{notificaciones_sin_leer }}</span>{% endif %}
                 </a>
                 {% endif %}
                 <form method="post" action="{% url 'logout' %}" style="display:inline;">
@@ -101,7 +100,7 @@
 
     <!-- ── Barra de navegación inferior (siempre visible) ───────────────── -->
     <div
-        style="position:fixed;bottom:0;left:0;width:100vw;overflow-x:clip;z-index:40;background:white;border-top:1px solid #e5e7eb;box-shadow:0 -1px 6px rgba(0,0,0,0.06);transform:translateZ(0);backface-visibility:hidden;">
+        style="position:fixed;bottom:0;left:0;width:100vw;overflow-x:clip;z-index:40;background:white;border-top:0.5px solid #e5e7eb;transform:translateZ(0);backface-visibility:hidden;">
         <div
             style="max-width:672px;margin:0 auto;display:flex;justify-content:space-around;align-items:center;padding:8px 24px;">
 

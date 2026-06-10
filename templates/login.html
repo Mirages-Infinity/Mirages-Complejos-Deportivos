@@ -17,31 +17,32 @@
     <div class="w-full max-w-lg mx-auto px-4 py-5 pb-28">
 
         <!-- Tarjeta blanca del formulario -->
-        <div class="bg-white rounded-2xl shadow-sm px-5 py-6">
+        <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:20px;">
 
             <form method="post" action="{% url 'login' %}" class="flex flex-col gap-4" novalidate>
                 {% csrf_token %}
                 {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
-                <p class="text-center text-sm text-gray-500">Ingresa tu email y clave</p>
+                <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;text-align:center;">Complejos Deportivos</p>
+                <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;text-align:center;margin-top:-4px;">Iniciar sesión</h1>
 
                 {% if error %}
-                <p class="text-center text-xs font-bold py-2 px-3 rounded-lg bg-red-50 border border-red-200" style="color: #e53935;">{{ error }}</p>
+                <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:500;background:#fee2e2;color:#991b1b;">{{ error }}</div>
                 {% endif %}
 
                 <!-- Email -->
                 <div class="flex flex-col gap-1">
                     <input type="email" id="email" name="email" placeholder="Email"
                            value="{{ request.POST.email }}"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-blue-400 bg-white">
-                    <p id="email-error" class="text-xs font-bold hidden" style="color: #e53935; letter-spacing: 0.04em;">EL CORREO DEBE SER VÁLIDO</p>
+                           style="width:100%;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
+                    <p id="email-error" class="text-xs font-bold hidden" style="color: #991b1b; letter-spacing: 0.04em;">EL CORREO DEBE SER VÁLIDO</p>
                 </div>
 
                 <!-- Clave -->
                 <div class="flex flex-col gap-1">
                     <div class="relative">
                         <input type="password" id="clave" name="clave" placeholder="Clave"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-3 pr-10 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                               style="width:100%;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 40px 9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
                         <button type="button" id="toggle-clave"
                                 class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                             <svg id="icon-eye" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -53,32 +54,30 @@
                             </svg>
                         </button>
                     </div>
-                    <p id="clave-error" class="text-xs font-bold hidden" style="color: #e53935; letter-spacing: 0.04em;">DEBES INGRESAR UNA CLAVE</p>
+                    <p id="clave-error" class="text-xs font-bold hidden" style="color: #991b1b; letter-spacing: 0.04em;">DEBES INGRESAR UNA CLAVE</p>
                 </div>
 
                 <!-- Texto ayuda -->
-                <p class="text-xs text-center text-gray-400">
+                <p style="font-size:0.72rem;text-align:center;color:#9ca3af;font-weight:400;">
                     Si tienes problemas para ingresar, contáctanos a
-                    <span class="text-gray-500">contacto@complejosdeportivos.cl</span>
+                    <span style="color:#6b7280;">contacto@complejosdeportivos.cl</span>
                 </p>
 
                 <!-- Botón ingresar -->
                 <button type="submit"
-                        class="w-full py-3 rounded-full text-white font-semibold text-base"
-                        style="background-color: #6abf4b;">
+                        style="width:100%;padding:10px 20px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.9rem;border:none;cursor:pointer;">
                     Ingresar
                 </button>
 
                 <!-- Olvidé contraseña -->
                 <div class="flex justify-end -mt-2">
-                    <a href="{% url 'recuperar_clave' %}" class="text-sm text-gray-500 underline">Olvidé mi contraseña</a>
+                    <a href="{% url 'recuperar_clave' %}" style="font-size:0.8rem;color:#6b7280;font-weight:400;">Olvidé mi contraseña</a>
                 </div>
 
                 <!-- Registrarse -->
-                <p class="text-center text-sm text-gray-500 mt-2">¿Aún no tienes cuenta?</p>
+                <p style="text-align:center;font-size:0.8rem;color:#6b7280;font-weight:400;margin-top:4px;">¿Aún no tienes cuenta?</p>
                 <a href="{% url 'registro' %}"
-                   class="w-full py-3 rounded-full text-white font-semibold text-base text-center block"
-                   style="background-color: #2d3a8c;">
+                   style="width:100%;padding:10px 20px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.9rem;border:0.5px solid #e5e7eb;text-align:center;text-decoration:none;display:block;box-sizing:border-box;">
                     Regístrate aquí
                 </a>
 

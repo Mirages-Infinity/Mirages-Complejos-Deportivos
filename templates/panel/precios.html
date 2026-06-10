@@ -13,14 +13,14 @@
 {% block content %}
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
-  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Panel de administración</p>
-  <h1 style="font-size:1.25rem;font-weight:800;color:#1f2937;margin-bottom:6px;">Precios por hora</h1>
-  <p style="font-size:0.8rem;color:#6b7280;margin-bottom:20px;">Define el valor por hora de cada complejo. Los descuentos del 50% para organizaciones se calculan automáticamente a partir de estos precios.</p>
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Panel de administración</p>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:4px;">Precios por hora</h1>
+  <p style="font-size:0.8rem;color:#6b7280;font-weight:400;margin-bottom:20px;">Define el valor por hora de cada complejo. Los descuentos del 50% para organizaciones se calculan automáticamente a partir de estos precios.</p>
 
   {% if messages %}
   <div style="margin-bottom:14px;display:flex;flex-direction:column;gap:6px;">
     {% for msg in messages %}
-    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:600;background:#f0fdf4;color:#16a34a;">{{ msg }}</div>
+    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:500;background:#d7f3e0;color:#1a6e30;">{{ msg }}</div>
     {% endfor %}
   </div>
   {% endif %}
@@ -28,39 +28,39 @@
   <form method="post">
     {% csrf_token %}
 
-    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:16px;">
       {% for cancha in canchas %}
-      <div style="padding:14px 16px;{% if not forloop.last %}border-bottom:1px solid #f3f4f6;{% endif %}">
+      <div style="padding:14px 16px;{% if not forloop.last %}border-bottom:0.5px solid #f3f4f6;{% endif %}">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
 
           <div>
-            <p style="font-size:0.875rem;font-weight:700;color:#1f2937;">{{ cancha.nombre }}</p>
+            <p style="font-size:0.875rem;font-weight:500;color:#1c1b1f;">{{ cancha.nombre }}</p>
             {% if cancha.precio %}
-            <p style="font-size:0.7rem;color:#9ca3af;margin-top:2px;">
-              Con descuento org: <span style="color:#16a34a;font-weight:600;">$ {{ cancha.precio|floatformat:0|stringformat:"s" }} → $ {% widthratio cancha.precio 2 1 %}</span>
+            <p style="font-size:0.7rem;color:#9ca3af;margin-top:2px;font-weight:400;">
+              Con descuento org: <span style="color:#1a6e30;font-weight:500;">$ {{ cancha.precio|floatformat:0|stringformat:"s" }} → $ {% widthratio cancha.precio 2 1 %}</span>
             </p>
             {% else %}
-            <p style="font-size:0.7rem;color:#9ca3af;margin-top:2px;">Sin precio definido</p>
+            <p style="font-size:0.7rem;color:#9ca3af;margin-top:2px;font-weight:400;">Sin precio definido</p>
             {% endif %}
           </div>
 
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-            <span style="font-size:0.85rem;font-weight:700;color:#6b7280;">$</span>
+            <span style="font-size:0.85rem;font-weight:500;color:#6b7280;">$</span>
             <input type="number" name="precio_{{ cancha.pk }}" value="{{ cancha.precio }}"
               min="0" step="500" placeholder="0"
-              style="width:110px;padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.9rem;font-weight:700;color:#1f2937;text-align:right;">
+              style="width:110px;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.9rem;font-weight:500;color:#1c1b1f;text-align:right;outline:none;">
           </div>
         </div>
       </div>
       {% empty %}
       <div style="padding:32px;text-align:center;">
-        <p style="color:#9ca3af;font-size:0.85rem;">No hay complejos configurados.</p>
+        <p style="color:#9ca3af;font-size:0.85rem;font-weight:400;">No hay complejos configurados.</p>
       </div>
       {% endfor %}
     </div>
 
     <button type="submit"
-      style="width:100%;padding:13px;border-radius:12px;background:#1f2937;color:white;font-size:0.88rem;font-weight:700;border:none;cursor:pointer;">
+      style="width:100%;padding:9px 16px;border-radius:8px;background:#1c1b1f;color:white;font-size:0.88rem;font-weight:500;border:none;cursor:pointer;">
       Guardar precios
     </button>
   </form>

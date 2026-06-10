@@ -12,7 +12,7 @@
 
 {% block header_right %}
 <a href="{% url 'panel_crear_usuario' %}"
-   style="width:34px;height:34px;border-radius:50%;background:#6abf4b;display:flex;align-items:center;justify-content:center;text-decoration:none;"
+   style="width:34px;height:34px;border-radius:8px;background:#1c1b1f;display:flex;align-items:center;justify-content:center;text-decoration:none;"
    title="Crear usuario">
   <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;color:white;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
@@ -25,11 +25,11 @@
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
   <!-- Administradores -->
-  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px;">
     Administradores — {{ total_superusuarios }}/{{ max_superusuarios }} superusuarios
   </p>
 
-  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:24px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px;">
 
     {% for u in admins %}
     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;{% if not forloop.last %}border-bottom:1px solid #f3f4f6;{% endif %}">
@@ -45,13 +45,13 @@
       </div>
 
       <div style="flex:1;min-width:0;">
-        <p style="font-size:0.875rem;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        <p style="font-size:0.875rem;font-weight:500;color:#1c1b1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
           {{ u.get_full_name|default:"Sin nombre" }}
         </p>
-        <p style="font-size:0.72rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        <p style="font-size:0.72rem;color:#6b7280;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
           {{ u.email }}
         </p>
-        <p style="font-size:0.68rem;font-weight:700;color:#d97706;">
+        <p style="font-size:0.68rem;font-weight:500;color:#b06000;">
           {% if u.is_superuser %}Superusuario{% else %}Staff{% endif %}
         </p>
       </div>
@@ -63,29 +63,29 @@
     </div>
     {% empty %}
     <div style="text-align:center;padding:32px 0;">
-      <p style="color:#9ca3af;font-size:0.8rem;">No hay administradores registrados.</p>
+      <p style="color:#9ca3af;font-size:0.8rem;font-weight:400;">No hay administradores registrados.</p>
     </div>
     {% endfor %}
 
   </div>
 
   <!-- Alcalde -->
-  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Alcalde</p>
-  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:24px;">
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px;">Alcalde</p>
+  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px;">
     {% for u in alcaldes %}
     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;">
       <div style="width:42px;height:42px;border-radius:50%;background:#f5f3ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.25rem;">🏛️</div>
       <div style="flex:1;min-width:0;">
-        <p style="font-size:0.875rem;font-weight:600;color:#1f2937;">{{ u.get_full_name|default:"Sin nombre" }}</p>
-        <p style="font-size:0.72rem;color:#6b7280;">{{ u.email }}</p>
-        <p style="font-size:0.68rem;font-weight:700;color:#7c3aed;">Alcalde</p>
+        <p style="font-size:0.875rem;font-weight:500;color:#1c1b1f;">{{ u.get_full_name|default:"Sin nombre" }}</p>
+        <p style="font-size:0.72rem;color:#6b7280;font-weight:400;">{{ u.email }}</p>
+        <p style="font-size:0.68rem;font-weight:500;color:#4a3880;">Alcalde</p>
       </div>
       <div style="flex-shrink:0;display:flex;gap:6px;">
-        <a href="{% url 'panel_editar_usuario' u.id %}" style="width:30px;height:30px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Editar datos">
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#2d3a8c;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
+        <a href="{% url 'panel_editar_usuario' u.id %}" style="width:30px;height:30px;border-radius:8px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Editar datos">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#0c5a8a;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
         </a>
-        <a href="{% url 'panel_eliminar_usuario' u.id %}" style="width:30px;height:30px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Eliminar">
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#ef4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+        <a href="{% url 'panel_eliminar_usuario' u.id %}" style="width:30px;height:30px;border-radius:8px;background:#fee2e2;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Eliminar">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#991b1b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
         </a>
       </div>
     </div>
@@ -93,33 +93,33 @@
     <a href="{% url 'panel_crear_usuario' %}?rol=alcalde"
        style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">
       <div style="width:42px;height:42px;border-radius:50%;background:#f5f3ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#7c3aed;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#4a3880;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
       </div>
       <div>
-        <p style="font-size:0.875rem;font-weight:700;color:#7c3aed;">Crear perfil de alcalde</p>
-        <p style="font-size:0.72rem;color:#9ca3af;">Aún no hay un alcalde registrado.</p>
+        <p style="font-size:0.875rem;font-weight:500;color:#4a3880;">Crear perfil de alcalde</p>
+        <p style="font-size:0.72rem;color:#9ca3af;font-weight:400;">Aún no hay un alcalde registrado.</p>
       </div>
     </a>
     {% endfor %}
   </div>
 
   <!-- Tesorero -->
-  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Tesorero</p>
-  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:24px;">
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px;">Tesorero</p>
+  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px;">
     {% for u in tesoreros %}
     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;">
       <div style="width:42px;height:42px;border-radius:50%;background:#ecfeff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.25rem;">💰</div>
       <div style="flex:1;min-width:0;">
-        <p style="font-size:0.875rem;font-weight:600;color:#1f2937;">{{ u.get_full_name|default:"Sin nombre" }}</p>
-        <p style="font-size:0.72rem;color:#6b7280;">{{ u.email }}</p>
-        <p style="font-size:0.68rem;font-weight:700;color:#0891b2;">Tesorero</p>
+        <p style="font-size:0.875rem;font-weight:500;color:#1c1b1f;">{{ u.get_full_name|default:"Sin nombre" }}</p>
+        <p style="font-size:0.72rem;color:#6b7280;font-weight:400;">{{ u.email }}</p>
+        <p style="font-size:0.68rem;font-weight:500;color:#0c5a8a;">Tesorero</p>
       </div>
       <div style="flex-shrink:0;display:flex;gap:6px;">
-        <a href="{% url 'panel_editar_usuario' u.id %}" style="width:30px;height:30px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Editar datos">
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#2d3a8c;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
+        <a href="{% url 'panel_editar_usuario' u.id %}" style="width:30px;height:30px;border-radius:8px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Editar datos">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#0c5a8a;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/></svg>
         </a>
-        <a href="{% url 'panel_eliminar_usuario' u.id %}" style="width:30px;height:30px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Eliminar">
-          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#ef4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
+        <a href="{% url 'panel_eliminar_usuario' u.id %}" style="width:30px;height:30px;border-radius:8px;background:#fee2e2;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Eliminar">
+          <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#991b1b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
         </a>
       </div>
     </div>
@@ -127,22 +127,22 @@
     <a href="{% url 'panel_crear_usuario' %}?rol=tesorero"
        style="display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;">
       <div style="width:42px;height:42px;border-radius:50%;background:#ecfeff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#0891b2;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#0c5a8a;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
       </div>
       <div>
-        <p style="font-size:0.875rem;font-weight:700;color:#0891b2;">Crear perfil de tesorero</p>
-        <p style="font-size:0.72rem;color:#9ca3af;">Aún no hay un tesorero registrado.</p>
+        <p style="font-size:0.875rem;font-weight:500;color:#0c5a8a;">Crear perfil de tesorero</p>
+        <p style="font-size:0.72rem;color:#9ca3af;font-weight:400;">Aún no hay un tesorero registrado.</p>
       </div>
     </a>
     {% endfor %}
   </div>
 
   <!-- Usuarios normales -->
-  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px;">
     {{ usuarios.count }} usuario{{ usuarios.count|pluralize:"s" }} registrado{{ usuarios.count|pluralize:"s" }}
   </p>
 
-  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;">
 
     {% for u in usuarios %}
     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;{% if not forloop.last %}border-bottom:1px solid #f3f4f6;{% endif %}">
@@ -161,28 +161,28 @@
 
       <!-- Info -->
       <div style="flex:1;min-width:0;">
-        <p style="font-size:0.875rem;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        <p style="font-size:0.875rem;font-weight:500;color:#1c1b1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
           {{ u.get_full_name|default:"Sin nombre" }}
         </p>
-        <p style="font-size:0.72rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        <p style="font-size:0.72rem;color:#6b7280;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
           {{ u.email }}
         </p>
         {% if u.perfil.rut %}
-        <p style="font-size:0.68rem;color:#9ca3af;">RUT: {{ u.perfil.rut }}</p>
+        <p style="font-size:0.68rem;color:#9ca3af;font-weight:400;">RUT: {{ u.perfil.rut }}</p>
         {% endif %}
-        <p style="font-size:0.68rem;font-weight:700;color:{% if u.is_active %}#16a34a{% else %}#dc2626{% endif %};">
+        <p style="font-size:0.68rem;font-weight:500;color:{% if u.is_active %}#1a6e30{% else %}#991b1b{% endif %};">
           {% if u.is_active %}Cuenta habilitada{% else %}Cuenta deshabilitada{% endif %}
         </p>
       </div>
 
       <!-- Acciones -->
       <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-        <p style="font-size:0.68rem;color:#9ca3af;white-space:nowrap;">{{ u.date_joined|date:"d/m/Y" }}</p>
+        <p style="font-size:0.68rem;color:#9ca3af;white-space:nowrap;font-weight:400;">{{ u.date_joined|date:"d/m/Y" }}</p>
         <div style="display:flex;gap:6px;">
           <a href="{% url 'panel_toggle_usuario' u.id %}"
-             style="width:30px;height:30px;border-radius:50%;background:{% if u.is_active %}#ecfdf5{% else %}#fef2f2{% endif %};display:flex;align-items:center;justify-content:center;text-decoration:none;"
+             style="width:30px;height:30px;border-radius:8px;background:{% if u.is_active %}#d7f3e0{% else %}#fee2e2{% endif %};display:flex;align-items:center;justify-content:center;text-decoration:none;"
              title="{% if u.is_active %}Deshabilitar acceso{% else %}Habilitar acceso{% endif %}">
-            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:{% if u.is_active %}#16a34a{% else %}#dc2626{% endif %};" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:{% if u.is_active %}#1a6e30{% else %}#991b1b{% endif %};" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               {% if u.is_active %}
               <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10V7.75a4.5 4.5 0 10-9 0V10" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 10H6.75A2.25 2.25 0 004.5 12.25v6A2.25 2.25 0 006.75 20.5h10.5a2.25 2.25 0 002.25-2.25v-6A2.25 2.25 0 0017.25 10H12" />
@@ -193,14 +193,14 @@
             </svg>
           </a>
           <a href="{% url 'panel_editar_usuario' u.id %}"
-             style="width:30px;height:30px;border-radius:50%;background:#eff6ff;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Editar">
-            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#2d3a8c;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+             style="width:30px;height:30px;border-radius:8px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Editar">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#0c5a8a;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>
             </svg>
           </a>
           <a href="{% url 'panel_eliminar_usuario' u.id %}"
-             style="width:30px;height:30px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Eliminar">
-            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#ef4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+             style="width:30px;height:30px;border-radius:8px;background:#fee2e2;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="Eliminar">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:#991b1b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
             </svg>
           </a>
@@ -215,8 +215,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
         </svg>
       </div>
-      <p style="color:#6b7280;font-size:0.875rem;font-weight:600;margin-bottom:4px;">Sin usuarios</p>
-      <p style="color:#9ca3af;font-size:0.8rem;">No hay usuarios registrados aún.</p>
+      <p style="color:#6b7280;font-size:0.875rem;font-weight:500;margin-bottom:4px;">Sin usuarios</p>
+      <p style="color:#9ca3af;font-size:0.8rem;font-weight:400;">No hay usuarios registrados aún.</p>
     </div>
     {% endfor %}
 

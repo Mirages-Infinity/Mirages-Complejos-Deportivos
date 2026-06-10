@@ -13,15 +13,15 @@
 {% block content %}
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
-  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Panel de administración</p>
-  <h1 style="font-size:1.25rem;font-weight:800;color:#1f2937;margin-bottom:4px;">Crear Cupón de Reserva</h1>
-  <p style="font-size:0.8rem;color:#6b7280;margin-bottom:20px;">El cupón permitirá al usuario realizar una reserva sin costo.</p>
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Panel de administración</p>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:4px;">Crear Cupón de Reserva</h1>
+  <p style="font-size:0.8rem;color:#6b7280;font-weight:400;margin-bottom:20px;">El cupón permitirá al usuario realizar una reserva sin costo.</p>
 
   {% if messages %}
   <div style="margin-bottom:16px;display:flex;flex-direction:column;gap:6px;">
     {% for msg in messages %}
-    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:600;
-      {% if msg.tags == 'error' %}background:#fef2f2;color:#dc2626;{% else %}background:#f0fdf4;color:#16a34a;{% endif %}">
+    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:500;
+      {% if msg.tags == 'error' %}background:#fee2e2;color:#991b1b;{% else %}background:#d7f3e0;color:#1a6e30;{% endif %}">
       {{ msg }}
     </div>
     {% endfor %}
@@ -31,13 +31,12 @@
   <form method="post">
     {% csrf_token %}
 
-    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:20px;display:flex;flex-direction:column;gap:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:16px;">
 
-      <!-- Usuario -->
       <div>
-        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Usuario *</label>
+        <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:6px;">Usuario *</label>
         <select name="usuario_id" required
-          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;background:white;appearance:none;">
+          style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;background:white;outline:none;appearance:none;box-sizing:border-box;">
           <option value="">Selecciona un usuario...</option>
           {% for usuario in usuarios %}
           <option value="{{ usuario.pk }}" {% if form_data.usuario_id == usuario.pk|stringformat:'s' %}selected{% endif %}>
@@ -47,11 +46,10 @@
         </select>
       </div>
 
-      <!-- Instalación (opcional) -->
       <div>
-        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Instalación (opcional)</label>
+        <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:6px;">Instalación (opcional)</label>
         <select name="nombre_recurso"
-          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;background:white;appearance:none;">
+          style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;background:white;outline:none;appearance:none;box-sizing:border-box;">
           <option value="">Sin restricción de instalación</option>
           {% for cancha in canchas %}
           <option value="{{ cancha.nombre }}" {% if form_data.nombre_recurso == cancha.nombre %}selected{% endif %}>
@@ -59,22 +57,21 @@
           </option>
           {% endfor %}
         </select>
-        <p style="font-size:0.7rem;color:#9ca3af;margin-top:4px;">Si seleccionas una cancha, el cupón solo será válido para esa instalación.</p>
+        <p style="font-size:0.7rem;color:#9ca3af;margin-top:4px;font-weight:400;">Si seleccionas una cancha, el cupón solo será válido para esa instalación.</p>
       </div>
 
-      <!-- Fecha de expiración -->
       <div>
-        <label style="font-size:0.75rem;font-weight:700;color:#374151;display:block;margin-bottom:6px;">Fecha de expiración *</label>
+        <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:6px;">Fecha de expiración *</label>
         <input type="date" name="fecha_expiracion" required
           value="{{ form_data.fecha_expiracion|default:'' }}"
           min="{{ today|date:'Y-m-d' }}"
-          style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;color:#1f2937;box-sizing:border-box;">
+          style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
       </div>
 
     </div>
 
     <button type="submit"
-      style="width:100%;margin-top:16px;padding:13px;border-radius:12px;background:#16a34a;color:white;font-size:0.88rem;font-weight:700;border:none;cursor:pointer;">
+      style="width:100%;margin-top:16px;padding:9px 16px;border-radius:8px;background:#d7f3e0;color:#1a6e30;font-size:0.88rem;font-weight:500;border:none;cursor:pointer;">
       Crear cupón de reserva
     </button>
   </form>
@@ -82,7 +79,6 @@
 </div>
 
 <script>
-  // Establece fecha mínima como mañana
   const fechaInput = document.querySelector('input[name="fecha_expiracion"]');
   if (fechaInput && !fechaInput.value) {
     const manana = new Date();

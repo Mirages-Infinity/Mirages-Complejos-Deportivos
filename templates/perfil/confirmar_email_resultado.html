@@ -2,29 +2,27 @@
 {% block title %}Cambio de email{% endblock %}
 {% block content %}
 
-<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24 px-4">
-  <div class="mt-16 text-center">
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
+  <div style="margin-top:64px;text-align:center;">
 
     {% if exito %}
-      <div class="text-6xl mb-4">✅</div>
-      <h1 class="font-bold text-gray-800 text-xl mb-2">¡Email actualizado!</h1>
-      <p class="text-sm text-gray-500 mb-6">
+      <div style="font-size:3rem;margin-bottom:16px;">✅</div>
+      <h1 style="font-weight:500;color:#1c1b1f;font-size:1.35rem;margin-bottom:8px;">Email actualizado</h1>
+      <p style="font-size:0.875rem;color:#6b7280;font-weight:400;margin-bottom:24px;">
         Tu correo ha sido cambiado correctamente.<br>
         Tu sesión fue cerrada. Ingresa con tu nuevo email.
       </p>
       <a href="{% url 'login' %}"
-         class="inline-block px-8 py-3 rounded-full text-white font-semibold text-sm"
-         style="background-color:#6abf4b;">
+         style="display:inline-block;padding:10px 20px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.875rem;text-decoration:none;">
         Iniciar sesión
       </a>
 
     {% elif error %}
-      <div class="text-6xl mb-4">❌</div>
-      <h1 class="font-bold text-gray-800 text-xl mb-2">Enlace no válido</h1>
-      <p class="text-sm text-gray-500 mb-6">{{ error }}</p>
+      <div style="font-size:3rem;margin-bottom:16px;">❌</div>
+      <h1 style="font-weight:500;color:#1c1b1f;font-size:1.35rem;margin-bottom:8px;">Enlace no válido</h1>
+      <p style="font-size:0.875rem;color:#6b7280;font-weight:400;margin-bottom:24px;">{{ error }}</p>
       <a href="{% url 'inicio' %}"
-         class="inline-block px-8 py-3 rounded-full text-white font-semibold text-sm"
-         style="background-color:#6abf4b;">
+         style="display:inline-block;padding:10px 20px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.875rem;text-decoration:none;">
         Volver al inicio
       </a>
     {% endif %}

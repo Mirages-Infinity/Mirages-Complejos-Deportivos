@@ -13,18 +13,22 @@
 {% block content %}
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Perfil</p>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Mis cupones</h1>
+
   {% if messages %}
     {% for m in messages %}
-    <div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;background:{% if m.tags == 'error' %}#fef2f2{% else %}#f0fdf4{% endif %};color:{% if m.tags == 'error' %}#dc2626{% else %}#16a34a{% endif %};font-size:0.82rem;">
+    <div style="margin-bottom:12px;padding:10px 14px;border-radius:10px;font-weight:500;font-size:0.82rem;
+      {% if m.tags == 'error' %}background:#fee2e2;color:#991b1b;{% else %}background:#d7f3e0;color:#1a6e30;{% endif %}">
       {{ m }}
     </div>
     {% endfor %}
   {% endif %}
 
   <!-- Explicación -->
-  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:14px 16px;margin-bottom:20px;">
-    <p style="font-size:0.8rem;color:#15803d;font-weight:600;margin-bottom:6px;">¿Cómo funcionan los cupones?</p>
-    <ul style="font-size:0.75rem;color:#166534;line-height:1.7;padding-left:14px;margin:0;list-style:disc;">
+  <div style="background:#d7f3e0;border-radius:10px;padding:10px 14px;margin-bottom:20px;">
+    <p style="font-size:0.8rem;color:#1a6e30;font-weight:500;margin-bottom:6px;">¿Cómo funcionan los cupones?</p>
+    <ul style="font-size:0.75rem;color:#1a6e30;line-height:1.7;padding-left:14px;margin:0;list-style:disc;">
       <li>Recibes un cupón cuando cancelas una reserva ya aprobada, o cuando el sistema cancela automáticamente una de tus reservas.</li>
       <li>Cada cupón es válido <strong>solo para la misma instalación</strong> donde se originó (ej: un cupón de tenis solo sirve para tenis).</li>
       <li>Los cupones son de <strong>un solo uso</strong>: una vez aplicado queda marcado como usado.</li>
@@ -34,18 +38,18 @@
   </div>
 
   <!-- Filtros -->
-  <div style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;">
-    <a href="?filtro=todos" style="flex-shrink:0;padding:5px 14px;border-radius:999px;font-size:0.75rem;font-weight:700;text-decoration:none;
-      {% if filtro == 'todos' %}background:#1f2937;color:white;{% else %}background:#f3f4f6;color:#6b7280;{% endif %}">Todos</a>
-    <a href="?filtro=activo" style="flex-shrink:0;padding:5px 14px;border-radius:999px;font-size:0.75rem;font-weight:700;text-decoration:none;
-      {% if filtro == 'activo' %}background:#16a34a;color:white;{% else %}background:#f3f4f6;color:#6b7280;{% endif %}">Disponibles</a>
-    <a href="?filtro=usado" style="flex-shrink:0;padding:5px 14px;border-radius:999px;font-size:0.75rem;font-weight:700;text-decoration:none;
-      {% if filtro == 'usado' %}background:#6b7280;color:white;{% else %}background:#f3f4f6;color:#6b7280;{% endif %}">Usados</a>
-    <a href="?filtro=expirado" style="flex-shrink:0;padding:5px 14px;border-radius:999px;font-size:0.75rem;font-weight:700;text-decoration:none;
-      {% if filtro == 'expirado' %}background:#dc2626;color:white;{% else %}background:#f3f4f6;color:#6b7280;{% endif %}">Expirados</a>
+  <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;">
+    <a href="?filtro=todos" style="flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:0.73rem;font-weight:500;text-decoration:none;border:0.5px solid;
+      {% if filtro == 'todos' %}background:#1c1b1f;color:white;border-color:transparent;{% else %}background:white;color:#6b7280;border-color:#e5e7eb;{% endif %}">Todos</a>
+    <a href="?filtro=activo" style="flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:0.73rem;font-weight:500;text-decoration:none;border:0.5px solid;
+      {% if filtro == 'activo' %}background:#1c1b1f;color:white;border-color:transparent;{% else %}background:white;color:#6b7280;border-color:#e5e7eb;{% endif %}">Disponibles</a>
+    <a href="?filtro=usado" style="flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:0.73rem;font-weight:500;text-decoration:none;border:0.5px solid;
+      {% if filtro == 'usado' %}background:#1c1b1f;color:white;border-color:transparent;{% else %}background:white;color:#6b7280;border-color:#e5e7eb;{% endif %}">Usados</a>
+    <a href="?filtro=expirado" style="flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:0.73rem;font-weight:500;text-decoration:none;border:0.5px solid;
+      {% if filtro == 'expirado' %}background:#1c1b1f;color:white;border-color:transparent;{% else %}background:white;color:#6b7280;border-color:#e5e7eb;{% endif %}">Expirados</a>
   </div>
 
-  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px;">
     {{ cupones.count }} cupón{{ cupones.count|pluralize:"es" }}
   </p>
 
@@ -53,8 +57,7 @@
   <div style="display:flex;flex-direction:column;gap:10px;">
 
     {% for cupon in cupones %}
-    <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;
-                border-left:4px solid {% if cupon.estado == 'ACTIVO' %}#6abf4b{% elif cupon.estado == 'USADO' %}#9ca3af{% else %}#f87171{% endif %};">
+    <div style="background:white;border-radius:16px;border:0.5px solid {% if cupon.estado == 'ACTIVO' %}#86efac{% elif cupon.estado == 'USADO' %}#d1d5db{% else %}#fca5a5{% endif %};overflow:hidden;">
 
       <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
 
@@ -79,11 +82,11 @@
         <!-- Info -->
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
-            <p style="font-size:1rem;font-weight:800;color:#1f2937;letter-spacing:0.04em;font-family:monospace;">
+            <p style="font-size:1rem;font-weight:500;color:#1c1b1f;letter-spacing:0.04em;font-family:monospace;">
               {{ cupon.codigo }}
             </p>
-            <span style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 8px;border-radius:999px;
-                         background:{% if cupon.estado == 'ACTIVO' %}#dcfce7;color:#15803d{% elif cupon.estado == 'USADO' %}#f3f4f6;color:#6b7280{% else %}#fef2f2;color:#dc2626{% endif %};">
+            <span style="font-size:0.62rem;font-weight:500;padding:3px 10px;border-radius:6px;border:0.5px solid;
+                         {% if cupon.estado == 'ACTIVO' %}background:#d7f3e0;color:#1a6e30;border-color:#86efac;{% elif cupon.estado == 'USADO' %}background:#f3f4f6;color:#6b7280;border-color:#d1d5db;{% else %}background:#fee2e2;color:#991b1b;border-color:#fca5a5;{% endif %}">
               {{ cupon.get_estado_display }}
             </span>
           </div>
@@ -118,10 +121,10 @@
 
       {% if cupon.estado == 'ACTIVO' %}
       <!-- Código copiable -->
-      <div style="padding:10px 16px;background:#f9fafb;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;gap:8px;">
-        <p style="font-size:0.72rem;color:#6b7280;">Ingresa este código al hacer una reserva</p>
+      <div style="padding:10px 16px;background:#f9fafb;border-top:0.5px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <p style="font-size:0.72rem;color:#6b7280;font-weight:400;">Ingresa este código al hacer una reserva</p>
         <button onclick="copiarCodigo('{{ cupon.codigo }}', this)"
-                style="padding:5px 12px;border-radius:999px;border:1px solid #d1d5db;background:white;font-size:0.72rem;font-weight:600;color:#374151;cursor:pointer;">
+                style="padding:9px 16px;border-radius:8px;border:0.5px solid #e5e7eb;background:white;font-size:0.72rem;font-weight:500;color:#374151;cursor:pointer;">
           Copiar
         </button>
       </div>
@@ -133,13 +136,13 @@
   </div>
 
   {% else %}
-  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:48px 16px;text-align:center;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:48px 16px;text-align:center;">
     <div style="width:56px;height:56px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
       <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3V18m-6-12v.75m0 3v.75m0 3V18M4.5 9h15M4.5 15h15M3 6h18v12H3V6z"/>
       </svg>
     </div>
-    <p style="color:#6b7280;font-size:0.875rem;font-weight:600;margin-bottom:4px;">Sin cupones</p>
+    <p style="color:#6b7280;font-size:0.875rem;font-weight:500;margin-bottom:4px;">Sin cupones</p>
     <p style="color:#9ca3af;font-size:0.8rem;">Aún no tienes cupones emitidos.</p>
   </div>
   {% endif %}
@@ -151,8 +154,8 @@ function copiarCodigo(codigo, btn) {
   navigator.clipboard.writeText(codigo).then(() => {
     const orig = btn.textContent;
     btn.textContent = '¡Copiado!';
-    btn.style.background = '#f0fdf4';
-    btn.style.color = '#16a34a';
+    btn.style.background = '#d7f3e0';
+    btn.style.color = '#1a6e30';
     btn.style.borderColor = '#86efac';
     setTimeout(() => {
       btn.textContent = orig;

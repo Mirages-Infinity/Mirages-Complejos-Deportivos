@@ -17,14 +17,15 @@
     <div class="w-full max-w-lg mx-auto px-4 py-5 pb-28">
 
         <!-- Tarjeta blanca del formulario -->
-        <div class="bg-white rounded-2xl shadow-sm px-5 py-6">
+        <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:20px;">
 
-            <h1 class="text-2xl font-bold text-gray-800 mb-5">Regístrate</h1>
+            <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Complejos Deportivos</p>
+            <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:16px;">Regístrate</h1>
 
             {% if errores %}
-            <div class="bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4 flex flex-col gap-1">
+            <div style="background:#fee2e2;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;flex-direction:column;gap:4px;">
                 {% for campo, msg in errores.items %}
-                <p class="text-xs font-bold" style="color: #e53935;">{{ msg }}</p>
+                <p style="font-size:0.8rem;font-weight:500;color:#991b1b;">{{ msg }}</p>
                 {% endfor %}
             </div>
             {% endif %}
@@ -35,68 +36,68 @@
                 <!-- Nombre y Apellido: apilados en mobile, 2 cols en sm+ -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-semibold" style="color:#2d3a8c;">Nombre <span class="text-red-500">*</span></label>
+                        <label style="font-size:0.8rem;font-weight:500;color:#374151;">Nombre <span class="text-red-500">*</span></label>
                         <input type="text" id="nombre" name="nombre" placeholder="* Nombre" required
                                value="{{ datos.nombre }}"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
-                        <p id="nombre-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">INGRESA TU NOMBRE</p>
+                               style="width:100%;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
+                        <p id="nombre-error" class="text-xs font-bold hidden" style="color:#991b1b;letter-spacing:0.04em;">INGRESA TU NOMBRE</p>
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-semibold" style="color:#2d3a8c;">Apellido <span class="text-red-500">*</span></label>
+                        <label style="font-size:0.8rem;font-weight:500;color:#374151;">Apellido <span class="text-red-500">*</span></label>
                         <input type="text" id="apellido" name="apellido" placeholder="* Apellido" required
                                value="{{ datos.apellido }}"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
-                        <p id="apellido-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">INGRESA TU APELLIDO</p>
+                               style="width:100%;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
+                        <p id="apellido-error" class="text-xs font-bold hidden" style="color:#991b1b;letter-spacing:0.04em;">INGRESA TU APELLIDO</p>
                     </div>
                 </div>
 
                 <!-- Email -->
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-semibold" style="color:#2d3a8c;">Email <span class="text-red-500">*</span></label>
+                    <label style="font-size:0.8rem;font-weight:500;color:#374151;">Email <span class="text-red-500">*</span></label>
                     <input type="email" id="email" name="email" placeholder="* Email" required
                            value="{{ datos.email }}"
-                           class="w-full border {% if errores.email %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
-                    <p id="email-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">EL CORREO DEBE SER VÁLIDO</p>
+                           style="width:100%;border-radius:8px;border:0.5px solid {% if errores.email %}#fca5a5{% else %}#e5e7eb{% endif %};font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
+                    <p id="email-error" class="text-xs font-bold hidden" style="color:#991b1b;letter-spacing:0.04em;">EL CORREO DEBE SER VÁLIDO</p>
                 </div>
 
                 <!-- Teléfono -->
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-semibold" style="color:#2d3a8c;">Teléfono <span class="text-red-500">*</span></label>
+                    <label style="font-size:0.8rem;font-weight:500;color:#374151;">Teléfono <span class="text-red-500">*</span></label>
                     <div class="flex gap-2">
-                        <div class="flex items-center gap-1 border border-gray-300 rounded-lg px-3 py-2 bg-white text-sm text-gray-600 whitespace-nowrap">
+                        <div style="display:flex;align-items:center;gap:4px;border-radius:8px;border:0.5px solid #e5e7eb;padding:9px 12px;background:white;font-size:0.875rem;color:#6b7280;white-space:nowrap;font-weight:500;">
                             🇨🇱 +56
                         </div>
                         <input type="tel" id="telefono" name="telefono" placeholder="9XXXXXXXX" required
                                value="{{ datos.telefono }}"
                                maxlength="9"
-                               class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                               style="flex:1;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
                     </div>
-                    <p id="telefono-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">INGRESA UN TELÉFONO VÁLIDO (9 dígitos, ej: 912345678)</p>
+                    <p id="telefono-error" class="text-xs font-bold hidden" style="color:#991b1b;letter-spacing:0.04em;">INGRESA UN TELÉFONO VÁLIDO (9 dígitos, ej: 912345678)</p>
                 </div>
 
                 <!-- RUT -->
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-semibold" style="color:#2d3a8c;">RUT <span class="text-red-500">*</span></label>
+                    <label style="font-size:0.8rem;font-weight:500;color:#374151;">RUT <span class="text-red-500">*</span></label>
                     <input type="text" id="rut" name="rut" placeholder="Ej: 12345678-9" required
                            value="{{ datos.rut }}"
                            oninput="formatearRut(this)" onblur="validarRut(this)"
-                           class="w-full border {% if errores.rut %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
+                           style="width:100%;border-radius:8px;border:0.5px solid {% if errores.rut %}#fca5a5{% else %}#e5e7eb{% endif %};font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
                     <p class="rut-error text-xs font-bold" style="color:#e53935;letter-spacing:0.04em;display:none;">RUT inválido — formato esperado: 12345678-9</p>
                 </div>
 
                 <!-- Fecha de nacimiento -->
                 <div class="flex flex-col gap-1">
-                    <label class="text-sm font-semibold" style="color:#2d3a8c;">Fecha de nacimiento <span class="text-red-500">*</span></label>
+                    <label style="font-size:0.8rem;font-weight:500;color:#374151;">Fecha de nacimiento <span class="text-red-500">*</span></label>
                     <div class="grid grid-cols-3 gap-2">
                         <select name="dia" required
-                                class="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white text-gray-500">
+                                style="border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 8px;font-size:0.875rem;background:white;color:#6b7280;">
                             <option value="">Día</option>
                             {% for d in dias %}
                             <option value="{{ d }}" {% if datos.dia == d|stringformat:"s" %}selected{% endif %}>{{ d }}</option>
                             {% endfor %}
                         </select>
                         <select name="mes" required
-                                class="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white text-gray-500">
+                                style="border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 8px;font-size:0.875rem;background:white;color:#6b7280;">
                             <option value="">Mes</option>
                             <option value="1">Enero</option>
                             <option value="2">Febrero</option>
@@ -112,7 +113,7 @@
                             <option value="12">Diciembre</option>
                         </select>
                         <select name="anio" required
-                                class="border border-gray-300 rounded-lg px-2 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white text-gray-500">
+                                style="border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 8px;font-size:0.875rem;background:white;color:#6b7280;">
                             <option value="">Año</option>
                             {% for a in anios %}
                             <option value="{{ a }}" {% if datos.anio == a|stringformat:"s" %}selected{% endif %}>{{ a }}</option>
@@ -124,16 +125,16 @@
                 <!-- Contraseña: apiladas en mobile, 2 cols en sm+ -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-semibold" style="color:#2d3a8c;">Contraseña <span class="text-red-500">*</span></label>
+                        <label style="font-size:0.8rem;font-weight:500;color:#374151;">Contraseña <span class="text-red-500">*</span></label>
                         <input type="password" id="contrasena" name="contraseña" placeholder="* Contraseña" required
-                               class="w-full border {% if errores.clave %}border-red-400{% else %}border-gray-300{% endif %} rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
-                        <p id="contrasena-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">MÍNIMO 6 CARACTERES</p>
+                               style="width:100%;border-radius:8px;border:0.5px solid {% if errores.clave %}#fca5a5{% else %}#e5e7eb{% endif %};font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
+                        <p id="contrasena-error" class="text-xs font-bold hidden" style="color:#991b1b;letter-spacing:0.04em;">MÍNIMO 6 CARACTERES</p>
                     </div>
                     <div class="flex flex-col gap-1">
-                        <label class="text-sm font-semibold" style="color:#2d3a8c;">Repite la contraseña <span class="text-red-500">*</span></label>
+                        <label style="font-size:0.8rem;font-weight:500;color:#374151;">Repite la contraseña <span class="text-red-500">*</span></label>
                         <input type="password" id="contrasena2" name="contraseña2" placeholder="* Repite la contraseña" required
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400 bg-white">
-                        <p id="contrasena2-error" class="text-xs font-bold hidden" style="color:#e53935;letter-spacing:0.04em;">LAS CONTRASEÑAS NO COINCIDEN</p>
+                               style="width:100%;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
+                        <p id="contrasena2-error" class="text-xs font-bold hidden" style="color:#991b1b;letter-spacing:0.04em;">LAS CONTRASEÑAS NO COINCIDEN</p>
                     </div>
                 </div>
 
@@ -142,15 +143,14 @@
 
                 <!-- Botón inscribir -->
                 <button type="submit"
-                        class="w-full py-3 rounded-full text-white font-semibold text-base"
-                        style="background-color: #6abf4b;">
+                        style="width:100%;padding:10px 20px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.9rem;border:none;cursor:pointer;">
                     Inscribir
                 </button>
 
                 <!-- Link a login -->
-                <p class="text-center text-sm text-gray-500">
+                <p style="text-align:center;font-size:0.8rem;color:#6b7280;font-weight:400;">
                     ¿Ya tienes cuenta?
-                    <a href="{% url 'login' %}" class="font-semibold" style="color: #2d3a8c;">Inicia sesión</a>
+                    <a href="{% url 'login' %}" style="font-weight:500;color:#1c1b1f;">Inicia sesión</a>
                 </p>
 
             </form>

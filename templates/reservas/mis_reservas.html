@@ -2,241 +2,99 @@
 {% block title %}Mis Reservas{% endblock %}
 
 {% block content %}
-<style>
-  .tabs-container {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 14px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
+<div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
-  .tabs-container::-webkit-scrollbar {
-    display: none;
-  }
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Reservas</p>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Mis Reservas</h1>
 
-  .tab-filter {
-    flex-shrink: 0;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.2s;
-  }
-
-  .tab-all {
-    background: #f3f4f6;
-    color: #6b7280;
-  }
-
-  .tab-all.active {
-    background: #1f2937;
-    color: white;
-  }
-
-  .tab-pendiente {
-    background: #fef3c7;
-    color: #d97706;
-  }
-
-  .tab-pendiente.active {
-    background: #d97706;
-    color: white;
-  }
-
-  .tab-aprobada {
-    background: #dcfce7;
-    color: #15803d;
-  }
-
-  .tab-aprobada.active {
-    background: #15803d;
-    color: white;
-  }
-
-  .tab-rechazada {
-    background: #fee2e2;
-    color: #b91c1c;
-  }
-
-  .tab-rechazada.active {
-    background: #b91c1c;
-    color: white;
-  }
-
-  .tab-cancelada {
-    background: #f3f4f6;
-    color: #6b7280;
-  }
-
-  .tab-cancelada.active {
-    background: #6b7280;
-    color: white;
-  }
-
-  .badge-status {
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 999px;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-
-  .status-pendiente {
-    background: #fef3c7;
-    color: #d97706;
-  }
-
-  .status-aprobada {
-    background: #dcfce7;
-    color: #15803d;
-  }
-
-  .status-rechazada {
-    background: #fee2e2;
-    color: #b91c1c;
-  }
-
-  .status-cancelada {
-    background: #f3f4f6;
-    color: #6b7280;
-  }
-
-  .payment-label {
-    font-size: 0.68rem;
-    font-weight: 800;
-    margin-top: 4px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .payment-tarjeta {
-    color: #15803d;
-  }
-
-  .payment-transferencia {
-    color: #1d4ed8;
-  }
-
-  .payment-cupon {
-    color: #ea580c;
-  }
-</style>
-
-<div class="max-w-2xl mx-auto p-6 flex-1 pb-8" style="zoom: 0.9; transform-origin: top center;">
-  <div class="flex items-center justify-between gap-4 mb-6">
-    <h1 class="text-2xl font-black text-gray-900 leading-tight">Mis Reservas</h1>
-    <span class="text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">{{ total }}
-      registros</span>
-  </div>
-
-  <!-- Tabs de filtro -->
-  <div class="bg-white px-6 py-4 rounded-3xl shadow-sm border border-gray-100/50 mb-6">
-    <div class="tabs-container" style="padding-bottom: 0;">
-      <a href="?estado=" class="tab-filter tab-all {% if not estado_filtro %}active{% endif %}">Todas</a>
-      <a href="?estado=PENDIENTE"
-        class="tab-filter tab-pendiente {% if estado_filtro == 'PENDIENTE' %}active{% endif %}">Pendientes ({{ conteos.PENDIENTE|default:0 }})</a>
-      <a href="?estado=APROBADA"
-        class="tab-filter tab-aprobada {% if estado_filtro == 'APROBADA' %}active{% endif %}">Aprobadas ({{ conteos.APROBADA|default:0 }})</a>
-      <a href="?estado=RECHAZADA"
-        class="tab-filter tab-rechazada {% if estado_filtro == 'RECHAZADA' %}active{% endif %}">Rechazadas ({{ conteos.RECHAZADA|default:0 }})</a>
-      <a href="?estado=CANCELADA"
-        class="tab-filter tab-cancelada {% if estado_filtro == 'CANCELADA' %}active{% endif %}">Canceladas ({{ conteos.CANCELADA|default:0 }})</a>
+  {% if messages %}
+  <div style="margin-bottom:14px;display:flex;flex-direction:column;gap:6px;">
+    {% for msg in messages %}
+    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:500;
+      {% if msg.tags == 'error' %}background:#fee2e2;color:#991b1b;{% else %}background:#d7f3e0;color:#1a6e30;{% endif %}">
+      {{ msg }}
     </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Filtros de estado -->
+  <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none;-ms-overflow-style:none;margin-bottom:16px;">
+    <a href="?estado=" style="flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:0.73rem;font-weight:500;text-decoration:none;border:0.5px solid;
+      {% if not estado_filtro %}background:#1c1b1f;color:white;border-color:transparent;{% else %}background:white;color:#6b7280;border-color:#e5e7eb;{% endif %}">
+      Todas
+    </a>
+    <a href="?estado=PENDIENTE" style="flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:0.73rem;font-weight:500;text-decoration:none;border:0.5px solid;
+      {% if estado_filtro == 'PENDIENTE' %}background:#1c1b1f;color:white;border-color:transparent;{% else %}background:white;color:#6b7280;border-color:#e5e7eb;{% endif %}">
+      Pendientes ({{ conteos.PENDIENTE|default:0 }})
+    </a>
+    <a href="?estado=APROBADA" style="flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:0.73rem;font-weight:500;text-decoration:none;border:0.5px solid;
+      {% if estado_filtro == 'APROBADA' %}background:#1c1b1f;color:white;border-color:transparent;{% else %}background:white;color:#6b7280;border-color:#e5e7eb;{% endif %}">
+      Aprobadas ({{ conteos.APROBADA|default:0 }})
+    </a>
+    <a href="?estado=RECHAZADA" style="flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:0.73rem;font-weight:500;text-decoration:none;border:0.5px solid;
+      {% if estado_filtro == 'RECHAZADA' %}background:#1c1b1f;color:white;border-color:transparent;{% else %}background:white;color:#6b7280;border-color:#e5e7eb;{% endif %}">
+      Rechazadas ({{ conteos.RECHAZADA|default:0 }})
+    </a>
+    <a href="?estado=CANCELADA" style="flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:0.73rem;font-weight:500;text-decoration:none;border:0.5px solid;
+      {% if estado_filtro == 'CANCELADA' %}background:#1c1b1f;color:white;border-color:transparent;{% else %}background:white;color:#6b7280;border-color:#e5e7eb;{% endif %}">
+      Canceladas ({{ conteos.CANCELADA|default:0 }})
+    </a>
   </div>
 
   {% if reservas %}
-  <div class="space-y-4">
+  <div style="display:flex;flex-direction:column;gap:8px;">
     {% for r in reservas %}
-    <div
-      class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-xl transition-all relative overflow-hidden group">
+    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;">
 
-      <div class="flex justify-between items-start gap-4 mb-4">
-        <div class="flex items-center gap-3">
-          <span class="text-3xl">
-            {% if r.cancha %}
-              {% if 'Tenis' in r.cancha.nombre %}🎾
-              {% elif 'Futbolito' in r.cancha.nombre %}⚽
-              {% elif 'Gimnasio' in r.cancha.nombre %}🏋️
-              {% elif 'Estadio' in r.cancha.nombre %}🏟️
-              {% else %}🏟️
-              {% endif %}
-            {% else %}🏛️
+      <!-- Cabecera: nombre recurso + badge estado -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;">
+        <div style="min-width:0;">
+          <p style="font-size:0.88rem;font-weight:500;color:#1c1b1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            {{ r.salon.nombre|default:r.cancha.nombre }}
+          </p>
+          <!-- Método de pago badge -->
+          <div style="margin-top:4px;">
+            {% if r.metodo_pago == 'TARJETA' %}
+            <span style="font-size:0.62rem;font-weight:500;padding:3px 10px;border-radius:6px;border:0.5px solid #93c5fd;background:#e0f2fe;color:#0c5a8a;">Tarjeta</span>
+            {% elif r.metodo_pago == 'TRANSFERENCIA' %}
+            <span style="font-size:0.62rem;font-weight:500;padding:3px 10px;border-radius:6px;border:0.5px solid #fcd34d;background:#fef3c7;color:#854f0b;">Transferencia</span>
+            {% elif r.metodo_pago == 'CUPON' %}
+            <span style="font-size:0.62rem;font-weight:500;padding:3px 10px;border-radius:6px;border:0.5px solid #c4b5f4;background:#f3e8ff;color:#5b21b6;">Cupón</span>
             {% endif %}
-          </span>
-          <div>
-            <p class="font-black text-gray-800 text-lg leading-tight">{{ r.salon.nombre|default:r.cancha.nombre }}</p>
-            <div class="flex items-center gap-2 mt-1">
-              {% if r.metodo_pago == 'CUPON' %}
-              <div class="payment-label" style="color:#ea580c;">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;color:#ea580c;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3V18m-6-12v.75m0 3v.75m0 3V18M4.5 9h15M4.5 15h15M3 6h18v12H3V6z"/>
-                </svg>
-                Cupón
-              </div>
-              {% elif r.metodo_pago == 'TARJETA' %}
-              <div class="payment-label payment-tarjeta">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                </svg>
-                {{ r.get_metodo_pago_display }}
-              </div>
-              {% else %}
-              <div class="payment-label payment-transferencia">
-                <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                </svg>
-                {{ r.get_metodo_pago_display }}
-              </div>
-              {% endif %}
-            </div>
           </div>
         </div>
-        <span class="badge-status 
-              {% if r.estado == 'PENDIENTE' %}status-pendiente
-              {% elif r.estado == 'APROBADA' %}status-aprobada
-              {% elif r.estado == 'RECHAZADA' %}status-rechazada
-              {% else %}status-cancelada{% endif %}">
+        <span style="flex-shrink:0;font-size:0.62rem;font-weight:500;padding:3px 10px;border-radius:6px;border:0.5px solid;
+          {% if r.estado == 'PENDIENTE' %}background:#fef3c7;color:#854f0b;border-color:#fcd34d;
+          {% elif r.estado == 'APROBADA' %}background:#d7f3e0;color:#1a6e30;border-color:#86efac;
+          {% elif r.estado == 'RECHAZADA' %}background:#fee2e2;color:#991b1b;border-color:#fca5a5;
+          {% elif r.estado == 'CANCELADA' %}background:#f3f4f6;color:#6b7280;border-color:#d1d5db;
+          {% elif r.estado == 'PENDIENTE_ALCALDE' %}background:#ede9fe;color:#4a3880;border-color:#c4b5f4;
+          {% else %}background:#f3f4f6;color:#6b7280;border-color:#d1d5db;{% endif %}">
           {{ r.get_estado_display }}
         </span>
       </div>
 
-      <div class="space-y-3">
-        <!-- Fecha y Hora -->
-        <div
-          class="flex items-center gap-3 text-sm font-bold text-gray-600 bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-          </svg>
-          <span>{{ r.fecha|date:"d M Y" }}</span>
-          <span class="text-gray-300">|</span>
-          <span class="text-blue-600">{{ r.hora_inicio|time:"H:i" }} – {{ r.hora_fin|time:"H:i" }}</span>
-        </div>
+      <!-- Fecha y hora -->
+      <p style="font-size:0.72rem;color:#6b7280;font-weight:400;margin-bottom:6px;">
+        {{ r.fecha|date:"d/m/Y" }} · {{ r.hora_inicio|time:"H:i" }} – {{ r.hora_fin|time:"H:i" }}
+      </p>
 
-        {% if r.motivo %}
-        <p class="text-xs text-gray-400 italic font-medium px-1 line-clamp-1">"{{ r.motivo }}"</p>
-        {% endif %}
-      </div>
+      {% if r.motivo %}
+      <p style="font-size:0.72rem;color:#6b7280;font-weight:400;font-style:italic;margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;">"{{ r.motivo }}"</p>
+      {% endif %}
 
-      <!-- Acciones de Usuario -->
-      <div class="flex items-center justify-end gap-3 mt-5 pt-5 border-t border-gray-50">
+      <!-- Acciones -->
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-top:10px;border-top:0.5px solid #f3f4f6;">
         {% if r.metodo_pago == 'TRANSFERENCIA' and r.comprobante_transferencia %}
         <a href="{{ r.comprobante_transferencia.url }}" target="_blank" rel="noopener noreferrer"
-          class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+           style="padding:8px 14px;border-radius:8px;font-size:0.72rem;font-weight:500;text-decoration:none;background:#e0f2fe;color:#0c5a8a;border:none;">
           Comprobante
         </a>
         {% endif %}
         {% if r.es_editable %}
         <a href="{% url 'editar_mi_reserva' r.pk %}"
-          class="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+           style="padding:8px 14px;border-radius:8px;font-size:0.72rem;font-weight:500;text-decoration:none;background:#e0f2fe;color:#0c5a8a;border:none;">
           Editar
         </a>
         {% endif %}
@@ -247,7 +105,7 @@
           data-fecha="{{ r.fecha|date:'d/m/Y' }}"
           data-hora="{{ r.hora_inicio|time:'H:i' }} – {{ r.hora_fin|time:'H:i' }}"
           onclick="abrirModalCancelar(this)"
-          class="px-4 py-2 bg-red-50 text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-sm">
+          style="padding:8px 14px;border-radius:8px;font-size:0.72rem;font-weight:500;cursor:pointer;background:#fee2e2;color:#991b1b;border:none;">
           Cancelar
         </button>
         {% endif %}
@@ -258,57 +116,49 @@
 
   <!-- Paginación -->
   {% if reservas.has_other_pages %}
-  <div class="mt-8 flex items-center justify-between bg-white px-6 py-4 rounded-3xl shadow-sm border border-gray-100/50">
-    <div class="flex-1">
+  <div style="display:flex;justify-content:center;margin-top:20px;">
+    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #e5e7eb;padding:3px;gap:2px;">
       {% if reservas.has_previous %}
       <a href="?page={{ reservas.previous_page_number }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}"
-         class="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-700 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-        Anterior
+         style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
       </a>
       {% endif %}
-    </div>
-    <span class="text-[10px] font-black text-gray-400 tracking-widest uppercase">Página {{ reservas.number }} de {{ reservas.paginator.num_pages }}</span>
-    <div class="flex-1 text-right">
+      <span style="padding:0 14px;font-size:0.72rem;font-weight:500;color:#374151;">Pág {{ reservas.number }} de {{ reservas.paginator.num_pages }}</span>
       {% if reservas.has_next %}
       <a href="?page={{ reservas.next_page_number }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}"
-         class="inline-flex items-center gap-2 justify-end text-[11px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-700 transition-colors">
-        Siguiente
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
+         style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
       </a>
       {% endif %}
     </div>
   </div>
   {% endif %}
+
   {% else %}
-  <div class="text-center py-20 bg-gray-50/50 rounded-[40px] border-2 border-dashed border-gray-100">
-    <span class="text-5xl mb-4 block">📭</span>
-    <p class="text-gray-400 font-bold text-sm">Aún no tienes reservas registradas</p>
-    <a href="{% url 'inicio' %}" class="text-blue-500 text-xs font-black uppercase mt-4 inline-block hover:underline">Ir
-      a reservar</a>
+  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:48px 16px;text-align:center;">
+    <p style="color:#6b7280;font-size:0.875rem;font-weight:500;">Aún no tienes reservas registradas</p>
+    <a href="{% url 'inicio' %}" style="color:#1c1b1f;font-size:0.75rem;font-weight:500;margin-top:8px;display:inline-block;text-decoration:underline;">Ir a reservar</a>
   </div>
   {% endif %}
+
 </div>
 
-<!-- ── Modal confirmación de cancelación ─────────────────────────────── -->
+<!-- Modal confirmación de cancelación -->
 <div id="modal-cancelar"
-  class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+  style="position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:16px;"
   role="dialog" aria-modal="true">
 
   <!-- Backdrop -->
-  <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+  <div style="position:absolute;inset:0;background:rgba(17,24,39,0.6);backdrop-filter:blur(4px);"
        onclick="cerrarModalCancelar()"></div>
 
   <!-- Tarjeta -->
-  <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-4">
+  <div style="position:relative;background:white;border-radius:16px;border:0.5px solid #e5e7eb;width:100%;max-width:360px;padding:24px;display:flex;flex-direction:column;gap:16px;">
 
-    <div class="flex justify-center">
-      <span class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-red-500" fill="none"
+    <div style="display:flex;justify-content:center;">
+      <span style="width:52px;height:52px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;color:#991b1b;" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
           <path stroke-linecap="round" stroke-linejoin="round"
                 d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
@@ -316,25 +166,25 @@
       </span>
     </div>
 
-    <div class="text-center">
-      <p class="font-black text-gray-900 text-lg">¿Cancelar reserva?</p>
-      <p class="text-sm text-gray-500 mt-1">Esta acción no se puede deshacer.</p>
+    <div style="text-align:center;">
+      <p style="font-size:1rem;font-weight:500;color:#1c1b1f;">¿Cancelar reserva?</p>
+      <p style="font-size:0.8rem;color:#6b7280;font-weight:400;margin-top:4px;">Esta acción no se puede deshacer.</p>
     </div>
 
-    <div class="bg-gray-50 rounded-2xl px-4 py-3 text-center space-y-1">
-      <p class="font-black text-gray-800 text-sm" id="modal-recurso"></p>
-      <p class="text-gray-500 text-xs font-semibold" id="modal-fecha-hora"></p>
+    <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #e5e7eb;padding:12px 14px;text-align:center;">
+      <p style="font-size:0.88rem;font-weight:500;color:#1c1b1f;" id="modal-recurso"></p>
+      <p style="font-size:0.72rem;color:#6b7280;font-weight:400;margin-top:2px;" id="modal-fecha-hora"></p>
     </div>
 
     <form id="form-cancelar" method="post" action="">
       {% csrf_token %}
-      <div class="flex gap-3 mt-1">
+      <div style="display:flex;gap:10px;margin-top:4px;">
         <button type="button" onclick="cerrarModalCancelar()"
-          class="flex-1 py-3 rounded-2xl border border-gray-200 text-gray-600 font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all">
+          style="flex:1;padding:10px 20px;border-radius:8px;font-size:0.8rem;font-weight:500;cursor:pointer;background:white;color:#374151;border:0.5px solid #e5e7eb;">
           Volver
         </button>
         <button type="submit"
-          class="flex-1 py-3 rounded-2xl bg-red-500 text-white font-black text-xs uppercase tracking-widest hover:bg-red-600 transition-all shadow-sm">
+          style="flex:1;padding:10px 20px;border-radius:8px;font-size:0.8rem;font-weight:500;cursor:pointer;background:#fee2e2;color:#991b1b;border:none;">
           Sí, cancelar
         </button>
       </div>
@@ -349,14 +199,11 @@
     document.getElementById('modal-fecha-hora').textContent = btn.dataset.fecha + '  ·  ' + btn.dataset.hora;
     document.getElementById('form-cancelar').action = btn.dataset.cancelUrl;
     const modal = document.getElementById('modal-cancelar');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+    modal.style.display = 'flex';
   }
 
   function cerrarModalCancelar() {
-    const modal = document.getElementById('modal-cancelar');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    document.getElementById('modal-cancelar').style.display = 'none';
   }
 
   document.addEventListener('keydown', (e) => {

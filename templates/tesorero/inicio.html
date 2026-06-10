@@ -5,35 +5,37 @@
 {% block content %}
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
-  <p style="font-size:0.68rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Tesorería</p>
-  <h1 style="font-size:1.25rem;font-weight:800;color:#1f2937;margin-bottom:16px;">Registro de Tesorería</h1>
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Tesorería</p>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Registro de tesorería</h1>
 
   {% if messages %}
   <div style="margin-bottom:14px;display:flex;flex-direction:column;gap:6px;">
     {% for msg in messages %}
-    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:600;background:#f0fdf4;color:#16a34a;">{{ msg }}</div>
+    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:500;background:#d7f3e0;color:#1a6e30;">{{ msg }}</div>
     {% endfor %}
   </div>
   {% endif %}
 
   <!-- Contadores -->
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">
-    <div style="background:white;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,0.07);padding:14px;text-align:center;">
-      <p style="font-size:1.6rem;font-weight:800;color:#d97706;line-height:1;">{{ conteos.pendiente }}</p>
-      <p style="font-size:0.65rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;margin-top:3px;">Pendientes</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;">
+      <p style="font-size:1.75rem;font-weight:500;color:#b06000;line-height:1;">{{ conteos.pendiente }}</p>
+      <p style="font-size:0.72rem;font-weight:500;color:#9ca3af;margin-top:4px;">Pendientes</p>
     </div>
-    <div style="background:white;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,0.07);padding:14px;text-align:center;">
-      <p style="font-size:1.6rem;font-weight:800;color:#16a34a;line-height:1;">{{ conteos.ingresado }}</p>
-      <p style="font-size:0.65rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;margin-top:3px;">Ingresados</p>
+    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;">
+      <p style="font-size:1.75rem;font-weight:500;color:#1a6e30;line-height:1;">{{ conteos.ingresado }}</p>
+      <p style="font-size:0.72rem;font-weight:500;color:#9ca3af;margin-top:4px;">Ingresados</p>
     </div>
   </div>
 
   <!-- Filtros + buscador -->
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;flex-shrink:0;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;flex-shrink:0;">
       {% for tag, label in filtros %}
-      <a href="?filtro={{ tag }}{% if busqueda %}&q={{ busqueda }}{% endif %}" style="flex-shrink:0;padding:5px 12px;border-radius:999px;font-size:0.73rem;font-weight:700;text-decoration:none;
-        {% if filtro == tag %}background:#1f2937;color:white;{% else %}background:#f3f4f6;color:#6b7280;{% endif %}">
+      <a href="?filtro={{ tag }}{% if busqueda %}&q={{ busqueda }}{% endif %}"
+         style="flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:0.73rem;font-weight:500;text-decoration:none;border:0.5px solid;
+           {% if filtro == tag %}background:#1c1b1f;color:white;border-color:transparent;
+           {% else %}background:white;color:#6b7280;border-color:#e5e7eb;{% endif %}">
         {{ label }}
       </a>
       {% endfor %}
@@ -41,15 +43,15 @@
     <form method="get" action="" style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;">
       <input type="hidden" name="filtro" value="{{ filtro }}">
       <div style="position:relative;flex:1;min-width:0;">
-        <svg style="position:absolute;left:9px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:#9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+        <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:#9ca3af;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
         </svg>
         <input type="text" name="q" value="{{ busqueda }}" placeholder="Buscar por nombre…"
-          style="width:100%;padding:5px 10px 5px 28px;border-radius:999px;border:1.5px solid {% if busqueda %}#1f2937{% else %}#e5e7eb{% endif %};font-size:0.73rem;font-weight:600;color:#374151;background:white;outline:none;box-sizing:border-box;">
+          style="width:100%;padding:7px 12px 7px 32px;border-radius:8px;border:0.5px solid {% if busqueda %}#1c1b1f{% else %}#e5e7eb{% endif %};font-size:0.73rem;font-weight:500;color:#374151;background:white;outline:none;box-sizing:border-box;">
       </div>
       {% if busqueda or filtro != 'todos' %}
       <a href="?filtro=todos" title="Limpiar filtros"
-         style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;text-decoration:none;">
+         style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:#f3f4f6;border:0.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;text-decoration:none;">
         <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#6b7280" stroke-width="2.5">
           <path stroke-linecap="round" d="M4 4l12 12M16 4L4 16"/>
         </svg>
@@ -59,92 +61,79 @@
   </div>
 
   {% if registros %}
-  <div style="display:flex;flex-direction:column;gap:10px;">
+  <div style="display:flex;flex-direction:column;gap:8px;">
     {% for reg in registros %}
-    <div id="reg-{{ reg.pk }}" style="background:{% if reg.estado == 'INGRESADO' %}#f0fdf4{% else %}white{% endif %};border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;border:1.5px solid {% if reg.estado == 'INGRESADO' %}#86efac{% else %}#f3f4f6{% endif %};transition:background 0.2s,border-color 0.2s;">
+    <div id="reg-{{ reg.pk }}"
+         style="background:{% if reg.estado == 'INGRESADO' %}#f0fdf4{% else %}white{% endif %};border-radius:16px;border:0.5px solid {% if reg.estado == 'INGRESADO' %}#86efac{% else %}#e5e7eb{% endif %};transition:background 0.2s,border-color 0.2s;">
       <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
 
-        <!-- Checkbox palomilla -->
+        <!-- Palomilla -->
         <button type="button"
           id="check-{{ reg.pk }}"
           onclick="toggleIngresado({{ reg.pk }}, '{{ reg.estado }}')"
           title="{% if reg.estado == 'INGRESADO' %}Marcar como pendiente{% else %}Marcar como ingresado{% endif %}"
-          style="flex-shrink:0;width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s,box-shadow 0.15s;
-            {% if reg.estado == 'INGRESADO' %}background:#16a34a;box-shadow:0 2px 8px rgba(22,163,74,0.25);
-            {% else %}background:#f3f4f6;box-shadow:none;{% endif %}">
-          {% if reg.estado == 'INGRESADO' %}
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 10.5l4.5 4.5 8-9" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          style="flex-shrink:0;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;
+            {% if reg.estado == 'INGRESADO' %}background:#1a6e30;border:none;
+            {% else %}background:white;border:0.5px solid #d1d5db;{% endif %}">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+            <path d="M4 10.5l4.5 4.5 8-9" stroke="{% if reg.estado == 'INGRESADO' %}white{% else %}#d1d5db{% endif %}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          {% else %}
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 10.5l4.5 4.5 8-9" stroke="#d1d5db" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          {% endif %}
         </button>
 
-        <!-- Contenido principal -->
+        <!-- Info -->
         <div style="flex:1;min-width:0;">
-          <!-- Nombre y tipo -->
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;">
-            <p style="font-size:0.88rem;font-weight:800;color:{% if reg.estado == 'INGRESADO' %}#15803d{% else %}#1f2937{% endif %};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-              {% if reg.reserva.tipo_reserva == 'ORGANIZACION' %}
-                {{ reg.reserva.nombre_organizacion }}
-              {% elif reg.reserva.solicitante %}
-                {{ reg.reserva.solicitante.get_full_name|default:reg.reserva.solicitante.username }}
-              {% elif reg.reserva.solicitante_nombre %}
-                {{ reg.reserva.solicitante_nombre }}
-              {% else %}
-                Sin nombre
-              {% endif %}
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap;">
+            <p style="font-size:0.88rem;font-weight:500;color:{% if reg.estado == 'INGRESADO' %}#1a6e30{% else %}#1c1b1f{% endif %};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              {% if reg.reserva.tipo_reserva == 'ORGANIZACION' %}{{ reg.reserva.nombre_organizacion }}
+              {% elif reg.reserva.solicitante %}{{ reg.reserva.solicitante.get_full_name|default:reg.reserva.solicitante.username }}
+              {% elif reg.reserva.solicitante_nombre %}{{ reg.reserva.solicitante_nombre }}
+              {% else %}Sin nombre{% endif %}
             </p>
-            <!-- Badge tipo -->
-            <span style="flex-shrink:0;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;padding:2px 7px;border-radius:999px;
-              {% if reg.reserva.tipo_reserva == 'ORGANIZACION' %}background:#ede9fe;color:#7c3aed;
-              {% else %}background:#e0f2fe;color:#0369a1;{% endif %}">
+            <span style="flex-shrink:0;font-size:0.62rem;font-weight:500;padding:2px 7px;border-radius:6px;border:0.5px solid;
+              {% if reg.reserva.tipo_reserva == 'ORGANIZACION' %}background:#ede9fe;color:#4a3880;border-color:#c4b5f4;
+              {% else %}background:#e0f2fe;color:#0c5a8a;border-color:#93c5fd;{% endif %}">
               {% if reg.reserva.tipo_reserva == 'ORGANIZACION' %}Org.{% else %}Personal{% endif %}
             </span>
             {% if reg.reserva.metodo_pago == 'TARJETA' %}
-            <span style="flex-shrink:0;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;padding:2px 7px;border-radius:999px;background:#dbeafe;color:#1d4ed8;">Tarjeta</span>
+            <span style="flex-shrink:0;font-size:0.62rem;font-weight:500;padding:2px 7px;border-radius:6px;border:0.5px solid #93c5fd;background:#e0f2fe;color:#0c5a8a;">Tarjeta</span>
             {% elif reg.reserva.metodo_pago == 'TRANSFERENCIA' %}
-            <span style="flex-shrink:0;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;">Transferencia</span>
+            <span style="flex-shrink:0;font-size:0.62rem;font-weight:500;padding:2px 7px;border-radius:6px;border:0.5px solid #fcd34d;background:#fef3c7;color:#854f0b;">Transferencia</span>
             {% elif reg.reserva.metodo_pago == 'CUPON' %}
-            <span style="flex-shrink:0;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;padding:2px 7px;border-radius:999px;background:#f3e8ff;color:#7e22ce;">Cupón</span>
+            <span style="flex-shrink:0;font-size:0.62rem;font-weight:500;padding:2px 7px;border-radius:6px;border:0.5px solid #c4b5f4;background:#f3e8ff;color:#5b21b6;">Cupón</span>
             {% endif %}
           </div>
 
-          <!-- Fecha y recinto -->
-          <p style="font-size:0.72rem;color:#6b7280;margin-bottom:3px;">
+          <p style="font-size:0.72rem;color:#6b7280;margin-bottom:2px;">
             {{ reg.reserva.fecha|date:"d/m/Y" }} · {{ reg.reserva.hora_inicio|time:"H:i" }}–{{ reg.reserva.hora_fin|time:"H:i" }}
             {% if reg.reserva.cancha %} · {{ reg.reserva.cancha.nombre }}{% elif reg.reserva.salon %} · {{ reg.reserva.salon.nombre }}{% endif %}
           </p>
 
-          <!-- Monto (si aplica) -->
           {% if reg.reserva.precio_descuento %}
-          <p style="font-size:0.75rem;color:#374151;">
-            <strong style="color:#16a34a;">{{ reg.reserva.precio_descuento|clp }}</strong>
+          <p style="font-size:0.73rem;color:#374151;margin-top:1px;">
+            <span style="font-weight:500;color:#1a6e30;">{{ reg.reserva.precio_descuento|clp }}</span>
             <span style="color:#9ca3af;">(orig. {{ reg.reserva.precio_original|clp }})</span>
           </p>
           {% elif reg.reserva.precio_original %}
-          <p style="font-size:0.75rem;color:#374151;"><strong>{{ reg.reserva.precio_original|clp }}</strong></p>
+          <p style="font-size:0.73rem;font-weight:500;color:#374151;margin-top:1px;">{{ reg.reserva.precio_original|clp }}</p>
           {% endif %}
         </div>
 
-        <!-- Columna derecha: comprobante + badge en fila -->
+        <!-- Derecha: doc + estado -->
         <div style="flex-shrink:0;display:flex;align-items:center;gap:14px;">
           {% if reg.reserva.metodo_pago == 'TRANSFERENCIA' and reg.reserva.comprobante_transferencia %}
           <a href="{{ reg.reserva.comprobante_transferencia.url }}" target="_blank" rel="noopener noreferrer"
              title="Ver comprobante"
-             style="width:36px;height:36px;border-radius:50%;background:#1d4ed8;box-shadow:0 2px 8px rgba(29,78,216,0.25);display:flex;align-items:center;justify-content:center;text-decoration:none;">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+             style="width:36px;height:36px;border-radius:50%;background:#1d4ed8;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
               <path d="M4 4h8l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
               <path d="M12 4v4h4" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
             </svg>
           </a>
           {% endif %}
-          <span id="badge-{{ reg.pk }}" style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:3px 9px;border-radius:999px;
-            {% if reg.estado == 'INGRESADO' %}background:#dcfce7;color:#15803d;
-            {% else %}background:#fef3c7;color:#d97706;{% endif %}">
+          <span id="badge-{{ reg.pk }}"
+                style="font-size:0.62rem;font-weight:500;padding:3px 10px;border-radius:6px;border:0.5px solid;
+                  {% if reg.estado == 'INGRESADO' %}background:#d7f3e0;color:#1a6e30;border-color:#86efac;
+                  {% else %}background:#fef3c7;color:#854f0b;border-color:#fcd34d;{% endif %}">
             {% if reg.estado == 'INGRESADO' %}Ingresado{% else %}Pendiente{% endif %}
           </span>
         </div>
@@ -154,30 +143,29 @@
     {% endfor %}
   </div>
 
-  <!-- Paginación -->
   {% if registros.has_other_pages %}
   <div style="display:flex;justify-content:center;margin-top:20px;">
-    <div style="display:inline-flex;align-items:center;background:white;border-radius:999px;box-shadow:0 1px 2px rgba(0,0,0,0.05);border:1px solid #f3f4f6;padding:4px;">
+    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #e5e7eb;padding:3px;gap:2px;">
       {% if registros.has_previous %}
-        <a href="?filtro={{ filtro }}&page={{ registros.previous_page_number }}{% if busqueda %}&q={{ busqueda }}{% endif %}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#6b7280;text-decoration:none;">
-          <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        </a>
+      <a href="?filtro={{ filtro }}&page={{ registros.previous_page_number }}{% if busqueda %}&q={{ busqueda }}{% endif %}"
+         style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </a>
       {% endif %}
-      <span style="padding:0 16px;font-size:11px;font-weight:900;color:#374151;letter-spacing:0.1em;text-transform:uppercase;">
-        Pág {{ registros.number }} de {{ registros.paginator.num_pages }}
-      </span>
+      <span style="padding:0 14px;font-size:0.72rem;font-weight:500;color:#374151;">Pág {{ registros.number }} de {{ registros.paginator.num_pages }}</span>
       {% if registros.has_next %}
-        <a href="?filtro={{ filtro }}&page={{ registros.next_page_number }}{% if busqueda %}&q={{ busqueda }}{% endif %}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#6b7280;text-decoration:none;">
-          <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </a>
+      <a href="?filtro={{ filtro }}&page={{ registros.next_page_number }}{% if busqueda %}&q={{ busqueda }}{% endif %}"
+         style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </a>
       {% endif %}
     </div>
   </div>
   {% endif %}
 
   {% else %}
-  <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);padding:48px 16px;text-align:center;">
-    <p style="color:#6b7280;font-size:0.875rem;font-weight:600;">Sin registros</p>
+  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:48px 16px;text-align:center;">
+    <p style="color:#6b7280;font-size:0.875rem;font-weight:500;">Sin registros</p>
     <p style="color:#9ca3af;font-size:0.8rem;margin-top:4px;">Los registros aparecen cuando se aprueban reservas.</p>
   </div>
   {% endif %}
@@ -190,44 +178,37 @@
   async function toggleIngresado(regId, estadoActual) {
     const nuevoEstado = estadoActual === 'INGRESADO' ? 'PENDIENTE' : 'INGRESADO';
     const url = `/tesorero/registro/${regId}/estado/`;
-    const body = new URLSearchParams({ estado: nuevoEstado });
-
     try {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString(),
+        body: new URLSearchParams({ estado: nuevoEstado }).toString(),
       });
       const data = await res.json();
       if (data.status !== 'success') return;
 
       const ingresado = data.estado === 'INGRESADO';
-      const card = document.getElementById(`reg-${regId}`);
-      const btn  = document.getElementById(`check-${regId}`);
+      const card  = document.getElementById(`reg-${regId}`);
+      const btn   = document.getElementById(`check-${regId}`);
       const badge = document.getElementById(`badge-${regId}`);
 
-      // Actualizar tarjeta
-      card.style.background = ingresado ? '#f0fdf4' : 'white';
-      card.style.borderColor = ingresado ? '#86efac' : '#f3f4f6';
+      card.style.background   = ingresado ? '#f0fdf4' : 'white';
+      card.style.borderColor  = ingresado ? '#86efac' : '#e5e7eb';
 
-      // Actualizar botón
-      btn.style.background = ingresado ? '#16a34a' : '#f3f4f6';
-      btn.style.boxShadow  = ingresado ? '0 2px 8px rgba(22,163,74,0.25)' : 'none';
+      btn.style.background = ingresado ? '#1a6e30' : 'white';
+      btn.style.border     = ingresado ? 'none' : '0.5px solid #d1d5db';
       btn.title = ingresado ? 'Marcar como pendiente' : 'Marcar como ingresado';
       btn.querySelector('path').setAttribute('stroke', ingresado ? 'white' : '#d1d5db');
 
-      // Actualizar badge
-      badge.textContent = ingresado ? 'Ingresado' : 'Pendiente';
-      badge.style.background = ingresado ? '#dcfce7' : '#fef3c7';
-      badge.style.color      = ingresado ? '#15803d' : '#d97706';
+      badge.textContent        = ingresado ? 'Ingresado' : 'Pendiente';
+      badge.style.background   = ingresado ? '#d7f3e0' : '#fef3c7';
+      badge.style.color        = ingresado ? '#1a6e30'  : '#854f0b';
+      badge.style.borderColor  = ingresado ? '#86efac'  : '#fcd34d';
 
-      // Actualizar nombre color
-      const nombre = card.querySelector('p[style*="font-weight:800"]');
-      if (nombre) nombre.style.color = ingresado ? '#15803d' : '#1f2937';
+      const nombre = card.querySelector('p[style*="font-weight:500"]');
+      if (nombre) nombre.style.color = ingresado ? '#1a6e30' : '#1c1b1f';
 
-      // Actualizar el estado en el onclick para el próximo click
       btn.setAttribute('onclick', `toggleIngresado(${regId}, '${data.estado}')`);
-
     } catch (e) { console.error('Error actualizando estado', e); }
   }
 </script>

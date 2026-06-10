@@ -14,10 +14,11 @@
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
   {% if enviado %}
-    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:16px;padding:24px;text-align:center;">
+    <div style="background:#d7f3e0;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-weight:500;color:#1a6e30;font-size:0.85rem;">Correo de confirmación enviado</div>
+    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:24px;text-align:center;">
       <div style="font-size:2.5rem;margin-bottom:12px;">📬</div>
-      <p style="font-weight:700;color:#15803d;margin-bottom:6px;">Correo de confirmación enviado</p>
-      <p style="font-size:0.85rem;color:#166534;">
+      <p style="font-weight:500;color:#1a6e30;margin-bottom:6px;">Revisa tu bandeja de entrada</p>
+      <p style="font-size:0.85rem;color:#6b7280;font-weight:400;">
         Enviamos un enlace a <strong>{{ nuevo_email }}</strong>.<br>
         Haz clic en él para completar el cambio.<br>
         El enlace expira en 24 horas.
@@ -25,40 +26,43 @@
     </div>
 
   {% else %}
-    <p style="font-size:0.85rem;color:#6b7280;margin-bottom:16px;">
-      A continuación ingresa tú nuevo email dos veces para verificar.
+    <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Cuenta</p>
+    <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Cambiar email</h1>
+
+    <p style="font-size:0.85rem;color:#6b7280;font-weight:400;margin-bottom:16px;">
+      A continuación ingresa tu nuevo email dos veces para verificar.
     </p>
 
     <form method="post">
       {% csrf_token %}
 
-      <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:16px;">
-        <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+      <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:16px;">
+        <div style="padding:12px 16px;border-bottom:0.5px solid #e5e7eb;">
           <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Nuevo mail</label>
           <input type="email" name="nuevo_email" required autofocus placeholder="nuevo@correo.cl"
-                 style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+                 style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
         </div>
         <div style="padding:12px 16px;">
           <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Confirmar nuevo mail</label>
           <input type="email" name="nuevo_email2" required placeholder="nuevo@correo.cl"
-                 style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+                 style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
         </div>
       </div>
 
-      <p style="font-size:0.85rem;color:#6b7280;margin-bottom:12px;">
-        Ingresa tú contraseña para confirmar el cambio de email.
+      <p style="font-size:0.85rem;color:#6b7280;font-weight:400;margin-bottom:12px;">
+        Ingresa tu contraseña para confirmar el cambio de email.
       </p>
 
-      <div style="background:white;border-radius:16px;box-shadow:0 1px 4px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:20px;">
+      <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:20px;">
         <div style="padding:12px 16px;">
           <label style="display:block;font-size:0.72rem;color:#9ca3af;margin-bottom:4px;">Contraseña actual</label>
           <input type="password" name="clave" required placeholder="••••••••"
-                 style="width:100%;font-size:0.875rem;color:#1f2937;border:none;outline:none;background:transparent;">
+                 style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
         </div>
       </div>
 
       <button type="submit"
-              style="width:100%;padding:13px;border-radius:999px;background:#6abf4b;color:white;font-weight:600;font-size:0.9rem;border:none;cursor:pointer;">
+              style="width:100%;padding:10px 20px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.9rem;border:none;cursor:pointer;">
         Confirmar cambio de mail
       </button>
     </form>

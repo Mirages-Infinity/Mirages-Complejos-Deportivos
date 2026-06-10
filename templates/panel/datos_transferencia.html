@@ -11,58 +11,55 @@
 {% endblock %}
 
 {% block content %}
-<div class="w-full max-w-lg mx-auto flex flex-col flex-1 pb-24 px-4 sm:px-6 pt-6">
-  <div class="mb-6">
-    <p class="text-[11px] font-black text-gray-400 uppercase tracking-[0.18em]">Configuración del sistema</p>
-    <h1 class="text-2xl font-black text-gray-900 mt-1">Datos bancarios</h1>
-  </div>
+<div class="w-full max-w-lg mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
-  <form method="post" class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-5">
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Configuración del sistema</p>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Datos bancarios</h1>
+
+  <form method="post" style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:16px;">
     {% csrf_token %}
-    
+
     <div>
-      <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 shadow-xs">Nombre del Banco</label>
+      <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Nombre del Banco</label>
       <input type="text" name="banco" value="{{ datos.banco }}" required
-             class="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-blue-500">
+             style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
     </div>
 
     <div>
-      <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Nombre del Titular</label>
+      <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Nombre del Titular</label>
       <input type="text" name="titular" value="{{ datos.titular }}" required
-             class="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-blue-500">
+             style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
-        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Tipo de Cuenta</label>
+        <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Tipo de Cuenta</label>
         <input type="text" name="tipo_cuenta" value="{{ datos.tipo_cuenta }}" required
-               class="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-blue-500">
+               style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
       </div>
       <div>
-        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Número de Cuenta</label>
+        <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Número de Cuenta</label>
         <input type="text" name="numero_cuenta" value="{{ datos.numero_cuenta }}" required
-               class="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-blue-500">
+               style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
       </div>
     </div>
 
     <div>
-      <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">RUT del Titular</label>
+      <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">RUT del Titular</label>
       <input type="text" name="rut" value="{{ datos.rut }}" required
-             class="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-blue-500">
+             style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
     </div>
 
     <div>
-      <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Email para Comprobantes</label>
+      <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Email para Comprobantes</label>
       <input type="email" name="email" value="{{ datos.email }}" required
-             class="w-full bg-gray-50 border-none rounded-2xl px-4 py-3 text-sm font-bold text-gray-800 focus:ring-2 focus:ring-blue-500">
+             style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
     </div>
 
-    <div class="pt-2">
-      <button type="submit" 
-              class="w-full bg-gray-900 hover:bg-black text-white font-black py-4 rounded-2xl shadow-lg transition-all text-xs uppercase tracking-widest active:scale-95">
-        Guardar cambios
-      </button>
-    </div>
+    <button type="submit"
+            style="width:100%;padding:9px 16px;border-radius:8px;background:#1c1b1f;color:white;font-size:0.88rem;font-weight:500;border:none;cursor:pointer;">
+      Guardar cambios
+    </button>
   </form>
 </div>
 {% endblock %}
