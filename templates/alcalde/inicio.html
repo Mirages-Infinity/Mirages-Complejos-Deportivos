@@ -73,7 +73,7 @@
   <!-- Firmadas recientemente -->
   {% if firmadas %}
   <p style="font-size:0.78rem;font-weight:800;color:#374151;margin-bottom:8px;">Firmadas recientemente</p>
-  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
     {% for reserva in firmadas %}
     <div style="background:white;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);padding:12px 14px;border-left:3px solid #16a34a;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -86,12 +86,31 @@
     </div>
     {% endfor %}
   </div>
+  {% if firmadas.has_other_pages %}
+  <div style="display:flex;justify-content:center;margin-bottom:24px;">
+    <div style="display:inline-flex;align-items:center;background:white;border-radius:999px;box-shadow:0 1px 2px rgba(0,0,0,0.05);border:1px solid #f3f4f6;padding:4px;">
+      {% if firmadas.has_previous %}
+      <a href="?page_firmadas={{ firmadas.previous_page_number }}{% if rechazadas.number %}&page_rechazadas={{ rechazadas.number }}{% endif %}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#6b7280;text-decoration:none;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      {% endif %}
+      <span style="padding:0 16px;font-size:11px;font-weight:900;color:#374151;letter-spacing:0.1em;text-transform:uppercase;">Pág {{ firmadas.number }} de {{ firmadas.paginator.num_pages }}</span>
+      {% if firmadas.has_next %}
+      <a href="?page_firmadas={{ firmadas.next_page_number }}{% if rechazadas.number %}&page_rechazadas={{ rechazadas.number }}{% endif %}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#6b7280;text-decoration:none;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div style="margin-bottom:24px;"></div>
+  {% endif %}
   {% endif %}
 
   <!-- Rechazadas -->
   {% if rechazadas %}
   <p style="font-size:0.78rem;font-weight:800;color:#374151;margin-bottom:8px;">Rechazadas</p>
-  <div style="display:flex;flex-direction:column;gap:8px;">
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
     {% for reserva in rechazadas %}
     <div style="background:white;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,0.06);padding:12px 14px;border-left:3px solid #dc2626;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -104,6 +123,23 @@
     </div>
     {% endfor %}
   </div>
+  {% if rechazadas.has_other_pages %}
+  <div style="display:flex;justify-content:center;">
+    <div style="display:inline-flex;align-items:center;background:white;border-radius:999px;box-shadow:0 1px 2px rgba(0,0,0,0.05);border:1px solid #f3f4f6;padding:4px;">
+      {% if rechazadas.has_previous %}
+      <a href="?page_rechazadas={{ rechazadas.previous_page_number }}{% if firmadas.number %}&page_firmadas={{ firmadas.number }}{% endif %}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#6b7280;text-decoration:none;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      {% endif %}
+      <span style="padding:0 16px;font-size:11px;font-weight:900;color:#374151;letter-spacing:0.1em;text-transform:uppercase;">Pág {{ rechazadas.number }} de {{ rechazadas.paginator.num_pages }}</span>
+      {% if rechazadas.has_next %}
+      <a href="?page_rechazadas={{ rechazadas.next_page_number }}{% if firmadas.number %}&page_firmadas={{ firmadas.number }}{% endif %}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:#6b7280;text-decoration:none;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
   {% endif %}
 
 </div>

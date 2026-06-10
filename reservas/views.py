@@ -251,13 +251,33 @@ def toggle_bloqueo(request):
 
             if not created:
                 bloqueo.delete()
+                fecha_fmt = fecha.strftime("%d/%m/%Y")
+                hora_fmt = hora.strftime("%H:%M")
+                usuarios_todos = User.objects.filter(
+                    is_active=True, is_staff=False,
+                    perfil__es_tesorero=False, perfil__es_alcalde=False,
+                )
+                for u in usuarios_todos:
+                    Notificacion.objects.create(
+                        user=u,
+                        tipo='RESERVA_APROBADA',
+                        titulo='Horario disponible nuevamente',
+                        mensaje=(
+                            f"El horario de las {hora_fmt} del {fecha_fmt} en {cancha.nombre} "
+                            f"ha sido habilitado nuevamente por la administración. "
+                            f"Ya puedes reservar ese horario."
+                        ),
+                    )
                 return JsonResponse({'status': 'success', 'action': 'unblocked'})
 
             fecha_fmt = fecha.strftime("%d/%m/%Y")
             hora_fmt = hora.strftime("%H:%M")
 
-            # 1. Notificación general a todos los usuarios no-staff
-            usuarios_todos = User.objects.filter(is_active=True, is_staff=False)
+            # 1. Notificación general a usuarios no-staff (excluye tesorero y alcalde)
+            usuarios_todos = User.objects.filter(
+                is_active=True, is_staff=False,
+                perfil__es_tesorero=False, perfil__es_alcalde=False,
+            )
             for u in usuarios_todos:
                 Notificacion.objects.create(
                     user=u,
@@ -415,8 +435,11 @@ def bloquear_periodo(request):
             fecha_inicio_fmt = fecha_inicio.strftime("%d/%m/%Y")
             fecha_fin_fmt = fecha_fin.strftime("%d/%m/%Y")
 
-            # 1. Notificación general a todos los usuarios no-staff
-            usuarios_todos = User.objects.filter(is_active=True, is_staff=False)
+            # 1. Notificación general a usuarios no-staff (excluye tesorero y alcalde)
+            usuarios_todos = User.objects.filter(
+                is_active=True, is_staff=False,
+                perfil__es_tesorero=False, perfil__es_alcalde=False,
+            )
             for u in usuarios_todos:
                 Notificacion.objects.create(
                     user=u,
@@ -701,6 +724,7 @@ def crear_reserva_admin(request):
                 tipo_reserva='PERSONAL',
                 gestionado_por=request.user,
             )
+            RegistroTesoreria.objects.create(reserva=reserva)
 
         registrar_accion(
             request.user,
@@ -1004,6 +1028,9 @@ def finalizar_reserva_cancha(request):
                         titulo='Cupón aplicado',
                         mensaje=f'Usaste el cupón {cupon_obj.codigo} para tu reserva en {cancha.nombre} el {fecha.strftime("%d/%m/%Y")}.',
                     )
+
+                if reserva.estado == 'APROBADA':
+                    RegistroTesoreria.objects.get_or_create(reserva=reserva)
 
             if not admin_override:
                 if reserva.estado == 'PENDIENTE':
@@ -1344,6 +1371,7 @@ def crear_reserva(request, salon_id):
                 f'Tu reserva para {salon.nombre} del {reserva.fecha.strftime("%d/%m/%Y")} ha sido confirmada.',
                 reserva,
             )
+            RegistroTesoreria.objects.get_or_create(reserva=reserva)
 
         # Correo B: comprobante al solicitante (siempre)
         correo_comprobante_a_solicitante(reserva)
@@ -1704,6 +1732,9 @@ def gestionar_reserva(request, reserva_id):
             f"Gestionó reserva {reserva.id}",
             f"Acción: {accion.upper()} | Recinto: {recurso} | Usuario: {usuario_str}"
         )
+
+        if reserva.estado == 'APROBADA' and estado_anterior == 'PENDIENTE':
+            RegistroTesoreria.objects.get_or_create(reserva=reserva)
 
         if (
             reserva.estado == 'APROBADA'
@@ -2112,12 +2143,17 @@ def perfil_alcalde(request):
     pendientes = Reserva.objects.filter(
         estado='PENDIENTE_ALCALDE', tipo_reserva='ORGANIZACION'
     ).order_by('fecha', 'hora_inicio')
-    firmadas = Reserva.objects.filter(
+
+    firmadas_qs = Reserva.objects.filter(
         tipo_reserva='ORGANIZACION', estado='APROBADA'
-    ).order_by('-fecha')[:20]
-    rechazadas = Reserva.objects.filter(
+    ).order_by('-fecha')
+    firmadas = Paginator(firmadas_qs, 10).get_page(request.GET.get('page_firmadas'))
+
+    rechazadas_qs = Reserva.objects.filter(
         tipo_reserva='ORGANIZACION', estado='RECHAZADA'
-    ).order_by('-fecha')[:10]
+    ).order_by('-fecha')
+    rechazadas = Paginator(rechazadas_qs, 10).get_page(request.GET.get('page_rechazadas'))
+
     return render(request, 'alcalde/inicio.html', {
         'pendientes': pendientes,
         'firmadas': firmadas,
@@ -2177,39 +2213,42 @@ def alcalde_rechazar_reserva(request, reserva_id):
 @tesorero_required
 def perfil_tesorero(request):
     filtro = request.GET.get('filtro', 'todos')
+    busqueda = request.GET.get('q', '').strip()
     qs = RegistroTesoreria.objects.select_related(
-        'reserva', 'reserva__cancha'
+        'reserva', 'reserva__cancha', 'reserva__salon'
     ).order_by('-creado_en')
 
     if filtro == 'pendiente':
-        qs = qs.filter(estado='PENDIENTE')
-    elif filtro == 'visto':
-        qs = qs.filter(estado='VISTO')
+        qs = qs.filter(estado__in=['PENDIENTE', 'VISTO'])
     elif filtro == 'ingresado':
         qs = qs.filter(estado='INGRESADO')
 
-    paginator = Paginator(qs, 20)
+    if busqueda:
+        qs = qs.filter(
+            Q(reserva__tipo_reserva='ORGANIZACION', reserva__nombre_organizacion__icontains=busqueda) |
+            Q(reserva__tipo_reserva='PERSONAL', reserva__solicitante_nombre__icontains=busqueda)
+        )
+
+    paginator = Paginator(qs, 10)
     page = request.GET.get('page', 1)
     registros = paginator.get_page(page)
 
     conteos = {
         'todos': RegistroTesoreria.objects.count(),
-        'pendiente': RegistroTesoreria.objects.filter(estado='PENDIENTE').count(),
-        'visto': RegistroTesoreria.objects.filter(estado='VISTO').count(),
+        'pendiente': RegistroTesoreria.objects.filter(estado__in=['PENDIENTE', 'VISTO']).count(),
         'ingresado': RegistroTesoreria.objects.filter(estado='INGRESADO').count(),
     }
     filtros_labels = [
-        ('todos', f'Todos ({conteos["todos"]})'  ),
-        ('pendiente', f'Pendientes ({conteos["pendiente"]})'  ),
-        ('visto', f'Vistos ({conteos["visto"]})'  ),
-        ('ingresado', f'Ingresados ({conteos["ingresado"]})'  ),
+        ('todos', f'Todos ({conteos["todos"]})'),
+        ('pendiente', f'Pendientes ({conteos["pendiente"]})'),
+        ('ingresado', f'Ingresados ({conteos["ingresado"]})'),
     ]
     return render(request, 'tesorero/inicio.html', {
         'registros': registros,
         'filtro': filtro,
+        'busqueda': busqueda,
         'conteos': conteos,
         'filtros': filtros_labels,
-        'estado_choices': RegistroTesoreria.ESTADO_CHOICES,
     })
 
 
@@ -2224,14 +2263,6 @@ def tesorero_actualizar_estado(request, registro_id):
     estados_validos = [e[0] for e in RegistroTesoreria.ESTADO_CHOICES]
     if nuevo_estado not in estados_validos:
         return JsonResponse({'status': 'error', 'message': 'Estado inválido'}, status=400)
-
-    # Validar secuencia estricta: solo se permite avanzar, nunca retroceder
-    orden = {e: i for i, e in enumerate(estados_validos)}
-    if orden[nuevo_estado] <= orden[registro.estado]:
-        return JsonResponse({
-            'status': 'error',
-            'message': f'No se puede cambiar de "{registro.get_estado_display()}" a "{dict(RegistroTesoreria.ESTADO_CHOICES)[nuevo_estado]}".'
-        }, status=400)
 
     registro.estado = nuevo_estado
     registro.notas = request.POST.get('notas', registro.notas).strip()
