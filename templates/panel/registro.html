@@ -11,56 +11,55 @@
 {% endblock %}
 
 {% block content %}
-<div class="w-full max-w-4xl mx-auto flex flex-col flex-1 pb-24 px-4 sm:px-6 pt-6">
-  <div class="mb-6">
-    <p class="text-[11px] font-black text-gray-400 uppercase tracking-[0.18em]">Auditoría del sistema</p>
-    <h1 class="text-2xl font-black text-gray-900 mt-1">Registro de acciones</h1>
-  </div>
+<div class="w-full max-w-4xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
-  <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Auditoría del sistema</p>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Registro de acciones</h1>
+
+  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;">
+    <div style="overflow-x:auto;">
+      <table style="width:100%;text-align:left;border-collapse:collapse;">
         <thead>
-          <tr class="bg-gray-50 border-b border-gray-100">
-            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Fecha y Hora</th>
-            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Administrador</th>
-            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Acción</th>
-            <th class="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Detalles</th>
+          <tr style="background:#f9fafb;border-bottom:1px solid #f3f4f6;">
+            <th style="padding:12px 20px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">Fecha y Hora</th>
+            <th style="padding:12px 20px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">Administrador</th>
+            <th style="padding:12px 20px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">Acción</th>
+            <th style="padding:12px 20px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">Detalles</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-50">
+        <tbody>
           {% for log in logs %}
-          <tr class="hover:bg-gray-50/50 transition-colors">
-            <td class="px-6 py-4">
+          <tr style="border-bottom:0.5px solid #f3f4f6;">
+            <td style="padding:14px 20px;">
               {% load l10n %}
               {% localize off %}
-              <p class="text-xs font-bold text-gray-900 whitespace-nowrap">{{ log.creado_en|date:"d-m-Y" }}</p>
-              <p class="text-[10px] text-gray-400">{{ log.creado_en|date:"H:i" }}</p>
+              <p style="font-size:0.8rem;font-weight:500;color:#1c1b1f;white-space:nowrap;">{{ log.creado_en|date:"d-m-Y" }}</p>
+              <p style="font-size:0.7rem;color:#9ca3af;margin-top:1px;">{{ log.creado_en|date:"H:i" }}</p>
               {% endlocalize %}
             </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-black text-blue-600">
+            <td style="padding:14px 20px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:500;color:#1d4ed8;flex-shrink:0;">
                   {{ log.admin.username|default:"S"|slice:":1"|upper }}
                 </div>
-                <p class="text-xs font-bold text-gray-700">{{ log.admin.username|default:"Sistema" }}</p>
+                <p style="font-size:0.78rem;font-weight:500;color:#374151;">{{ log.admin.username|default:"Sistema" }}</p>
               </div>
             </td>
-            <td class="px-6 py-4">
-              <span class="inline-block px-2 py-1 bg-gray-100 rounded-lg text-[10px] font-black text-gray-600 uppercase tracking-wider leading-normal" style="max-width: 200px;">
+            <td style="padding:14px 20px;">
+              <span style="display:inline-block;padding:3px 10px;background:#f3f4f6;border-radius:6px;border:0.5px solid #e5e7eb;font-size:0.68rem;font-weight:500;color:#374151;text-transform:uppercase;letter-spacing:0.04em;max-width:200px;">
                 {{ log.accion }}
               </span>
             </td>
-            <td class="px-6 py-4">
-              <p class="text-[11px] text-gray-500 leading-relaxed break-words" style="min-width: 150px; max-width: 300px;">
+            <td style="padding:14px 20px;">
+              <p style="font-size:0.72rem;color:#6b7280;line-height:1.5;min-width:150px;max-width:300px;word-break:break-word;">
                 {{ log.detalles|default:"-" }}
               </p>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="4" class="px-6 py-12 text-center">
-              <p class="text-sm font-bold text-gray-400">No hay registros de acciones todavía.</p>
+            <td colspan="4" style="padding:48px 20px;text-align:center;">
+              <p style="font-size:0.875rem;font-weight:500;color:#9ca3af;">No hay registros de acciones todavía.</p>
             </td>
           </tr>
           {% endfor %}
@@ -68,74 +67,29 @@
       </table>
     </div>
 
-    <!-- Controles de Paginación -->
     {% if logs.has_other_pages %}
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-      <div class="flex-1 flex justify-between sm:hidden">
+    <div style="padding:12px 20px;background:#f9fafb;border-top:0.5px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;">
+      <p style="font-size:0.72rem;font-weight:500;color:#6b7280;">
+        Mostrando <span style="color:#1c1b1f;">{{ logs.start_index }}</span> a <span style="color:#1c1b1f;">{{ logs.end_index }}</span> de <span style="color:#1c1b1f;">{{ logs.paginator.count }}</span> registros
+      </p>
+      <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #e5e7eb;padding:3px;gap:2px;">
         {% if logs.has_previous %}
-        <a href="?page={{ logs.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-xs font-black rounded-xl text-gray-700 bg-white hover:bg-gray-50">Anterior</a>
-        {% else %}
-        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-xs font-black rounded-xl text-gray-300 bg-white cursor-not-allowed">Anterior</span>
+        <a href="?page={{ logs.previous_page_number }}"
+           style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
+          <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </a>
         {% endif %}
-
+        <span style="padding:0 14px;font-size:0.72rem;font-weight:500;color:#374151;">Pág {{ logs.number }} de {{ logs.paginator.num_pages }}</span>
         {% if logs.has_next %}
-        <a href="?page={{ logs.next_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-xs font-black rounded-xl text-gray-700 bg-white hover:bg-gray-50">Siguiente</a>
-        {% else %}
-        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-xs font-black rounded-xl text-gray-300 bg-white cursor-not-allowed">Siguiente</span>
+        <a href="?page={{ logs.next_page_number }}"
+           style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
+          <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
         {% endif %}
-      </div>
-      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-        <div>
-          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-            Mostrando <span class="text-gray-900">{{ logs.start_index }}</span> a <span class="text-gray-900">{{ logs.end_index }}</span> de <span class="text-gray-900">{{ logs.paginator.count }}</span> resultados
-          </p>
-        </div>
-        <div>
-          <nav class="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px" aria-label="Pagination">
-            {% if logs.has_previous %}
-            <a href="?page={{ logs.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-xl border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-              <span class="sr-only">Anterior</span>
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </a>
-            {% endif %}
-
-            {% for i in logs.paginator.page_range %}
-              {% if logs.number == i %}
-              <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-gray-900 text-[11px] font-black text-white active z-10">{{ i }}</span>
-              {% elif i > logs.number|add:'-3' and i < logs.number|add:'3' %}
-              <a href="?page={{ i }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-[11px] font-black text-gray-700 hover:bg-gray-50">{{ i }}</a>
-              {% endif %}
-            {% endfor %}
-
-            {% if logs.has_next %}
-            <a href="?page={{ logs.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-xl border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-              <span class="sr-only">Siguiente</span>
-              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-            {% endif %}
-          </nav>
-        </div>
       </div>
     </div>
     {% endif %}
   </div>
-</div>
 
-<style>
-  /* Personalización de scrollbar para la tabla en móvil */
-  .overflow-x-auto::-webkit-scrollbar {
-    height: 4px;
-  }
-  .overflow-x-auto::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-  .overflow-x-auto::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 10px;
-  }
-</style>
+</div>
 {% endblock %}

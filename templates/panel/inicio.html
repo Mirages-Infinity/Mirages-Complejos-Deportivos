@@ -10,7 +10,7 @@
   <!-- Stats 2x2 -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
         <span style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;">
           <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px;color:#22c55e;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -22,7 +22,7 @@
       <p style="font-size:1.75rem;font-weight:500;color:#1c1b1f;line-height:1;">{{ stats.total_reservas }}</p>
     </div>
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
         <span style="width:28px;height:28px;border-radius:8px;background:#fffbeb;display:flex;align-items:center;justify-content:center;">
           <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px;color:#f59e0b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -34,7 +34,7 @@
       <p style="font-size:1.75rem;font-weight:500;color:#b06000;line-height:1;">{{ stats.pendientes }}</p>
     </div>
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
         <span style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;">
           <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px;color:#22c55e;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -46,7 +46,7 @@
       <p style="font-size:1.75rem;font-weight:500;color:#1a6e30;line-height:1;">{{ stats.aprobadas }}</p>
     </div>
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
         <span style="width:28px;height:28px;border-radius:8px;background:#eff6ff;display:flex;align-items:center;justify-content:center;">
           <svg xmlns="http://www.w3.org/2000/svg" style="width:15px;height:15px;color:#2d3a8c;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -65,37 +65,37 @@
   <div style="display:grid;gap:8px;margin-bottom:24px;">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <a href="{% url 'panel_reservas' %}"
-        style="padding:11px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;">
+        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #1c1b1f;">
         Reservas
       </a>
       <a href="{% url 'panel_usuarios' %}"
-        style="padding:11px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;">
+        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #1c1b1f;">
         Usuarios
       </a>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <a href="{% url 'panel_datos_transferencia' %}"
-        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #e5e7eb;">
+        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #1c1b1f;">
         Datos bancarios
       </a>
       <a href="{% url 'panel_registro' %}"
-        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #e5e7eb;">
+        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #1c1b1f;">
         Registro
       </a>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <a href="{% url 'panel_bloqueos_periodo' %}"
-        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #e5e7eb;">
+        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #1c1b1f;">
         Restricciones
       </a>
       <a href="{% url 'panel_cupones' %}"
-        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #e5e7eb;">
+        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #1c1b1f;">
         Cupones
       </a>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <a href="{% url 'panel_precios' %}"
-        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #e5e7eb;">
+        style="padding:11px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.875rem;text-align:center;text-decoration:none;display:block;border:0.5px solid #1c1b1f;">
         Precios
       </a>
     </div>
@@ -104,7 +104,7 @@
   <!-- Notificaciones / Avisos -->
   {% if notificaciones %}
   <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:10px;">Avisos del sistema</p>
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:24px;">
     {% for n in notificaciones %}
     <div style="padding:12px 16px;display:flex;gap:12px;align-items:flex-start;{% if not forloop.last %}border-bottom:1px solid #f3f4f6;{% endif %}">
       <span style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;background:#f3f4f6;">
@@ -123,7 +123,7 @@
 
   {% if notificaciones.has_other_pages %}
   <div style="display:flex;justify-content:center;margin-bottom:24px;">
-    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #e5e7eb;padding:3px;gap:2px;">
+    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #1c1b1f;padding:3px;gap:2px;">
       {% if notificaciones.has_previous %}
         <a href="?page_notificaciones={{ notificaciones.previous_page_number }}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
           <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
