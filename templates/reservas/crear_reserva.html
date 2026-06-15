@@ -28,11 +28,11 @@
   </div>
   {% endif %}
 
-  <form method="post" style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:20px 16px;display:flex;flex-direction:column;gap:16px;">
+  <form method="post" style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:20px 16px;display:flex;flex-direction:column;gap:16px;">
     {% csrf_token %}
 
     <!-- Estado Inicial / Plazo -->
-    <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #e5e7eb;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #1c1b1f;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Estado inicial</p>
         <p style="font-size:0.85rem;font-weight:500;color:#1c1b1f;">{% if user.is_staff or user.is_superuser %}Aprobación inmediata{% else %}Pendiente de revisión{% endif %}</p>
@@ -49,19 +49,19 @@
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px;">Fecha</p>
         <input type="date" name="fecha" id="fecha"
                min="{{ hoy }}" max="{{ limite_futuro }}" required
-               style="width:100%;box-sizing:border-box;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.85rem;background:white;color:#1c1b1f;cursor:pointer;">
+               style="width:100%;box-sizing:border-box;border-radius:8px;border:0.5px solid #1c1b1f;font-weight:500;outline:none;padding:9px 12px;font-size:0.85rem;background:white;color:#1c1b1f;cursor:pointer;">
       </div>
       <div>
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px;">Inicio</p>
         <input type="time" name="hora_inicio" id="hora_inicio"
                min="09:00" max="22:00" step="3600" required
-               style="width:100%;box-sizing:border-box;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.85rem;background:white;color:#1c1b1f;">
+               style="width:100%;box-sizing:border-box;border-radius:8px;border:0.5px solid #1c1b1f;font-weight:500;outline:none;padding:9px 12px;font-size:0.85rem;background:white;color:#1c1b1f;">
       </div>
       <div>
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px;">Término (Auto)</p>
         <input type="time" name="hora_fin" id="hora_fin"
                readonly
-               style="width:100%;box-sizing:border-box;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.85rem;background:#f9fafb;color:#6b7280;cursor:not-allowed;">
+               style="width:100%;box-sizing:border-box;border-radius:8px;border:0.5px solid #1c1b1f;font-weight:500;outline:none;padding:9px 12px;font-size:0.85rem;background:#f9fafb;color:#6b7280;cursor:not-allowed;">
       </div>
     </div>
 
@@ -69,7 +69,7 @@
     <div>
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px;">Motivo / Descripción del Evento</p>
       <textarea name="motivo" id="motivo" rows="3" required placeholder="Describe brevemente el uso del recinto..."
-                style="width:100%;box-sizing:border-box;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.85rem;background:white;color:#1c1b1f;resize:none;"></textarea>
+                style="width:100%;box-sizing:border-box;border-radius:8px;border:0.5px solid #1c1b1f;font-weight:500;outline:none;padding:9px 12px;font-size:0.85rem;background:white;color:#1c1b1f;resize:none;"></textarea>
     </div>
 
     <!-- Submit -->

@@ -33,23 +33,23 @@
       <input type="text" name="q" id="search-input" value="{{ search_query }}"
              placeholder="Buscar reserva..." autocomplete="off"
              oninput="debouncedSearch()"
-             style="width:100%;padding:9px 12px 9px 32px;border-radius:8px;border:0.5px solid #e5e7eb;font-size:0.73rem;font-weight:500;color:#374151;background:white;outline:none;box-sizing:border-box;">
+             style="width:100%;padding:9px 12px 9px 32px;border-radius:8px;border:0.5px solid #1c1b1f;font-size:0.73rem;font-weight:500;color:#374151;background:white;outline:none;box-sizing:border-box;">
     </form>
 
     <!-- Derecha: Contador -->
     <div style="display:flex;justify-content:flex-end;">
-      <div style="background:white;border-radius:8px;border:0.5px solid #e5e7eb;padding:6px 14px;">
+      <div style="background:white;border-radius:8px;border:0.5px solid #1c1b1f;padding:6px 14px;">
         <p style="font-size:0.72rem;font-weight:500;color:#6b7280;">Total: <span style="color:#1c1b1f;font-weight:500;">{{ reservas.paginator.count }}</span></p>
       </div>
     </div>
   </div>
 
   <!-- Table -->
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;">
     <div style="overflow-x:auto;">
       <table style="width:100%;text-align:left;border-collapse:collapse;">
         <thead>
-          <tr style="background:#f9fafb;border-bottom:1px solid #f3f4f6;">
+          <tr style="background:#f9fafb;border-bottom:1px solid #1c1b1f;">
             <th style="padding:12px 20px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">
               <a href="?sort=id&dir={% if sort_by == 'id' and direction == 'desc' %}asc{% else %}desc{% endif %}&estado={{ estado_filtro }}&pago={{ pago_filtro }}&q={{ search_query }}" style="color:#6b7280;text-decoration:none;display:flex;align-items:center;gap:1px;">
                 ID {% if sort_by == 'id' %}{% if direction == 'asc' %}↑{% else %}↓{% endif %}{% endif %}
@@ -93,7 +93,7 @@
         </thead>
         <tbody>
           {% for r in reservas %}
-          <tr style="border-bottom:1px solid #f9fafb;">
+          <tr style="border-bottom:1px solid #1c1b1f;">
             <td style="padding:12px 20px;">
               <span style="font-size:0.72rem;font-weight:500;color:#9ca3af;">#{{ r.id }}</span>
             </td>
@@ -187,8 +187,8 @@
     </div>
 
     <!-- Paginación -->
-    <div style="padding:16px 20px;background:#f9fafb;border-top:1px solid #f3f4f6;display:flex;align-items:center;justify-content:center;">
-      <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #e5e7eb;padding:3px;gap:2px;">
+    <div style="padding:16px 20px;background:#f9fafb;border-top:1px solid #1c1b1f;display:flex;align-items:center;justify-content:center;">
+      <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #1c1b1f;padding:3px;gap:2px;">
         {% if reservas.has_previous %}
           <a href="?page={{ reservas.previous_page_number }}&sort={{ sort_by }}&dir={{ direction }}&estado={{ estado_filtro }}&pago={{ pago_filtro }}&q={{ search_query }}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
             <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
@@ -216,7 +216,7 @@
 </div>
 
 <!-- Menú de Estado Flotante -->
-<div id="menu-estado-fixed" class="fixed hidden z-[9999]" style="width:192px;background:white;border:0.5px solid #e5e7eb;border-radius:10px;padding:6px 0;">
+<div id="menu-estado-fixed" class="fixed hidden z-[9999]" style="width:192px;background:white;border:0.5px solid #1c1b1f;border-radius:10px;padding:6px 0;">
   <a href="?estado=&sort={{ sort_by }}&dir={{ direction }}&pago={{ pago_filtro }}&q={{ search_query }}" style="display:block;padding:8px 16px;font-size:0.72rem;font-weight:500;color:#6b7280;text-decoration:none;{% if not estado_filtro %}background:#f9fafb;{% endif %}">Todos</a>
   <div style="height:1px;background:#f3f4f6;margin:2px 0;"></div>
   <a href="?estado=PENDIENTE&sort={{ sort_by }}&dir={{ direction }}&pago={{ pago_filtro }}&q={{ search_query }}" style="display:block;padding:8px 16px;font-size:0.72rem;font-weight:500;color:#854f0b;text-decoration:none;{% if estado_filtro == 'PENDIENTE' %}background:#fef3c7;{% endif %}">Pendiente</a>

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load clp_tags %}
 {% block title %}Usuarios - Panel{% endblock %}
 
 {% block header_left %}
@@ -29,10 +30,10 @@
     Administradores — {{ total_superusuarios }}/{{ max_superusuarios }} superusuarios
   </p>
 
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:24px;">
 
     {% for u in admins %}
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;{% if not forloop.last %}border-bottom:1px solid #f3f4f6;{% endif %}">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;{% if not forloop.last %}border-bottom:1px solid #1c1b1f;{% endif %}">
 
       <div style="width:42px;height:42px;border-radius:50%;background:#fef3c7;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
         {% if u.perfil.foto %}
@@ -71,7 +72,7 @@
 
   <!-- Alcalde -->
   <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px;">Alcalde</p>
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:24px;">
     {% for u in alcaldes %}
     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;">
       <div style="width:42px;height:42px;border-radius:50%;background:#f5f3ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.25rem;">🏛️</div>
@@ -105,7 +106,7 @@
 
   <!-- Tesorero -->
   <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px;">Tesorero</p>
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:24px;">
     {% for u in tesoreros %}
     <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;">
       <div style="width:42px;height:42px;border-radius:50%;background:#ecfeff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.25rem;">💰</div>
@@ -142,10 +143,10 @@
     {{ usuarios.count }} usuario{{ usuarios.count|pluralize:"s" }} registrado{{ usuarios.count|pluralize:"s" }}
   </p>
 
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;">
 
     {% for u in usuarios %}
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;{% if not forloop.last %}border-bottom:1px solid #f3f4f6;{% endif %}">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;{% if not forloop.last %}border-bottom:1px solid #1c1b1f;{% endif %}">
 
       <!-- Avatar -->
       <div style="width:42px;height:42px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
@@ -168,7 +169,7 @@
           {{ u.email }}
         </p>
         {% if u.perfil.rut %}
-        <p style="font-size:0.68rem;color:#9ca3af;font-weight:400;">RUT: {{ u.perfil.rut }}</p>
+        <p style="font-size:0.68rem;color:#9ca3af;font-weight:400;">RUT: {{ u.perfil.rut|rut }}</p>
         {% endif %}
         <p style="font-size:0.68rem;font-weight:500;color:{% if u.is_active %}#1a6e30{% else %}#991b1b{% endif %};">
           {% if u.is_active %}Cuenta habilitada{% else %}Cuenta deshabilitada{% endif %}

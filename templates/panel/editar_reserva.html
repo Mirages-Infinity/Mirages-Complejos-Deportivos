@@ -29,7 +29,7 @@
 
     <fieldset {% if reserva.estado == 'ELIMINADA' %}disabled{% endif %} style="border:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px;">
 
-      <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
         <div>
           <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Solicitante</p>
           <p style="font-size:0.88rem;font-weight:500;color:#1c1b1f;">{{ reserva.get_solicitante_display }}</p>
@@ -40,35 +40,35 @@
         </div>
       </div>
 
-      <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;">
+      <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;">
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:14px;">Agenda</p>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
           <div>
             <label for="fecha" style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Fecha</label>
             <input type="date" name="fecha" id="fecha" value="{{ reserva.fecha|date:'Y-m-d' }}"
                    min="{{ hoy }}" max="{{ limite_futuro }}" required
-                   style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;cursor:pointer;">
+                   style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;cursor:pointer;">
           </div>
           <div>
             <label for="hora_inicio" style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Inicio</label>
             <input type="time" name="hora_inicio" id="hora_inicio" value="{{ reserva.hora_inicio|time:'H:i' }}"
                    min="09:00" max="22:00" step="3600" required
-                   style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
+                   style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
           </div>
           <div>
             <label for="hora_fin" style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Término (Auto)</label>
             <input type="time" name="hora_fin" id="hora_fin" value="{{ reserva.hora_fin|time:'H:i' }}"
                    readonly
-                   style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#9ca3af;outline:none;box-sizing:border-box;background:#f9fafb;cursor:not-allowed;">
+                   style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#9ca3af;outline:none;box-sizing:border-box;background:#f9fafb;cursor:not-allowed;">
           </div>
         </div>
       </div>
 
       <input type="hidden" name="estado" value="{{ reserva.estado }}">
-      <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;">
+      <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;">
         <label for="motivo" style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Motivo / Descripción Administrativa</label>
         <textarea name="motivo" id="motivo" rows="2" placeholder="Ej: Cambio solicitado por el usuario..."
-                  style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;resize:none;box-sizing:border-box;background:white;">{{ reserva.motivo|default:"" }}</textarea>
+                  style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;resize:none;box-sizing:border-box;background:white;">{{ reserva.motivo|default:"" }}</textarea>
       </div>
 
     </fieldset>
@@ -80,7 +80,7 @@
     </button>
     {% else %}
     <a href="{% url 'panel_historial_reservas' %}"
-       style="display:block;width:100%;text-align:center;padding:9px 16px;border-radius:8px;background:white;color:#374151;font-size:0.88rem;font-weight:500;border:0.5px solid #e5e7eb;text-decoration:none;box-sizing:border-box;">
+       style="display:block;width:100%;text-align:center;padding:9px 16px;border-radius:8px;background:white;color:#374151;font-size:0.88rem;font-weight:500;border:0.5px solid #1c1b1f;text-decoration:none;box-sizing:border-box;">
       Volver al Historial
     </a>
     {% endif %}

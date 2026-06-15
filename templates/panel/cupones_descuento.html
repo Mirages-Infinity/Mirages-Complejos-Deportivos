@@ -18,7 +18,7 @@
 
   <!-- Navegación entre tipos de cupón -->
   <div style="display:flex;gap:6px;margin-bottom:14px;">
-    <a href="{% url 'panel_cupones' %}" style="flex:1;padding:8px 0;border-radius:8px;font-size:0.78rem;font-weight:500;text-align:center;background:white;color:#6b7280;text-decoration:none;border:0.5px solid #e5e7eb;">
+    <a href="{% url 'panel_cupones' %}" style="flex:1;padding:8px 0;border-radius:8px;font-size:0.78rem;font-weight:500;text-align:center;background:white;color:#6b7280;text-decoration:none;border:0.5px solid #1c1b1f;">
       Cupones de Reserva
     </a>
     <span style="flex:1;padding:8px 0;border-radius:8px;font-size:0.78rem;font-weight:500;text-align:center;background:#1c1b1f;color:white;">
@@ -36,15 +36,15 @@
 
   <!-- Contador de estados -->
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;text-align:center;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;text-align:center;">
       <p style="font-size:1.5rem;font-weight:500;color:#1c1b1f;line-height:1;">{{ conteos.todos }}</p>
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-top:4px;">Total</p>
     </div>
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;text-align:center;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;text-align:center;">
       <p style="font-size:1.5rem;font-weight:500;color:#1a6e30;line-height:1;">{{ conteos.activo }}</p>
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-top:4px;">Activos</p>
     </div>
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;text-align:center;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;text-align:center;">
       <p style="font-size:1.5rem;font-weight:500;color:#991b1b;line-height:1;">{{ conteos.expirado }}</p>
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-top:4px;">Expirados</p>
     </div>
@@ -125,7 +125,7 @@
 
   {% if cupones.has_other_pages %}
   <div style="display:flex;justify-content:center;margin-top:20px;">
-    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #e5e7eb;padding:3px;gap:2px;">
+    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #1c1b1f;padding:3px;gap:2px;">
       {% if cupones.has_previous %}
         <a href="?filtro={{ filtro }}&page={{ cupones.previous_page_number }}" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
           <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
@@ -152,7 +152,7 @@
   {% endif %}
 
   {% else %}
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:48px 16px;text-align:center;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:48px 16px;text-align:center;">
     <div style="width:48px;height:48px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
       <svg xmlns="http://www.w3.org/2000/svg" style="width:22px;height:22px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185z"/>

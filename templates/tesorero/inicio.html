@@ -18,11 +18,11 @@
 
   <!-- Contadores -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;">
       <p style="font-size:1.75rem;font-weight:500;color:#b06000;line-height:1;">{{ conteos.pendiente }}</p>
       <p style="font-size:0.72rem;font-weight:500;color:#9ca3af;margin-top:4px;">Pendientes</p>
     </div>
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;">
       <p style="font-size:1.75rem;font-weight:500;color:#1a6e30;line-height:1;">{{ conteos.ingresado }}</p>
       <p style="font-size:0.72rem;font-weight:500;color:#9ca3af;margin-top:4px;">Ingresados</p>
     </div>
@@ -51,7 +51,7 @@
       </div>
       {% if busqueda or filtro != 'todos' %}
       <a href="?filtro=todos" title="Limpiar filtros"
-         style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:#f3f4f6;border:0.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;text-decoration:none;">
+         style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:#f3f4f6;border:0.5px solid #1c1b1f;display:flex;align-items:center;justify-content:center;text-decoration:none;">
         <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#6b7280" stroke-width="2.5">
           <path stroke-linecap="round" d="M4 4l12 12M16 4L4 16"/>
         </svg>
@@ -74,7 +74,7 @@
           title="{% if reg.estado == 'INGRESADO' %}Marcar como pendiente{% else %}Marcar como ingresado{% endif %}"
           style="flex-shrink:0;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;
             {% if reg.estado == 'INGRESADO' %}background:#1a6e30;border:none;
-            {% else %}background:white;border:0.5px solid #d1d5db;{% endif %}">
+            {% else %}background:white;border:0.5px solid #1c1b1f;{% endif %}">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
             <path d="M4 10.5l4.5 4.5 8-9" stroke="{% if reg.estado == 'INGRESADO' %}white{% else %}#d1d5db{% endif %}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -145,7 +145,7 @@
 
   {% if registros.has_other_pages %}
   <div style="display:flex;justify-content:center;margin-top:20px;">
-    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #e5e7eb;padding:3px;gap:2px;">
+    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #1c1b1f;padding:3px;gap:2px;">
       {% if registros.has_previous %}
       <a href="?filtro={{ filtro }}&page={{ registros.previous_page_number }}{% if busqueda %}&q={{ busqueda }}{% endif %}"
          style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
@@ -164,7 +164,7 @@
   {% endif %}
 
   {% else %}
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:48px 16px;text-align:center;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:48px 16px;text-align:center;">
     <p style="color:#6b7280;font-size:0.875rem;font-weight:500;">Sin registros</p>
     <p style="color:#9ca3af;font-size:0.8rem;margin-top:4px;">Los registros aparecen cuando se aprueban reservas.</p>
   </div>
@@ -196,7 +196,7 @@
       card.style.borderColor  = ingresado ? '#86efac' : '#e5e7eb';
 
       btn.style.background = ingresado ? '#1a6e30' : 'white';
-      btn.style.border     = ingresado ? 'none' : '0.5px solid #d1d5db';
+      btn.style.border     = ingresado ? 'none' : '0.5px solid #1c1b1f';
       btn.title = ingresado ? 'Marcar como pendiente' : 'Marcar como ingresado';
       btn.querySelector('path').setAttribute('stroke', ingresado ? 'white' : '#d1d5db');
 

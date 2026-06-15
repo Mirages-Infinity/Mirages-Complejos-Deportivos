@@ -1,0 +1,2 @@
+Agregar al administrador para crear perfiles de organizacion, estos funcionan igual que los perfiles de usuarios normales para crear reservas, pero al pagar reciben el descuento de organizaciones que se realiza de manera automatica.
+Datos de perfil de organizacion: cambiar nombre por nombre de representante legal, rut representante legal, telefono, etc. agregar nombre de organizacion como dato exclusivo. 

@@ -1,8 +1,8 @@
 {# Partial: modal + JS para crear reservas como admin. Requiere variable cancha_id. #}
 <div id="modal-crear-reserva" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true">
   <div class="absolute inset-0" style="background:rgba(17,24,39,0.6);backdrop-filter:blur(4px);" onclick="cerrarModalCrearReserva()"></div>
-  <div style="position:relative;background:white;width:100%;max-width:384px;border-radius:20px;border:0.5px solid #e5e7eb;overflow:hidden;display:flex;flex-direction:column;">
-    <div style="padding:20px 24px;border-bottom:0.5px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;">
+  <div style="position:relative;background:white;width:100%;max-width:384px;border-radius:20px;border:0.5px solid #1c1b1f;overflow:hidden;display:flex;flex-direction:column;">
+    <div style="padding:20px 24px;border-bottom:0.5px solid #1c1b1f;display:flex;align-items:center;justify-content:space-between;">
       <div style="display:flex;align-items:center;gap:12px;">
         <span style="width:40px;height:40px;border-radius:12px;background:#eff6ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;color:#2563eb;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
@@ -31,11 +31,11 @@
         <label style="display:block;font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px;">Tipo de reserva</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
           <button type="button" id="crv-tipo-personal" onclick="setTipoReserva('personal')"
-            style="padding:10px;border-radius:8px;border:0.5px solid #e5e7eb;background:white;color:#6b7280;font-size:0.73rem;font-weight:500;cursor:pointer;">
+            style="padding:10px;border-radius:8px;border:0.5px solid #1c1b1f;background:white;color:#6b7280;font-size:0.73rem;font-weight:500;cursor:pointer;">
             Personal
           </button>
           <button type="button" id="crv-tipo-organizacion" onclick="setTipoReserva('organizacion')"
-            style="padding:10px;border-radius:8px;border:0.5px solid #e5e7eb;background:white;color:#6b7280;font-size:0.73rem;font-weight:500;cursor:pointer;">
+            style="padding:10px;border-radius:8px;border:0.5px solid #1c1b1f;background:white;color:#6b7280;font-size:0.73rem;font-weight:500;cursor:pointer;">
             Organización
           </button>
         </div>
@@ -47,22 +47,22 @@
           <div>
             <label style="display:block;font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:4px;">Nombre del solicitante</label>
             <input type="text" id="crv-nombre" placeholder="Ej: Juan Pérez"
-              style="width:100%;border:0.5px solid #e5e7eb;border-radius:8px;padding:9px 12px;font-size:0.85rem;font-weight:400;color:#374151;background:white;outline:none;box-sizing:border-box;">
+              style="width:100%;border:0.5px solid #1c1b1f;border-radius:8px;padding:9px 12px;font-size:0.85rem;font-weight:400;color:#374151;background:white;outline:none;box-sizing:border-box;">
           </div>
           <div>
             <label style="display:block;font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:4px;">RUT (opcional)</label>
             <input type="text" id="crv-rut" placeholder="Ej: 12345678-9"
-              style="width:100%;border:0.5px solid #e5e7eb;border-radius:8px;padding:9px 12px;font-size:0.85rem;font-weight:400;color:#374151;background:white;outline:none;box-sizing:border-box;">
+              style="width:100%;border:0.5px solid #1c1b1f;border-radius:8px;padding:9px 12px;font-size:0.85rem;font-weight:400;color:#374151;background:white;outline:none;box-sizing:border-box;">
           </div>
           <div>
             <label style="display:block;font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:4px;">Teléfono (opcional)</label>
             <input type="tel" id="crv-telefono" placeholder="Ej: +56912345678"
-              style="width:100%;border:0.5px solid #e5e7eb;border-radius:8px;padding:9px 12px;font-size:0.85rem;font-weight:400;color:#374151;background:white;outline:none;box-sizing:border-box;">
+              style="width:100%;border:0.5px solid #1c1b1f;border-radius:8px;padding:9px 12px;font-size:0.85rem;font-weight:400;color:#374151;background:white;outline:none;box-sizing:border-box;">
           </div>
           <div>
             <label style="display:block;font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:4px;">Correo (opcional)</label>
             <input type="email" id="crv-email" placeholder="ejemplo@correo.cl"
-              style="width:100%;border:0.5px solid #e5e7eb;border-radius:8px;padding:9px 12px;font-size:0.85rem;font-weight:400;color:#374151;background:white;outline:none;box-sizing:border-box;">
+              style="width:100%;border:0.5px solid #1c1b1f;border-radius:8px;padding:9px 12px;font-size:0.85rem;font-weight:400;color:#374151;background:white;outline:none;box-sizing:border-box;">
           </div>
           <p style="font-size:0.72rem;color:#1a6e30;font-weight:500;background:#d7f3e0;border-radius:8px;padding:8px 12px;">
             La reserva quedará <strong>APROBADA</strong> al instante.
@@ -81,9 +81,9 @@
       <div id="crv-error" class="hidden" style="font-size:0.72rem;color:#991b1b;font-weight:500;background:#fee2e2;border-radius:8px;padding:8px 12px;line-height:1.5;"></div>
     </div>
 
-    <div style="padding:16px 24px;background:#f9fafb;border-top:0.5px solid #e5e7eb;display:flex;gap:12px;">
+    <div style="padding:16px 24px;background:#f9fafb;border-top:0.5px solid #1c1b1f;display:flex;gap:12px;">
       <button type="button" onclick="cerrarModalCrearReserva()"
-        style="flex:1;padding:9px 16px;border-radius:8px;border:0.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:500;font-size:0.78rem;cursor:pointer;">Cancelar</button>
+        style="flex:1;padding:9px 16px;border-radius:8px;border:0.5px solid #1c1b1f;background:white;color:#6b7280;font-weight:500;font-size:0.78rem;cursor:pointer;">Cancelar</button>
       <button type="button" onclick="confirmarCrearReserva()"
         style="flex:1;padding:9px 16px;border-radius:8px;background:#1a6e30;color:white;font-weight:500;font-size:0.78rem;border:none;cursor:pointer;">Continuar</button>
     </div>
@@ -112,7 +112,7 @@
       const btnOrg = document.getElementById('crv-tipo-organizacion');
       const camposPersonal = document.getElementById('crv-campos-personal');
       const camposOrg = document.getElementById('crv-campos-organizacion');
-      const styleInactivo = 'padding:10px;border-radius:8px;border:0.5px solid #e5e7eb;background:white;color:#6b7280;font-size:0.73rem;font-weight:500;cursor:pointer;';
+      const styleInactivo = 'padding:10px;border-radius:8px;border:0.5px solid #1c1b1f;background:white;color:#6b7280;font-size:0.73rem;font-weight:500;cursor:pointer;';
 
       if (tipo === 'personal') {
         btnPersonal.setAttribute('style', 'padding:10px;border-radius:8px;border:0.5px solid #1c1b1f;background:#1c1b1f;color:white;font-size:0.73rem;font-weight:500;cursor:pointer;');

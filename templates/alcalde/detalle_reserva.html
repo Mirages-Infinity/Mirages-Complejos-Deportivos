@@ -25,7 +25,7 @@
   </div>
 
   <!-- Organización -->
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;margin-bottom:12px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;margin-bottom:12px;">
     <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px;">Organización</p>
     <p style="font-size:0.88rem;font-weight:500;color:#1c1b1f;margin-bottom:8px;">{{ reserva.nombre_organizacion }}</p>
     <div style="display:flex;flex-direction:column;gap:4px;">
@@ -36,7 +36,7 @@
   </div>
 
   <!-- Representante -->
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;margin-bottom:12px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;margin-bottom:12px;">
     <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px;">Representante Legal</p>
     <div style="display:flex;flex-direction:column;gap:6px;">
       <div style="display:flex;justify-content:space-between;">
@@ -46,13 +46,13 @@
       {% if reserva.representante_rut %}
       <div style="display:flex;justify-content:space-between;">
         <span style="font-size:0.75rem;color:#9ca3af;font-weight:400;">RUT</span>
-        <span style="font-size:0.78rem;color:#1c1b1f;font-weight:500;">{{ reserva.representante_rut }}</span>
+        <span style="font-size:0.78rem;color:#1c1b1f;font-weight:500;">{{ reserva.representante_rut|rut }}</span>
       </div>
       {% endif %}
       {% if reserva.representante_telefono %}
       <div style="display:flex;justify-content:space-between;">
         <span style="font-size:0.75rem;color:#9ca3af;font-weight:400;">Teléfono</span>
-        <span style="font-size:0.78rem;color:#1c1b1f;font-weight:500;">{{ reserva.representante_telefono }}</span>
+        <span style="font-size:0.78rem;color:#1c1b1f;font-weight:500;">{{ reserva.representante_telefono|telefono }}</span>
       </div>
       {% endif %}
       <div style="display:flex;justify-content:space-between;">
@@ -64,13 +64,13 @@
 
   <!-- Precios -->
   {% if reserva.precio_original %}
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;margin-bottom:20px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;margin-bottom:20px;">
     <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:8px;">Precios</p>
     <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
       <span style="font-size:0.78rem;color:#9ca3af;font-weight:400;">Precio original</span>
       <span style="font-size:0.82rem;color:#374151;font-weight:500;">{{ reserva.precio_original|clp }}</span>
     </div>
-    <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #f3f4f6;">
+    <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid #1c1b1f;">
       <span style="font-size:0.78rem;color:#1a6e30;font-weight:500;">Con descuento (50%)</span>
       <span style="font-size:0.95rem;color:#1a6e30;font-weight:500;">{{ reserva.precio_descuento|clp }}</span>
     </div>
@@ -100,7 +100,7 @@
       <form method="post" action="{% url 'alcalde_rechazar_reserva' reserva.pk %}">
         {% csrf_token %}
         <textarea name="motivo_rechazo" rows="3" placeholder="Motivo del rechazo..."
-          style="width:100%;padding:10px 12px;border:0.5px solid #e5e7eb;border-radius:10px;font-size:0.85rem;margin-bottom:12px;resize:none;box-sizing:border-box;"></textarea>
+          style="width:100%;padding:10px 12px;border:0.5px solid #1c1b1f;border-radius:10px;font-size:0.85rem;margin-bottom:12px;resize:none;box-sizing:border-box;"></textarea>
         <div style="display:flex;gap:8px;">
           <button type="button" onclick="document.getElementById('modal-rechazo').classList.add('hidden')"
             style="flex:1;padding:9px 16px;border-radius:8px;background:#f3f4f6;color:#374151;border:none;cursor:pointer;font-weight:500;font-size:0.82rem;">

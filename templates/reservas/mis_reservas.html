@@ -45,7 +45,7 @@
   {% if reservas %}
   <div style="display:flex;flex-direction:column;gap:8px;">
     {% for r in reservas %}
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;">
 
       <!-- Cabecera: nombre recurso + badge estado -->
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;">
@@ -85,7 +85,7 @@
       {% endif %}
 
       <!-- Acciones -->
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-top:10px;border-top:0.5px solid #f3f4f6;">
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-top:10px;border-top:0.5px solid #1c1b1f;">
         {% if r.metodo_pago == 'TRANSFERENCIA' and r.comprobante_transferencia %}
         <a href="{{ r.comprobante_transferencia.url }}" target="_blank" rel="noopener noreferrer"
            style="padding:8px 14px;border-radius:8px;font-size:0.72rem;font-weight:500;text-decoration:none;background:#e0f2fe;color:#0c5a8a;border:none;">
@@ -117,7 +117,7 @@
   <!-- Paginación -->
   {% if reservas.has_other_pages %}
   <div style="display:flex;justify-content:center;margin-top:20px;">
-    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #e5e7eb;padding:3px;gap:2px;">
+    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #1c1b1f;padding:3px;gap:2px;">
       {% if reservas.has_previous %}
       <a href="?page={{ reservas.previous_page_number }}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}"
          style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
@@ -136,7 +136,7 @@
   {% endif %}
 
   {% else %}
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:48px 16px;text-align:center;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:48px 16px;text-align:center;">
     <p style="color:#6b7280;font-size:0.875rem;font-weight:500;">Aún no tienes reservas registradas</p>
     <a href="{% url 'inicio' %}" style="color:#1c1b1f;font-size:0.75rem;font-weight:500;margin-top:8px;display:inline-block;text-decoration:underline;">Ir a reservar</a>
   </div>
@@ -154,7 +154,7 @@
        onclick="cerrarModalCancelar()"></div>
 
   <!-- Tarjeta -->
-  <div style="position:relative;background:white;border-radius:16px;border:0.5px solid #e5e7eb;width:100%;max-width:360px;padding:24px;display:flex;flex-direction:column;gap:16px;">
+  <div style="position:relative;background:white;border-radius:16px;border:0.5px solid #1c1b1f;width:100%;max-width:360px;padding:24px;display:flex;flex-direction:column;gap:16px;">
 
     <div style="display:flex;justify-content:center;">
       <span style="width:52px;height:52px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;">
@@ -171,7 +171,7 @@
       <p style="font-size:0.8rem;color:#6b7280;font-weight:400;margin-top:4px;">Esta acción no se puede deshacer.</p>
     </div>
 
-    <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #e5e7eb;padding:12px 14px;text-align:center;">
+    <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #1c1b1f;padding:12px 14px;text-align:center;">
       <p style="font-size:0.88rem;font-weight:500;color:#1c1b1f;" id="modal-recurso"></p>
       <p style="font-size:0.72rem;color:#6b7280;font-weight:400;margin-top:2px;" id="modal-fecha-hora"></p>
     </div>
@@ -180,7 +180,7 @@
       {% csrf_token %}
       <div style="display:flex;gap:10px;margin-top:4px;">
         <button type="button" onclick="cerrarModalCancelar()"
-          style="flex:1;padding:10px 20px;border-radius:8px;font-size:0.8rem;font-weight:500;cursor:pointer;background:white;color:#374151;border:0.5px solid #e5e7eb;">
+          style="flex:1;padding:10px 20px;border-radius:8px;font-size:0.8rem;font-weight:500;cursor:pointer;background:white;color:#374151;border:0.5px solid #1c1b1f;">
           Volver
         </button>
         <button type="submit"

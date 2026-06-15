@@ -15,7 +15,7 @@
 
     <!-- Contenido principal -->
     <div class="w-full max-w-lg mx-auto px-4 py-5 pb-28">
-        <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:20px;">
+        <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:20px;">
 
             {% if enviado %}
             <!-- Confirmación de envío -->
@@ -46,7 +46,7 @@
                     Por email
                 </button>
                 <button type="button" onclick="mostrarSeccion('rut')"
-                        style="width:100%;padding:10px 20px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.9rem;border:0.5px solid #e5e7eb;cursor:pointer;">
+                        style="width:100%;padding:10px 20px;border-radius:8px;background:white;color:#374151;font-weight:500;font-size:0.9rem;border:0.5px solid #1c1b1f;cursor:pointer;">
                     Por número de documento
                 </button>
             </div>
@@ -60,7 +60,7 @@
                     <input type="hidden" name="metodo" value="email">
                     <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">
                         <input type="email" id="email-input" name="email" placeholder="Email"
-                               style="width:100%;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
+                               style="width:100%;border-radius:8px;border:0.5px solid #1c1b1f;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
                         <p id="email-error" class="text-xs font-bold hidden" style="color:#991b1b;letter-spacing:0.04em;">EL CORREO DEBE SER VÁLIDO</p>
                     </div>
                     <button type="submit" id="btn-email" disabled
@@ -80,7 +80,7 @@
                     <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px;">
                         <input type="text" id="rut-input" name="rut" placeholder="Ej: 12.345.678-9"
                                maxlength="12"
-                               style="width:100%;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
+                               style="width:100%;border-radius:8px;border:0.5px solid #1c1b1f;font-weight:500;outline:none;padding:9px 12px;font-size:0.875rem;background:white;box-sizing:border-box;">
                         <p id="rut-error" class="text-xs font-bold hidden" style="color:#991b1b;letter-spacing:0.04em;">EL RUT NO ES VÁLIDO</p>
                     </div>
                     <button type="submit" id="btn-rut" disabled

@@ -30,7 +30,7 @@
     font-size: 0.73rem;
     font-weight: 500;
     text-decoration: none;
-    border: 0.5px solid #e5e7eb;
+    border: 0.5px solid #1c1b1f;
     background: white;
     color: #6b7280;
   }
@@ -88,7 +88,7 @@
     justify-content: flex-end;
     gap: 8px;
     padding-top: 10px;
-    border-top: 1px solid #f3f4f6;
+    border-top: 1px solid #1c1b1f;
   }
 
   .btn-action {
@@ -128,7 +128,7 @@
     <!-- Toggle Personal / Organización -->
     <a href="?estado={{ estado_filtro }}&tipo={% if tipo_filtro == 'organizacion' %}personal{% else %}organizacion{% endif %}"
        title="{% if tipo_filtro == 'organizacion' %}Ver reservas personales{% else %}Ver reservas de organizaciones{% endif %}"
-       style="flex-shrink:0;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;text-decoration:none;border:0.5px solid #e5e7eb;
+       style="flex-shrink:0;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;text-decoration:none;border:0.5px solid #1c1b1f;
               background:{% if tipo_filtro == 'organizacion' %}#ede9fe{% else %}#e0f2fe{% endif %};
               color:{% if tipo_filtro == 'organizacion' %}#4a3880{% else %}#0c5a8a{% endif %};">
       {% if tipo_filtro == 'organizacion' %}
@@ -156,7 +156,7 @@
   <div style="display:flex;flex-direction:column;gap:10px;">
     {% for r in reservas %}
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;">
 
       <!-- Encabezado: salón + estado -->
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
@@ -301,7 +301,7 @@
 
   {% if reservas.has_other_pages %}
   <div style="display:flex;justify-content:center;align-items:center;margin-top:20px;">
-    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #e5e7eb;padding:3px;gap:2px;">
+    <div style="display:inline-flex;align-items:center;background:white;border-radius:10px;border:0.5px solid #1c1b1f;padding:3px;gap:2px;">
       {% if reservas.has_previous %}
       <a href="?estado={{ estado_filtro }}&tipo={{ tipo_filtro }}&page={{ reservas.previous_page_number }}"
          style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:7px;color:#6b7280;text-decoration:none;">
@@ -333,7 +333,7 @@
 
 <!-- Modal flotante de confirmación de eliminación -->
 <div id="modal-eliminar" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.45);">
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:24px;width:100%;max-width:420px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:24px;width:100%;max-width:420px;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <span style="width:36px;height:36px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
         <svg xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;color:#991b1b;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -347,7 +347,7 @@
     </p>
     <div style="display:flex;gap:8px;">
       <button type="button" onclick="cerrarModalEliminar()"
-        style="flex:1;padding:11px;border-radius:8px;background:white;color:#374151;border:0.5px solid #e5e7eb;cursor:pointer;font-weight:500;font-size:0.85rem;">
+        style="flex:1;padding:11px;border-radius:8px;background:white;color:#374151;border:0.5px solid #1c1b1f;cursor:pointer;font-weight:500;font-size:0.85rem;">
         Cancelar
       </button>
       <form id="form-eliminar" method="post" style="flex:1;">

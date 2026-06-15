@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load clp_tags %}
 {% block title %}Panel Alcalde{% endblock %}
 
 {% block content %}
@@ -27,7 +28,7 @@
   {% if pendientes %}
   <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
     {% for reserva in pendientes %}
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;border-left:3px solid #fcd34d;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;border-left:3px solid #fcd34d;">
       <div style="padding:14px 16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <p style="font-size:0.88rem;font-weight:500;color:#1c1b1f;">{{ reserva.nombre_organizacion }}</p>
@@ -39,7 +40,7 @@
         </p>
         <p style="font-size:0.72rem;color:#6b7280;font-weight:400;">
           {{ reserva.representante_nombre }}
-          {% if reserva.representante_rut %} · {{ reserva.representante_rut }}{% endif %}
+          {% if reserva.representante_rut %} · {{ reserva.representante_rut|rut }}{% endif %}
         </p>
         {% if reserva.precio_original %}
         <p style="font-size:0.73rem;color:#374151;margin-top:4px;">
@@ -49,7 +50,7 @@
         {% endif %}
         <div style="display:flex;gap:8px;margin-top:12px;">
           <a href="{% url 'alcalde_detalle_reserva' reserva.pk %}"
-            style="flex:1;padding:9px 16px;border-radius:8px;background:#f3f4f6;color:#374151;text-align:center;text-decoration:none;font-size:0.78rem;font-weight:500;border:0.5px solid #e5e7eb;">
+            style="flex:1;padding:9px 16px;border-radius:8px;background:#f3f4f6;color:#374151;text-align:center;text-decoration:none;font-size:0.78rem;font-weight:500;border:0.5px solid #1c1b1f;">
             Ver detalle
           </a>
           <form method="post" action="{% url 'alcalde_firmar_reserva' reserva.pk %}" style="flex:1;">
@@ -65,7 +66,7 @@
     {% endfor %}
   </div>
   {% else %}
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:32px 16px;text-align:center;margin-bottom:24px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:32px 16px;text-align:center;margin-bottom:24px;">
     <p style="color:#6b7280;font-size:0.85rem;font-weight:400;">No hay reservas pendientes de firma.</p>
   </div>
   {% endif %}
@@ -75,7 +76,7 @@
   <p style="font-size:0.85rem;font-weight:500;color:#374151;margin-bottom:8px;">Firmadas recientemente</p>
   <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
     {% for reserva in firmadas %}
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:12px 14px;border-left:3px solid #86efac;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:12px 14px;border-left:3px solid #86efac;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
           <p style="font-size:0.85rem;font-weight:500;color:#1c1b1f;">{{ reserva.nombre_organizacion }}</p>
@@ -93,7 +94,7 @@
   <p style="font-size:0.85rem;font-weight:500;color:#374151;margin-bottom:8px;">Rechazadas</p>
   <div style="display:flex;flex-direction:column;gap:8px;">
     {% for reserva in rechazadas %}
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:12px 14px;border-left:3px solid #fca5a5;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:12px 14px;border-left:3px solid #fca5a5;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
           <p style="font-size:0.85rem;font-weight:500;color:#1c1b1f;">{{ reserva.nombre_organizacion }}</p>

@@ -8,7 +8,7 @@
   <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Cancelar Reserva</h1>
 
   <!-- Resumen de reserva -->
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;margin-bottom:16px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;margin-bottom:16px;">
     <p style="font-size:0.88rem;font-weight:500;color:#1c1b1f;margin-bottom:4px;">{{ reserva.salon.nombre }}</p>
     <p style="font-size:0.72rem;color:#6b7280;font-weight:400;margin-bottom:4px;">
       {{ reserva.fecha|date:"d/m/Y" }} — {{ reserva.hora_inicio|time:"H:i" }} a {{ reserva.hora_fin|time:"H:i" }}
@@ -30,7 +30,7 @@
       Sí, cancelar reserva
     </button>
     <a href="{% url 'mis_reservas' %}"
-      style="flex:1;text-align:center;padding:10px 20px;border-radius:8px;font-size:0.8rem;font-weight:500;text-decoration:none;background:white;color:#374151;border:0.5px solid #e5e7eb;">
+      style="flex:1;text-align:center;padding:10px 20px;border-radius:8px;font-size:0.8rem;font-weight:500;text-decoration:none;background:white;color:#374151;border:0.5px solid #1c1b1f;">
       Volver
     </a>
   </form>

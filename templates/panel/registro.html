@@ -16,7 +16,7 @@
   <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Auditoría del sistema</p>
   <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Registro de acciones</h1>
 
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;">
     <div style="overflow-x:auto;">
       <table style="width:100%;text-align:left;border-collapse:collapse;">
         <thead>
@@ -29,7 +29,7 @@
         </thead>
         <tbody>
           {% for log in logs %}
-          <tr style="border-bottom:0.5px solid #f3f4f6;">
+          <tr style="{% if not forloop.last %}border-bottom:0.5px solid #1c1b1f;{% endif %}">
             <td style="padding:14px 20px;">
               {% load l10n %}
               {% localize off %}
@@ -68,7 +68,7 @@
     </div>
 
     {% if logs.has_other_pages %}
-    <div style="padding:12px 20px;background:#f9fafb;border-top:0.5px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;">
+    <div style="padding:12px 20px;background:#f9fafb;border-top:0.5px solid #1c1b1f;display:flex;align-items:center;justify-content:space-between;margin-top:-0.5px;">
       <p style="font-size:0.72rem;font-weight:500;color:#6b7280;">
         Mostrando <span style="color:#1c1b1f;">{{ logs.start_index }}</span> a <span style="color:#1c1b1f;">{{ logs.end_index }}</span> de <span style="color:#1c1b1f;">{{ logs.paginator.count }}</span> registros
       </p>

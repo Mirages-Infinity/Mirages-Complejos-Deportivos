@@ -20,7 +20,7 @@
   <p style="font-size:0.72rem;color:#6b7280;font-weight:400;margin-bottom:20px;">Portal de Gestión</p>
 
   <!-- Resumen de la Reserva -->
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;">
 
     <!-- Solicitante -->
     <div>
@@ -33,18 +33,18 @@
 
     <!-- Fecha y Horario -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #e5e7eb;padding:10px 12px;">
+      <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #1c1b1f;padding:10px 12px;">
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Fecha</p>
         <p style="font-size:0.88rem;font-weight:500;color:#1c1b1f;">{{ reserva.fecha|date:"d M Y" }}</p>
       </div>
-      <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #e5e7eb;padding:10px 12px;">
+      <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #1c1b1f;padding:10px 12px;">
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Horario</p>
         <p style="font-size:0.88rem;font-weight:500;color:#1c1b1f;">{{ reserva.hora_inicio|time:"H:i" }} – {{ reserva.hora_fin|time:"H:i" }}</p>
       </div>
     </div>
 
     <!-- Información de Pago -->
-    <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #e5e7eb;padding:10px 12px;">
+    <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #1c1b1f;padding:10px 12px;">
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px;">Información de pago</p>
       <div style="display:flex;align-items:center;gap:8px;">
         {% if reserva.metodo_pago == 'TARJETA' %}
@@ -57,7 +57,7 @@
         <span style="font-size:0.8rem;font-weight:500;color:#1c1b1f;">{{ reserva.get_metodo_pago_display }}</span>
       </div>
       {% if reserva.metodo_pago == 'TRANSFERENCIA' %}
-      <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid #e5e7eb;">
+      <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid #1c1b1f;">
         {% if reserva.comprobante_transferencia %}
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px;">Comprobante adjunto</p>
         <a href="{{ reserva.comprobante_transferencia.url }}" target="_blank" rel="noopener noreferrer"
@@ -74,7 +74,7 @@
 
     {% if reserva.motivo %}
     <!-- Descripción -->
-    <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #e5e7eb;padding:10px 12px;">
+    <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #1c1b1f;padding:10px 12px;">
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:4px;">Descripción del Evento</p>
       <p style="font-size:0.8rem;color:#6b7280;font-weight:400;font-style:italic;line-height:1.5;">"{{ reserva.motivo }}"</p>
     </div>
@@ -83,7 +83,7 @@
   </div>
 
   <!-- Acciones -->
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:20px 16px;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:20px 16px;">
     <form method="post" style="display:flex;flex-direction:column;gap:14px;">
       {% csrf_token %}
 
@@ -91,7 +91,7 @@
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px;text-align:center;">Justificación Administrativa</p>
         <textarea name="motivo_rechazo" id="motivo_rechazo" rows="3"
                   placeholder="Escribe aquí el motivo si decides rechazar la solicitud..."
-                  style="width:100%;box-sizing:border-box;border-radius:8px;border:0.5px solid #e5e7eb;font-weight:500;outline:none;padding:9px 12px;font-size:0.85rem;background:white;color:#1c1b1f;resize:none;"></textarea>
+                  style="width:100%;box-sizing:border-box;border-radius:8px;border:0.5px solid #1c1b1f;font-weight:500;outline:none;padding:9px 12px;font-size:0.85rem;background:white;color:#1c1b1f;resize:none;"></textarea>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:8px;">

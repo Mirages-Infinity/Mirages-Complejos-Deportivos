@@ -28,11 +28,11 @@
   </div>
   {% endif %}
 
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;">
     <div style="overflow-x:auto;">
       <table style="width:100%;border-collapse:collapse;text-align:left;">
         <thead>
-          <tr style="background:#f9fafb;border-bottom:0.5px solid #e5e7eb;">
+          <tr style="background:#f9fafb;border-bottom:0.5px solid #1c1b1f;">
             <th style="padding:12px 16px;font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;">Complejo</th>
             <th style="padding:12px 16px;font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;">Desde</th>
             <th style="padding:12px 16px;font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;">Hasta</th>
@@ -42,7 +42,7 @@
         </thead>
         <tbody>
           {% for bloqueo in bloqueos %}
-          <tr style="border-bottom:0.5px solid #f3f4f6;">
+          <tr style="border-bottom:0.5px solid #1c1b1f;">
             <td style="padding:12px 16px;">
               <p style="font-size:0.85rem;font-weight:500;color:#1c1b1f;">{{ bloqueo.cancha.nombre }}</p>
             </td>
@@ -102,7 +102,7 @@
 <!-- Modal: Modificar fecha_fin -->
 <div id="modal-modificar" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45);">
   <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:0 16px;">
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;width:100%;max-width:360px;padding:24px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;width:100%;max-width:360px;padding:24px;">
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:4px;">Editar restricción</p>
       <h2 style="font-size:1.1rem;font-weight:500;color:#1c1b1f;margin-bottom:16px;">Modificar fecha de fin</h2>
       <form id="form-modificar" method="post" action="">
@@ -110,12 +110,12 @@
         <div style="margin-bottom:16px;">
           <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Nueva fecha de fin</label>
           <input type="date" id="input-fecha-fin" name="fecha_fin" required
-            style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
           <p id="hint-fecha-inicio" style="margin-top:4px;font-size:0.7rem;color:#9ca3af;font-weight:400;"></p>
         </div>
         <div style="display:flex;gap:10px;">
           <button type="button" onclick="cerrarModalModificar()"
-            style="flex:1;padding:9px 16px;border-radius:8px;border:0.5px solid #e5e7eb;font-size:0.85rem;font-weight:500;color:#374151;background:white;cursor:pointer;">
+            style="flex:1;padding:9px 16px;border-radius:8px;border:0.5px solid #1c1b1f;font-size:0.85rem;font-weight:500;color:#374151;background:white;cursor:pointer;">
             Cancelar
           </button>
           <button type="submit"
@@ -131,7 +131,7 @@
 <!-- Modal: Confirmar eliminación -->
 <div id="modal-eliminar" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.45);">
   <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:0 16px;">
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;width:100%;max-width:360px;padding:24px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;width:100%;max-width:360px;padding:24px;">
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:4px;">Confirmar</p>
       <h2 style="font-size:1.1rem;font-weight:500;color:#1c1b1f;margin-bottom:8px;">¿Eliminar restricción?</h2>
       <p id="texto-eliminar" style="font-size:0.85rem;color:#6b7280;font-weight:400;margin-bottom:20px;line-height:1.5;"></p>
@@ -139,7 +139,7 @@
         {% csrf_token %}
         <div style="display:flex;gap:10px;">
           <button type="button" onclick="cerrarModalEliminar()"
-            style="flex:1;padding:9px 16px;border-radius:8px;border:0.5px solid #e5e7eb;font-size:0.85rem;font-weight:500;color:#374151;background:white;cursor:pointer;">
+            style="flex:1;padding:9px 16px;border-radius:8px;border:0.5px solid #1c1b1f;font-size:0.85rem;font-weight:500;color:#374151;background:white;cursor:pointer;">
             Cancelar
           </button>
           <button type="submit"

@@ -16,44 +16,44 @@
   <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Configuración del sistema</p>
   <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Datos bancarios</h1>
 
-  <form method="post" style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:16px;">
+  <form method="post" style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;display:flex;flex-direction:column;gap:16px;">
     {% csrf_token %}
 
     <div>
       <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Nombre del Banco</label>
       <input type="text" name="banco" value="{{ datos.banco }}" required
-             style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
+             style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
     </div>
 
     <div>
       <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Nombre del Titular</label>
       <input type="text" name="titular" value="{{ datos.titular }}" required
-             style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
+             style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <div>
         <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Tipo de Cuenta</label>
         <input type="text" name="tipo_cuenta" value="{{ datos.tipo_cuenta }}" required
-               style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
+               style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
       </div>
       <div>
         <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Número de Cuenta</label>
         <input type="text" name="numero_cuenta" value="{{ datos.numero_cuenta }}" required
-               style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
+               style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
       </div>
     </div>
 
     <div>
       <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">RUT del Titular</label>
       <input type="text" name="rut" value="{{ datos.rut }}" required
-             style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
+             style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
     </div>
 
     <div>
       <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Email para Comprobantes</label>
       <input type="email" name="email" value="{{ datos.email }}" required
-             style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
+             style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
     </div>
 
     <button type="submit"

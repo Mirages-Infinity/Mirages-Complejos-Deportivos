@@ -50,7 +50,7 @@
     <input type="hidden" name="fecha" value="{{ fecha }}">
     <input type="hidden" name="hora" value="{{ hora }}">
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;margin-bottom:12px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;margin-bottom:12px;">
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:14px;">Datos de la organización</p>
       <div style="display:flex;flex-direction:column;gap:14px;">
         <div>
@@ -58,12 +58,12 @@
           <input type="text" name="nombre_organizacion" required maxlength="200"
             value="{{ form_data.nombre_organizacion|default:'' }}"
             placeholder="Ej: Club Deportivo Municipal"
-            style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
         </div>
       </div>
     </div>
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;margin-bottom:12px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;margin-bottom:12px;">
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:14px;">Representante legal</p>
       <div style="display:flex;flex-direction:column;gap:14px;">
         <div>
@@ -71,14 +71,14 @@
           <input type="text" name="representante_nombre" required maxlength="150"
             value="{{ form_data.representante_nombre|default:'' }}"
             placeholder="Nombre y apellido"
-            style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
         </div>
         <div>
           <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:5px;">RUT *</label>
           <input type="text" name="representante_rut" id="id_rep_rut" required maxlength="12"
             value="{{ form_data.representante_rut|default:'' }}"
             placeholder="Ej: 12345678-9"
-            style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;"
+            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;"
             oninput="formatearRut(this)" onblur="validarRut(this)">
           <p id="rut-error" style="font-size:0.7rem;color:#991b1b;margin-top:4px;display:none;">RUT inválido</p>
         </div>
@@ -87,7 +87,7 @@
           <input type="tel" name="representante_telefono" maxlength="20"
             value="{{ form_data.representante_telefono|default:'' }}"
             placeholder="Ej: +56912345678"
-            style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
         </div>
         <div>
           <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:5px;">Correo electrónico *</label>
@@ -95,16 +95,16 @@
             value="{{ form_data.representante_email|default:'' }}"
             placeholder="correo@organizacion.cl"
             oninput="validarEmail(this)" onblur="validarEmail(this)"
-            style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
           <p class="email-error" style="font-size:0.7rem;color:#991b1b;margin-top:4px;display:none;">Ingresa un correo electrónico válido</p>
         </div>
       </div>
     </div>
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;margin-bottom:12px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;margin-bottom:12px;">
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:14px;">Precios</p>
       {% if precio_cancha %}
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3f4f6;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1c1b1f;margin-bottom:10px;">
         <span style="font-size:0.78rem;color:#6b7280;font-weight:400;">Precio base</span>
         <span style="font-size:0.85rem;color:#374151;font-weight:500;">{{ precio_cancha|clp }}</span>
       </div>
@@ -121,11 +121,11 @@
       {% endif %}
     </div>
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;margin-bottom:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;margin-bottom:16px;">
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:14px;">Descripción del evento</p>
       <textarea name="motivo" rows="3" maxlength="500"
         placeholder="Descripción del evento o motivo de la reserva (opcional)"
-        style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;resize:none;box-sizing:border-box;">{{ form_data.motivo|default:'' }}</textarea>
+        style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;resize:none;box-sizing:border-box;">{{ form_data.motivo|default:'' }}</textarea>
     </div>
 
     <button type="submit"

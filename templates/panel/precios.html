@@ -28,9 +28,9 @@
   <form method="post">
     {% csrf_token %}
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:16px;">
       {% for cancha in canchas %}
-      <div style="padding:14px 16px;{% if not forloop.last %}border-bottom:0.5px solid #f3f4f6;{% endif %}">
+      <div style="padding:14px 16px;{% if not forloop.last %}border-bottom:0.5px solid #1c1b1f;{% endif %}">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
 
           <div>
@@ -48,7 +48,7 @@
             <span style="font-size:0.85rem;font-weight:500;color:#6b7280;">$</span>
             <input type="number" name="precio_{{ cancha.pk }}" value="{{ cancha.precio }}"
               min="0" step="500" placeholder="0"
-              style="width:110px;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.9rem;font-weight:500;color:#1c1b1f;text-align:right;outline:none;">
+              style="width:110px;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.9rem;font-weight:500;color:#1c1b1f;text-align:right;outline:none;">
           </div>
         </div>
       </div>

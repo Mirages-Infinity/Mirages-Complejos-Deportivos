@@ -31,12 +31,12 @@
   <form method="post">
     {% csrf_token %}
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;display:flex;flex-direction:column;gap:16px;">
 
       <div>
         <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:6px;">Usuario *</label>
         <select name="usuario_id" required
-          style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;background:white;outline:none;appearance:none;box-sizing:border-box;">
+          style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;background:white;outline:none;appearance:none;box-sizing:border-box;">
           <option value="">Selecciona un usuario...</option>
           {% for usuario in usuarios %}
           <option value="{{ usuario.pk }}" {% if form_data.usuario_id == usuario.pk|stringformat:'s' %}selected{% endif %}>
@@ -49,7 +49,7 @@
       <div>
         <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:6px;">Instalación (opcional)</label>
         <select name="nombre_recurso"
-          style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;background:white;outline:none;appearance:none;box-sizing:border-box;">
+          style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;background:white;outline:none;appearance:none;box-sizing:border-box;">
           <option value="">Sin restricción de instalación</option>
           {% for cancha in canchas %}
           <option value="{{ cancha.nombre }}" {% if form_data.nombre_recurso == cancha.nombre %}selected{% endif %}>
@@ -65,7 +65,7 @@
         <input type="date" name="fecha_expiracion" required
           value="{{ form_data.fecha_expiracion|default:'' }}"
           min="{{ today|date:'Y-m-d' }}"
-          style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+          style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
       </div>
 
     </div>

@@ -20,27 +20,27 @@
   <form method="post">
     {% csrf_token %}
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;overflow:hidden;margin-bottom:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:16px;">
 
-      <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+      <div style="padding:12px 16px;border-bottom:1px solid #1c1b1f;">
         <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Nombre</label>
         <input type="text" name="nombre" value="{{ u.first_name }}" required
                style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
       </div>
 
-      <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+      <div style="padding:12px 16px;border-bottom:1px solid #1c1b1f;">
         <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Apellido</label>
         <input type="text" name="apellido" value="{{ u.last_name }}"
                style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
       </div>
 
-      <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+      <div style="padding:12px 16px;border-bottom:1px solid #1c1b1f;">
         <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Correo electrónico</label>
         <input type="email" name="email" value="{{ u.email }}" required
                style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
       </div>
 
-      <div style="padding:12px 16px;border-bottom:1px solid #f3f4f6;">
+      <div style="padding:12px 16px;border-bottom:1px solid #1c1b1f;">
         <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Teléfono</label>
         <input type="tel" name="telefono" value="{{ perfil_obj.telefono }}"
                style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">

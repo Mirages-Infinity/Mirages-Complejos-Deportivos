@@ -121,10 +121,10 @@
 
       {% if cupon.estado == 'ACTIVO' %}
       <!-- Código copiable -->
-      <div style="padding:10px 16px;background:#f9fafb;border-top:0.5px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <div style="padding:10px 16px;background:#f9fafb;border-top:0.5px solid #1c1b1f;display:flex;align-items:center;justify-content:space-between;gap:8px;">
         <p style="font-size:0.72rem;color:#6b7280;font-weight:400;">Ingresa este código al hacer una reserva</p>
         <button onclick="copiarCodigo('{{ cupon.codigo }}', this)"
-                style="padding:9px 16px;border-radius:8px;border:0.5px solid #e5e7eb;background:white;font-size:0.72rem;font-weight:500;color:#374151;cursor:pointer;">
+                style="padding:9px 16px;border-radius:8px;border:0.5px solid #1c1b1f;background:white;font-size:0.72rem;font-weight:500;color:#374151;cursor:pointer;">
           Copiar
         </button>
       </div>
@@ -136,7 +136,7 @@
   </div>
 
   {% else %}
-  <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:48px 16px;text-align:center;">
+  <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:48px 16px;text-align:center;">
     <div style="width:56px;height:56px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
       <svg xmlns="http://www.w3.org/2000/svg" style="width:26px;height:26px;color:#9ca3af;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3V18m-6-12v.75m0 3v.75m0 3V18M4.5 9h15M4.5 15h15M3 6h18v12H3V6z"/>

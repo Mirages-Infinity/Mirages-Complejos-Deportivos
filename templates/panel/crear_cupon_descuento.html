@@ -31,12 +31,12 @@
   <form method="post">
     {% csrf_token %}
 
-    <div style="background:white;border-radius:16px;border:0.5px solid #e5e7eb;padding:16px;display:flex;flex-direction:column;gap:16px;">
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;display:flex;flex-direction:column;gap:16px;">
 
       <div>
         <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:6px;">Tipo de Organización *</label>
         <select name="tipo_organizacion" required
-          style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;background:white;outline:none;appearance:none;box-sizing:border-box;">
+          style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;background:white;outline:none;appearance:none;box-sizing:border-box;">
           <option value="">Selecciona un tipo...</option>
           {% for value, label in tipo_choices %}
           <option value="{{ value }}" {% if form_data.tipo_organizacion == value %}selected{% endif %}>{{ label }}</option>
@@ -49,7 +49,7 @@
         <input type="text" name="nombre_organizacion" required maxlength="200"
           value="{{ form_data.nombre_organizacion|default:'' }}"
           placeholder="Ej: Universidad de Santiago"
-          style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+          style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
       </div>
 
       <div>
@@ -57,7 +57,7 @@
         <input type="text" name="autorizado_por" required maxlength="200"
           value="{{ form_data.autorizado_por|default:'' }}"
           placeholder="Nombre del funcionario o cargo que autoriza"
-          style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+          style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
       </div>
 
       <div>
@@ -67,7 +67,7 @@
             value="{{ form_data.cantidad_descuento|default:'' }}"
             placeholder="Ej: 25"
             id="id_descuento"
-            style="width:100%;padding:9px 40px 9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+            style="width:100%;padding:9px 40px 9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
           <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:0.85rem;font-weight:500;color:#6b7280;">%</span>
         </div>
         <p id="preview-descuento" style="font-size:0.72rem;color:#1a6e30;margin-top:4px;font-weight:500;min-height:16px;"></p>
@@ -79,7 +79,7 @@
         <input type="date" name="fecha_vencimiento" required
           value="{{ form_data.fecha_vencimiento|default:'' }}"
           id="id_fecha_vencimiento"
-          style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+          style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
       </div>
 
     </div>
