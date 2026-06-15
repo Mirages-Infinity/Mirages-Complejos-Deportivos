@@ -48,18 +48,83 @@
           → Con descuento: <span style="font-weight:500;color:#1a6e30;">$ {{ reserva.precio_descuento|floatformat:0 }}</span>
         </p>
         {% endif %}
+
+        <!-- Flujo de firma -->
+        <div style="margin:10px 0 4px;padding:10px 12px;background:#f9fafb;border-radius:10px;border:0.5px solid #e5e7eb;">
+          <p style="font-size:0.6rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Pendiente tu firma</p>
+          <div style="display:flex;align-items:center;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:48px;">
+              <div style="width:22px;height:22px;border-radius:50%;background:#1a6e30;display:flex;align-items:center;justify-content:center;">
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <p style="font-size:0.55rem;font-weight:500;color:#1a6e30;text-align:center;">Enviada</p>
+            </div>
+            <div style="flex:1;height:1.5px;background:#1a6e30;margin:0 2px;margin-bottom:14px;"></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:48px;">
+              <div style="width:22px;height:22px;border-radius:50%;background:#1a6e30;display:flex;align-items:center;justify-content:center;">
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <p style="font-size:0.55rem;font-weight:500;color:#1a6e30;text-align:center;">Firma org.</p>
+            </div>
+            <div style="flex:1;height:1.5px;background:#e5e7eb;margin:0 2px;margin-bottom:14px;"></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:48px;">
+              <div style="width:22px;height:22px;border-radius:50%;background:#fef3c7;border:1.5px solid #fcd34d;display:flex;align-items:center;justify-content:center;">
+                <div style="width:6px;height:6px;border-radius:50%;background:#f59e0b;"></div>
+              </div>
+              <p style="font-size:0.55rem;font-weight:500;color:#854f0b;text-align:center;">Firma alcalde</p>
+            </div>
+            <div style="flex:1;height:1.5px;background:#e5e7eb;margin:0 2px;margin-bottom:14px;"></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:48px;">
+              <div style="width:22px;height:22px;border-radius:50%;background:#f3f4f6;border:1.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;">
+                <div style="width:6px;height:6px;border-radius:50%;background:#d1d5db;"></div>
+              </div>
+              <p style="font-size:0.55rem;font-weight:500;color:#9ca3af;text-align:center;">Aprobada</p>
+            </div>
+          </div>
+        </div>
+
         <div style="display:flex;gap:8px;margin-top:12px;">
-          <a href="{% url 'alcalde_detalle_reserva' reserva.pk %}"
-            style="flex:1;padding:9px 16px;border-radius:8px;background:#f3f4f6;color:#374151;text-align:center;text-decoration:none;font-size:0.78rem;font-weight:500;border:0.5px solid #1c1b1f;">
-            Ver detalle
+          <a href="{% url 'carta_preview_pdf' %}?reserva_id={{ reserva.pk }}"
+            target="_blank" rel="noopener noreferrer"
+            style="flex:1;padding:9px 16px;border-radius:8px;background:#f3f4f6;color:#374151;text-align:center;font-size:0.78rem;font-weight:500;border:0.5px solid #1c1b1f;cursor:pointer;text-decoration:none;display:block;box-sizing:border-box;">
+            📄 Ver carta
           </a>
           <form method="post" action="{% url 'alcalde_firmar_reserva' reserva.pk %}" style="flex:1;">
             {% csrf_token %}
             <button type="submit"
               style="width:100%;padding:9px 16px;border-radius:8px;background:#1a6e30;color:white;border:none;cursor:pointer;font-size:0.78rem;font-weight:500;">
-              Firmar
+              ✍️ Firmar y aprobar
             </button>
           </form>
+        </div>
+        <div style="margin-top:6px;">
+          <button type="button"
+            onclick="document.getElementById('modal-rechazo-{{ reserva.pk }}').classList.remove('hidden')"
+            style="width:100%;padding:7px;border-radius:8px;background:#fee2e2;color:#991b1b;border:none;cursor:pointer;font-size:0.75rem;font-weight:500;">
+            Rechazar
+          </button>
+        </div>
+        <!-- Modal rechazo -->
+        <div id="modal-rechazo-{{ reserva.pk }}" class="hidden fixed inset-0 z-50 flex items-end justify-center p-4" style="background:rgba(0,0,0,0.5);">
+          <div style="background:white;border-radius:20px;padding:24px;width:100%;max-width:420px;">
+            <p style="font-size:0.88rem;font-weight:500;color:#1c1b1f;margin-bottom:8px;">Rechazar reserva</p>
+            <form method="post" action="{% url 'alcalde_rechazar_reserva' reserva.pk %}">
+              {% csrf_token %}
+              <textarea name="motivo_rechazo" rows="3" placeholder="Motivo del rechazo (opcional)"
+                style="width:100%;padding:10px 12px;border:0.5px solid #1c1b1f;border-radius:10px;font-size:0.85rem;margin-bottom:12px;resize:none;box-sizing:border-box;"></textarea>
+              <div style="display:flex;gap:8px;">
+                <button type="button"
+                  onclick="document.getElementById('modal-rechazo-{{ reserva.pk }}').classList.add('hidden')"
+                  style="flex:1;padding:9px;border-radius:8px;background:#f3f4f6;color:#374151;border:none;cursor:pointer;font-size:0.82rem;font-weight:500;">
+                  Cancelar
+                </button>
+                <button type="submit"
+                  style="flex:1;padding:9px;border-radius:8px;background:#fee2e2;color:#991b1b;border:none;cursor:pointer;font-size:0.82rem;font-weight:500;">
+                  Confirmar rechazo
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -77,13 +142,48 @@
   <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
     {% for reserva in firmadas %}
     <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:12px 14px;border-left:3px solid #86efac;">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div>
-          <p style="font-size:0.85rem;font-weight:500;color:#1c1b1f;">{{ reserva.nombre_organizacion }}</p>
-          <p style="font-size:0.72rem;color:#6b7280;font-weight:400;">{{ reserva.fecha|date:"d/m/Y" }} · {{ reserva.hora_inicio|time:"H:i" }}</p>
+          <p style="font-size:0.85rem;font-weight:500;color:#1c1b1f;">
+            {{ reserva.nombre_organizacion }}
+            {% if reserva.representante_nombre %}<span style="font-weight:400;color:#6b7280;font-size:0.78rem;"> · {{ reserva.representante_nombre }}</span>{% endif %}
+          </p>
+          <p style="font-size:0.72rem;color:#6b7280;font-weight:400;">{{ reserva.fecha|date:"d/m/Y" }} · {{ reserva.hora_inicio|time:"H:i" }}–{{ reserva.hora_fin|time:"H:i" }}</p>
         </div>
         <span style="font-size:0.62rem;font-weight:500;background:#d7f3e0;color:#1a6e30;padding:3px 10px;border-radius:6px;border:0.5px solid #86efac;">Aprobada</span>
       </div>
+
+      <!-- Flujo completo firmado -->
+      <div style="padding:10px 12px;background:#f0fdf4;border-radius:10px;border:0.5px solid #86efac;margin-bottom:10px;">
+        <p style="font-size:0.6rem;font-weight:500;color:#1a6e30;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Reserva aprobada</p>
+        <div style="display:flex;align-items:center;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:48px;">
+            <div style="width:22px;height:22px;border-radius:50%;background:#1a6e30;display:flex;align-items:center;justify-content:center;"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <p style="font-size:0.55rem;font-weight:500;color:#1a6e30;text-align:center;">Enviada</p>
+          </div>
+          <div style="flex:1;height:1.5px;background:#1a6e30;margin:0 2px;margin-bottom:14px;"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:48px;">
+            <div style="width:22px;height:22px;border-radius:50%;background:#1a6e30;display:flex;align-items:center;justify-content:center;"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <p style="font-size:0.55rem;font-weight:500;color:#1a6e30;text-align:center;">Firma org.</p>
+          </div>
+          <div style="flex:1;height:1.5px;background:#1a6e30;margin:0 2px;margin-bottom:14px;"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:48px;">
+            <div style="width:22px;height:22px;border-radius:50%;background:#1a6e30;display:flex;align-items:center;justify-content:center;"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <p style="font-size:0.55rem;font-weight:500;color:#1a6e30;text-align:center;">Firma alcalde</p>
+          </div>
+          <div style="flex:1;height:1.5px;background:#1a6e30;margin:0 2px;margin-bottom:14px;"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:48px;">
+            <div style="width:22px;height:22px;border-radius:50%;background:#1a6e30;display:flex;align-items:center;justify-content:center;"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <p style="font-size:0.55rem;font-weight:500;color:#1a6e30;text-align:center;">Aprobada</p>
+          </div>
+        </div>
+      </div>
+
+      <a href="{% url 'carta_preview_pdf' %}?reserva_id={{ reserva.pk }}"
+        target="_blank" rel="noopener noreferrer"
+        style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:7px;border-radius:8px;background:#f0fdf4;border:0.5px solid #86efac;color:#1a6e30;font-size:0.75rem;font-weight:500;cursor:pointer;text-decoration:none;box-sizing:border-box;">
+        📄 Ver documento firmado
+      </a>
     </div>
     {% endfor %}
   </div>

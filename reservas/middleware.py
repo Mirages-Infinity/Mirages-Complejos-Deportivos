@@ -1,8 +1,8 @@
 from django.shortcuts import redirect
 
 
-RUTAS_PERMITIDAS_TESORERO = ('/tesorero/', '/media/', '/logout/', '/accounts/logout/')
-RUTAS_PERMITIDAS_ALCALDE  = ('/alcalde/',  '/media/', '/logout/', '/accounts/logout/')
+RUTAS_PERMITIDAS_TESORERO = ('/tesorero/', '/media/', '/logout/', '/accounts/logout/', '/carta/preview-pdf/')
+RUTAS_PERMITIDAS_ALCALDE  = ('/alcalde/',  '/media/', '/logout/', '/accounts/logout/', '/carta/preview-pdf/')
 
 
 class RolRestringidoMiddleware:

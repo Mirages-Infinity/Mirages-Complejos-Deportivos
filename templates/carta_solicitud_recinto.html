@@ -1,0 +1,421 @@
+{% load static %}
+{% load clp_tags %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Solicitud de Recinto — {{ reserva.nombre_organizacion }}</title>
+  <style>
+    @page { size: Letter; margin: 2.5cm 3cm 3cm 3cm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 12pt;
+      color: #000;
+      background: #f3f4f6;
+    }
+
+    .page-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 24px 16px 120px;
+    }
+
+    /* ── Barra de estado (no se imprime) ── */
+    .status-bar {
+      background: white;
+      border-radius: 16px;
+      border: 0.5px solid #1c1b1f;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .status-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    .status-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .status-dot.done { background: #1c1b1f; color: white; }
+    .status-dot.pending { background: #f3f4f6; color: #9ca3af; border: 1px solid #e5e7eb; }
+    .status-dot.active { background: #d7f3e0; color: #1a6e30; border: 1px solid #86efac; }
+    .status-label { font-size: 0.75rem; font-weight: 500; font-family: 'Segoe UI', sans-serif; }
+    .status-divider { width: 32px; height: 1px; background: #e5e7eb; }
+
+    /* ── Carta ── */
+    .carta {
+      background: white;
+      border-radius: 12px;
+      padding: 52px 64px 60px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .fecha-linea {
+      text-align: right;
+      font-size: 12pt;
+      margin-bottom: 40px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .destinatario {
+      margin-bottom: 32px;
+    }
+    .destinatario p {
+      font-weight: bold;
+      font-size: 12pt;
+      line-height: 1.55;
+      color: #1a3a6b;
+    }
+    .cuerpo {
+      text-align: justify;
+      line-height: 1.95;
+      font-size: 12pt;
+      margin-bottom: 48px;
+    }
+    .cuerpo p { text-indent: 2.5em; }
+    .cuerpo p + p { margin-top: 14px; }
+
+    /* ── Área de firmas ── */
+    .firmas-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 48px;
+    }
+    .firma-bloque {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .firma-imagen-wrap {
+      height: 90px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+    .firma-imagen-wrap img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      opacity: 0.82;
+    }
+    .firma-linea {
+      border-top: 1px solid #000;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    .firma-texto {
+      font-size: 10.5pt;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .firma-fecha {
+      font-size: 9pt;
+      color: #6b7280;
+      font-weight: normal;
+      margin-top: 4px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .firma-pendiente {
+      height: 90px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+    .firma-pendiente-label {
+      font-size: 0.72rem;
+      color: #9ca3af;
+      font-style: italic;
+      font-family: 'Segoe UI', sans-serif;
+      padding-bottom: 8px;
+    }
+
+    /* ── Panel de acciones (no se imprime) ── */
+    .acciones-panel {
+      background: white;
+      border-radius: 16px;
+      border: 0.5px solid #1c1b1f;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .btn-firmar {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: #1c1b1f;
+      color: white;
+      font-weight: 500;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .btn-firmar:hover { opacity: 0.88; }
+    .btn-imprimir {
+      width: 100%;
+      padding: 11px 16px;
+      border-radius: 10px;
+      background: white;
+      color: #1c1b1f;
+      border: 0.5px solid #1c1b1f;
+      font-weight: 500;
+      font-size: 0.88rem;
+      cursor: pointer;
+      font-family: 'Segoe UI', sans-serif;
+      margin-top: 10px;
+    }
+    .btn-volver {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      background: white;
+      color: #6b7280;
+      border: 0.5px solid #e5e7eb;
+      font-weight: 500;
+      font-size: 0.82rem;
+      cursor: pointer;
+      font-family: 'Segoe UI', sans-serif;
+      text-decoration: none;
+      margin-top: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+    .info-box {
+      background: #f0fdf4;
+      border: 0.5px solid #86efac;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.78rem;
+      color: #1a6e30;
+      font-weight: 500;
+      font-family: 'Segoe UI', sans-serif;
+      margin-bottom: 14px;
+    }
+    .info-box.amber {
+      background: #fffbeb;
+      border-color: #fcd34d;
+      color: #854f0b;
+    }
+    .info-box.gray {
+      background: #f9fafb;
+      border-color: #e5e7eb;
+      color: #6b7280;
+    }
+    .accion-title {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* ── Print overrides ── */
+    @media print {
+      body { background: white; }
+      .no-print { display: none !important; }
+      .page-wrap { padding: 0; max-width: none; }
+      .carta { box-shadow: none; border-radius: 0; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Barra de estado -->
+  <div class="status-bar no-print">
+    <div class="status-step">
+      <div class="status-dot {% if reserva.firma_org_en %}done{% elif not reserva.firma_org_en %}active{% endif %}">
+        {% if reserva.firma_org_en %}✓{% else %}1{% endif %}
+      </div>
+      <span class="status-label" style="color:{% if reserva.firma_org_en %}#1c1b1f{% else %}#1a6e30{% endif %};">
+        Firma organización
+      </span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-step">
+      <div class="status-dot {% if reserva.firma_alcalde_carta_en %}done{% elif reserva.firma_org_en %}active{% else %}pending{% endif %}">
+        {% if reserva.firma_alcalde_carta_en %}✓{% else %}2{% endif %}
+      </div>
+      <span class="status-label" style="color:{% if reserva.firma_alcalde_carta_en %}#1c1b1f{% elif reserva.firma_org_en %}#1a6e30{% else %}#9ca3af{% endif %};">
+        Firma alcalde
+      </span>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-step">
+      <div class="status-dot {% if reserva.firma_alcalde_carta_en %}done{% else %}pending{% endif %}">
+        {% if reserva.firma_alcalde_carta_en %}✓{% else %}3{% endif %}
+      </div>
+      <span class="status-label" style="color:{% if reserva.firma_alcalde_carta_en %}#1c1b1f{% else %}#9ca3af{% endif %};">
+        Lista para tesorería
+      </span>
+    </div>
+  </div>
+
+  <!-- ═══ CARTA ═══ -->
+  <div class="carta">
+
+    <div class="fecha-linea">Empedrado, {{ fecha_carta }}</div>
+
+    <div class="destinatario">
+      <p>SR. CARLOS CORREA MIÑOS</p>
+      <p>ALCALDE</p>
+      <p>ILUSTRE MUNICIPALIDAD DE EMPEDRADO</p>
+    </div>
+
+    <div class="cuerpo">
+      <p>
+        Junto con saludarlos espero que se encuentren bien, vengo a solicitar recinto
+        específicamente <strong>{{ nombre_recinto }}</strong>, el día
+        <strong>{{ reserva.fecha|date:"d \d\e F \d\e Y" }}</strong>
+        {% if modo_fin_dia %}
+          desde las <strong>{{ reserva.hora_inicio|time:"H:i" }}</strong> horas hasta el cierre del recinto
+        {% else %}
+          desde las <strong>{{ reserva.hora_inicio|time:"H:i" }}</strong> hasta las
+          <strong>{{ reserva.hora_fin|time:"H:i" }}</strong> horas
+        {% endif %}
+        , con motivo de
+        {% if reserva.motivo %}<strong>{{ reserva.motivo }}</strong>{% else %}………………………………………………………………………………………{% endif %},
+        por lo cual nos comprometemos a entregar el recinto en las condiciones adecuadas
+        y limpia posterior al uso de nuestro evento.
+      </p>
+      <p>Sin más que agregar y esperando una positiva respuesta le saluda atte.</p>
+    </div>
+
+    <!-- Firmas -->
+    <div class="firmas-row">
+
+      <!-- Firma organización -->
+      <div class="firma-bloque">
+        {% if reserva.firma_org_en %}
+          <div class="firma-imagen-wrap">
+            <img src="{% static 'sello_municipalidad.jpeg' %}" alt="Sello">
+          </div>
+          <div class="firma-linea"></div>
+          <div class="firma-texto">
+            {{ reserva.representante_nombre }}<br>
+            {% if reserva.representante_rut %}<span style="font-weight:normal;font-size:10pt;">RUT: {{ reserva.representante_rut }}</span><br>{% endif %}
+            {{ reserva.nombre_organizacion }}
+          </div>
+          <div class="firma-fecha">Firmado el {{ reserva.firma_org_en|date:"d/m/Y" }} a las {{ reserva.firma_org_en|time:"H:i" }}h</div>
+        {% else %}
+          <div class="firma-pendiente">
+            <span class="firma-pendiente-label">Pendiente de firma</span>
+          </div>
+          <div class="firma-linea"></div>
+          <div class="firma-texto" style="color:#9ca3af;">
+            Firma, Nombre, RUT<br>Organización
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Firma alcalde -->
+      <div class="firma-bloque">
+        {% if reserva.firma_alcalde_carta_en %}
+          <div class="firma-imagen-wrap">
+            <img src="{% static 'sello_municipalidad.jpeg' %}" alt="Sello Alcalde">
+          </div>
+          <div class="firma-linea"></div>
+          <div class="firma-texto">
+            CARLOS CORREA MIÑOS<br>
+            <span style="font-weight:normal;font-size:10pt;">Alcalde</span><br>
+            I. Municipalidad de Empedrado
+          </div>
+          <div class="firma-fecha">Firmado el {{ reserva.firma_alcalde_carta_en|date:"d/m/Y" }} a las {{ reserva.firma_alcalde_carta_en|time:"H:i" }}h</div>
+        {% else %}
+          <div class="firma-pendiente">
+            <span class="firma-pendiente-label">Pendiente firma alcalde</span>
+          </div>
+          <div class="firma-linea"></div>
+          <div class="firma-texto" style="color:#9ca3af;">
+            Carlos Correa Miños<br>Alcalde<br>I. Mun. de Empedrado
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+  <!-- ═══ FIN CARTA ═══ -->
+
+  <!-- Panel de acciones -->
+  <div class="acciones-panel no-print">
+
+    {% if not reserva.firma_org_en %}
+      <!-- Estado 1: Esperando firma de la organización -->
+      <p class="accion-title">Paso 1 — Firma de la organización</p>
+      <div class="info-box amber">
+        Revisa la carta y confirma que los datos son correctos antes de firmar. Una vez firmada, no se puede deshacer.
+      </div>
+      {% if es_admin or es_org_propia %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="firma_org">
+        <button type="submit" class="btn-firmar">
+          ✍️ Firmar como {{ reserva.nombre_organizacion }}
+        </button>
+      </form>
+      {% else %}
+      <div class="info-box gray">Solo el administrador o el representante de la organización pueden firmar este paso.</div>
+      {% endif %}
+
+    {% elif not reserva.firma_alcalde_carta_en %}
+      <!-- Estado 2: Esperando firma del alcalde -->
+      <p class="accion-title">Paso 2 — Firma del alcalde</p>
+      <div class="info-box">
+        La organización ya firmó. La carta espera la firma del alcalde para quedar aprobada.
+      </div>
+      {% if es_alcalde %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="firma_alcalde">
+        <button type="submit" class="btn-firmar">
+          ✍️ Firmar como Alcalde — Aprobar carta
+        </button>
+      </form>
+      {% else %}
+      <div class="info-box gray">Esta carta está en revisión del alcalde.</div>
+      {% endif %}
+
+    {% else %}
+      <!-- Estado 3: Carta completa -->
+      <div class="info-box">
+        ✅ Carta firmada por ambas partes. Lista para entregarse a tesorería.
+      </div>
+      <a href="{% url 'carta_preview_pdf' %}?reserva_id={{ reserva.pk }}" target="_blank" class="btn-firmar" style="display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;margin-top:0;">
+        📄 Descargar PDF final
+      </a>
+    {% endif %}
+
+    {% if reserva.firma_org_en %}
+    <a href="{% url 'carta_preview_pdf' %}?reserva_id={{ reserva.pk }}" target="_blank" class="btn-imprimir" style="display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">
+      📄 Descargar / Ver PDF
+    </a>
+    {% endif %}
+
+    <a href="{% url 'panel_inicio' %}" class="btn-volver">← Volver al panel</a>
+  </div>
+
+</div>
+</body>
+</html>

@@ -14,8 +14,19 @@
 {% block content %}
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
+  {% if es_org_user %}
+  <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">{{ prefill.nombre_organizacion }}</p>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:{% if editando %}8px{% else %}20px{% endif %};">{% if editando %}Editar reserva{% else %}Solicitar reserva{% endif %}</h1>
+  {% else %}
   <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Panel de administración</p>
-  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Reserva de Organización</h1>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:{% if editando %}8px{% else %}20px{% endif %};">{% if editando %}Editar reserva{% else %}Reserva de Organización{% endif %}</h1>
+  {% endif %}
+
+  {% if editando %}
+  <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;margin-bottom:16px;border:0.5px solid #fcd34d;">
+    <p style="font-size:0.78rem;color:#854f0b;font-weight:500;">Al guardar los cambios, las firmas actuales serán eliminadas y deberás firmar la carta nuevamente.</p>
+  </div>
+  {% endif %}
 
   {% if cancha and fecha and hora %}
   <div style="background:#e0f2fe;border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;border:0.5px solid #93c5fd;">
@@ -26,78 +37,133 @@
   </div>
   {% endif %}
 
-  <div style="background:#fef3c7;border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;border:0.5px solid #fcd34d;">
-    <svg xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#854f0b;flex-shrink:0;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
-    </svg>
-    <p style="font-size:0.78rem;color:#854f0b;font-weight:500;">Esta reserva quedará <strong>pendiente de firma del alcalde</strong> antes de ser aprobada.</p>
-  </div>
-
-  {% if messages %}
-  <div style="margin-bottom:16px;display:flex;flex-direction:column;gap:6px;">
-    {% for msg in messages %}
-    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:500;
-      {% if msg.tags == 'error' %}background:#fee2e2;color:#991b1b;{% else %}background:#d7f3e0;color:#1a6e30;{% endif %}">
-      {{ msg }}
-    </div>
+  {% if errores %}
+  <div style="margin-bottom:14px;display:flex;flex-direction:column;gap:6px;">
+    {% for e in errores %}
+    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:500;background:#fee2e2;color:#991b1b;">{{ e }}</div>
     {% endfor %}
   </div>
   {% endif %}
 
-  <form method="post">
+  <!-- ═══ FORMULARIO ═══ -->
+  <form method="post" {% if editando %}action="{% url 'editar_reserva_organizacion' reserva_pk %}"{% endif %}>
     {% csrf_token %}
     <input type="hidden" name="cancha_id" value="{{ cancha.pk }}">
     <input type="hidden" name="fecha" value="{{ fecha }}">
     <input type="hidden" name="hora" value="{{ hora }}">
 
+    <!-- Selector cuenta existente / nueva (solo admin) -->
+    {% if not es_org_user and orgs_existentes %}
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:12px;">
+      <div style="padding:14px 16px;border-bottom:0.5px solid #e5e7eb;">
+        <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:10px;">Origen de los datos</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button type="button" id="btn-nueva" onclick="setModo('nueva')"
+            style="padding:10px 8px;border-radius:10px;border:0.5px solid #1c1b1f;background:white;color:#374151;font-weight:500;font-size:0.8rem;cursor:pointer;text-align:center;">
+            Ingresar datos
+          </button>
+          <button type="button" id="btn-existente" onclick="setModo('existente')"
+            style="padding:10px 8px;border-radius:10px;border:0.5px solid #1c1b1f;background:#1c1b1f;color:white;font-weight:500;font-size:0.8rem;cursor:pointer;text-align:center;">
+            Cuenta existente
+          </button>
+        </div>
+      </div>
+      <div id="panel-existente" style="padding:14px 16px;">
+        <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:6px;">Seleccionar organización</label>
+        <select id="sel-org" onchange="autoFill()"
+          style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;background:white;">
+          <option value="">— Elige una organización —</option>
+          {% for org in orgs_existentes %}
+          <option value="{{ org.id }}"
+            data-nombre="{{ org.perfil.nombre_organizacion }}"
+            data-rep="{{ org.get_full_name }}"
+            data-rut="{{ org.perfil.rut }}"
+            data-tel="{{ org.perfil.telefono }}"
+            data-email="{{ org.email }}">
+            {{ org.perfil.nombre_organizacion }}{% if org.get_full_name %} — {{ org.get_full_name }}{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Datos org/representante: editable para admin, readonly para org user -->
     <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;margin-bottom:12px;">
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:14px;">Datos de la organización</p>
       <div style="display:flex;flex-direction:column;gap:14px;">
         <div>
           <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:5px;">Nombre de la organización *</label>
-          <input type="text" name="nombre_organizacion" required maxlength="200"
+          <input type="text" name="nombre_organizacion" required maxlength="200" class="campo-org"
             value="{{ form_data.nombre_organizacion|default:'' }}"
             placeholder="Ej: Club Deportivo Municipal"
-            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+            {% if es_org_user %}readonly style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#6b7280;outline:none;box-sizing:border-box;background:#f9fafb;"{% else %}style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;"{% endif %}>
         </div>
       </div>
     </div>
 
     <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;margin-bottom:12px;">
       <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:14px;">Representante legal</p>
+      {% if es_org_user %}
+      <p style="font-size:0.72rem;color:#6b7280;margin-bottom:12px;">Estos datos provienen de tu perfil registrado.</p>
+      {% endif %}
       <div style="display:flex;flex-direction:column;gap:14px;">
         <div>
           <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:5px;">Nombre completo *</label>
-          <input type="text" name="representante_nombre" required maxlength="150"
+          <input type="text" name="representante_nombre" required maxlength="150" class="campo-org"
             value="{{ form_data.representante_nombre|default:'' }}"
             placeholder="Nombre y apellido"
-            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+            {% if es_org_user %}readonly style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#6b7280;outline:none;box-sizing:border-box;background:#f9fafb;"{% else %}style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;"{% endif %}>
         </div>
         <div>
           <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:5px;">RUT *</label>
-          <input type="text" name="representante_rut" id="id_rep_rut" required maxlength="12"
+          <input type="text" name="representante_rut" id="id_rep_rut" required maxlength="12" class="campo-org"
             value="{{ form_data.representante_rut|default:'' }}"
             placeholder="Ej: 12345678-9"
-            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;"
-            oninput="formatearRut(this)" onblur="validarRut(this)">
-          <p id="rut-error" style="font-size:0.7rem;color:#991b1b;margin-top:4px;display:none;">RUT inválido</p>
+            {% if es_org_user %}readonly style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#6b7280;outline:none;box-sizing:border-box;background:#f9fafb;"{% else %}style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;" oninput="formatearRut(this)" onblur="validarRut(this)"{% endif %}>
+          {% if not es_org_user %}<p id="rut-error" style="font-size:0.7rem;color:#991b1b;margin-top:4px;display:none;">RUT inválido</p>{% endif %}
         </div>
         <div>
           <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:5px;">Teléfono <span style="color:#9ca3af;font-weight:400;">(opcional)</span></label>
-          <input type="tel" name="representante_telefono" maxlength="20"
+          <input type="tel" name="representante_telefono" maxlength="20" class="campo-org"
             value="{{ form_data.representante_telefono|default:'' }}"
             placeholder="Ej: +56912345678"
-            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
+            {% if es_org_user %}readonly style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#6b7280;outline:none;box-sizing:border-box;background:#f9fafb;"{% else %}style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;"{% endif %}>
         </div>
         <div>
           <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:5px;">Correo electrónico *</label>
-          <input type="email" name="representante_email" required id="id_rep_email"
+          <input type="email" name="representante_email" required id="id_rep_email" class="campo-org"
             value="{{ form_data.representante_email|default:'' }}"
             placeholder="correo@organizacion.cl"
-            oninput="validarEmail(this)" onblur="validarEmail(this)"
-            style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;">
-          <p class="email-error" style="font-size:0.7rem;color:#991b1b;margin-top:4px;display:none;">Ingresa un correo electrónico válido</p>
+            {% if es_org_user %}readonly style="width:100%;padding:9px 12px;border:0.5px solid #e5e7eb;border-radius:8px;font-size:0.85rem;font-weight:500;color:#6b7280;outline:none;box-sizing:border-box;background:#f9fafb;"{% else %}oninput="validarEmail(this)" onblur="validarEmail(this)" style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;"{% endif %}>
+          {% if not es_org_user %}<p class="email-error" style="font-size:0.7rem;color:#991b1b;margin-top:4px;display:none;">Ingresa un correo electrónico válido</p>{% endif %}
         </div>
+      </div>
+    </div>
+
+    <!-- Modo de reserva: bloque o hasta fin del día -->
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:12px;">
+      <div style="padding:14px 16px;border-bottom:0.5px solid #e5e7eb;">
+        <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:10px;">Duración de la reserva</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button type="button" id="btn-fin-dia" onclick="setModoHora('fin_dia')"
+            style="padding:10px 8px;border-radius:10px;border:0.5px solid #1c1b1f;background:#1c1b1f;color:white;font-weight:500;font-size:0.8rem;cursor:pointer;text-align:center;">
+            Desde X hasta cierre
+          </button>
+          <button type="button" id="btn-bloque" onclick="setModoHora('bloque')"
+            style="padding:10px 8px;border-radius:10px;border:0.5px solid #1c1b1f;background:white;color:#374151;font-weight:500;font-size:0.8rem;cursor:pointer;text-align:center;">
+            Bloque específico
+          </button>
+        </div>
+      </div>
+      <input type="hidden" name="modo_fin_dia" id="input-modo-fin-dia" value="1">
+      <div id="panel-hora-fin" style="padding:14px 16px;display:none;">
+        <label style="font-size:0.75rem;font-weight:500;color:#374151;display:block;margin-bottom:6px;">Hora de término</label>
+        <input type="time" name="hora_fin_manual" id="hora-fin-manual"
+          style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;">
+      </div>
+      <div id="panel-fin-dia-info" style="padding:12px 16px;background:#f0fdf4;">
+        <p style="font-size:0.78rem;color:#1a6e30;font-weight:500;">La organización ocupará el recinto desde la hora seleccionada hasta el cierre del día. El resto del horario quedará bloqueado para otros usuarios.</p>
       </div>
     </div>
 
@@ -128,15 +194,104 @@
         style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;resize:none;box-sizing:border-box;">{{ form_data.motivo|default:'' }}</textarea>
     </div>
 
-    <button type="submit"
-      style="width:100%;padding:9px 16px;border-radius:8px;background:#1c1b1f;color:white;font-size:0.88rem;font-weight:500;border:none;cursor:pointer;">
-      Enviar para firma del alcalde
-    </button>
+    <input type="hidden" name="step" value="confirm">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <button type="button" onclick="abrirVistaPreviaOrg()"
+        style="padding:10px 8px;border-radius:8px;background:white;border:0.5px solid #1c1b1f;color:#1c1b1f;font-size:0.85rem;font-weight:500;cursor:pointer;">
+        📄 Vista previa
+      </button>
+      <button type="submit"
+        style="padding:10px 8px;border-radius:8px;background:#1c1b1f;color:white;font-size:0.85rem;font-weight:500;border:none;cursor:pointer;">
+        {% if editando %}💾 Guardar y firmar{% else %}✍️ Firmar y enviar{% endif %}
+      </button>
+    </div>
   </form>
 
 </div>
 
 <script>
+  // ── Vista previa PDF ──
+  function abrirVistaPreviaOrg() {
+    const get = name => document.querySelector(`[name="${name}"]`)?.value || '';
+    const params = new URLSearchParams({
+      cancha_id: '{{ cancha.pk }}',
+      fecha: '{{ fecha }}',
+      hora_inicio: '{{ hora }}',
+      hora_fin: get('hora_fin_manual'),
+      nombre_org: get('nombre_organizacion'),
+      rep_nombre: get('representante_nombre'),
+      rep_rut: get('representante_rut'),
+      motivo: get('motivo'),
+      modo_fin_dia: document.getElementById('input-modo-fin-dia')?.value || '1',
+      nombre_recinto: '{{ cancha.nombre }}',
+    });
+    window.open('/carta/preview-pdf/?' + params.toString(), '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
+  }
+
+  // ── Selector cuenta existente / nueva ──
+  function setModo(modo) {
+    const esExistente = modo === 'existente';
+    const btnNueva = document.getElementById('btn-nueva');
+    const btnEx = document.getElementById('btn-existente');
+    const panelEx = document.getElementById('panel-existente');
+    const campos = document.querySelectorAll('.campo-org');
+
+    if (!btnNueva) return;
+    btnNueva.style.background = esExistente ? 'white' : '#1c1b1f';
+    btnNueva.style.color = esExistente ? '#374151' : 'white';
+    btnEx.style.background = esExistente ? '#1c1b1f' : 'white';
+    btnEx.style.color = esExistente ? 'white' : '#374151';
+    if (panelEx) panelEx.style.display = esExistente ? 'block' : 'none';
+
+    campos.forEach(el => {
+      el.readOnly = esExistente;
+      el.style.color = esExistente ? '#6b7280' : '#1c1b1f';
+    });
+
+    if (!esExistente) {
+      // Limpiar al volver a "ingresar datos"
+      const sel = document.getElementById('sel-org');
+      if (sel) sel.value = '';
+      campos.forEach(el => el.value = '');
+    }
+  }
+
+  function autoFill() {
+    const sel = document.getElementById('sel-org');
+    const opt = sel.options[sel.selectedIndex];
+    if (!opt || !opt.value) return;
+
+    const set = (name, val) => {
+      const el = document.querySelector(`[name="${name}"]`);
+      if (el) el.value = val || '';
+    };
+    set('nombre_organizacion', opt.dataset.nombre);
+    set('representante_nombre', opt.dataset.rep);
+    set('representante_rut', opt.dataset.rut);
+    set('representante_telefono', opt.dataset.tel);
+    set('representante_email', opt.dataset.email);
+  }
+
+  // ── Selector duración de reserva ──
+  function setModoHora(modo) {
+    const esFinDia = modo === 'fin_dia';
+    document.getElementById('input-modo-fin-dia').value = esFinDia ? '1' : '0';
+    document.getElementById('btn-fin-dia').style.background = esFinDia ? '#1c1b1f' : 'white';
+    document.getElementById('btn-fin-dia').style.color = esFinDia ? 'white' : '#374151';
+    document.getElementById('btn-bloque').style.background = esFinDia ? 'white' : '#1c1b1f';
+    document.getElementById('btn-bloque').style.color = esFinDia ? '#374151' : 'white';
+    document.getElementById('panel-hora-fin').style.display = esFinDia ? 'none' : 'block';
+    document.getElementById('panel-fin-dia-info').style.display = esFinDia ? 'block' : 'none';
+    const horaFin = document.getElementById('hora-fin-manual');
+    if (horaFin) horaFin.required = !esFinDia;
+  }
+
+  // Inicializar: si hay organizaciones existentes, empezar en modo "existente"
+  window.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('btn-existente')) setModo('existente');
+    setModoHora('fin_dia');
+  });
+
   function formatearRut(input) {
     let v = input.value.replace(/[^0-9kK]/g, '').toUpperCase();
     if (v.length > 1) v = v.slice(0, -1) + '-' + v.slice(-1);

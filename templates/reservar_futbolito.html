@@ -731,7 +731,9 @@
             pausaFin: "{{ config_futbolito.pausa_fin|time:'H:i'|default:'' }}",
             diasSemana: [{{ config_futbolito.dias_semana|default:'0,1,2,3,4,5,6' }}],
             interval: parseInt("{{ config_futbolito.intervalo_minutos|default:'60' }}"),
-            isAuthenticated: "{{ user.is_authenticated|yesno:'true,false' }}" === "true"
+            isAuthenticated: "{{ user.is_authenticated|yesno:'true,false' }}" === "true",
+            isOrganizacion: "{{ user_profile.es_organizacion|yesno:'true,false' }}" === "true",
+            orgReservaBase: "{% url 'crear_reserva_organizacion' %}?cancha_id={{ config_futbolito.id }}"
         };
 
         const today = new Date();
@@ -1056,6 +1058,15 @@
                     const fechaStr = `${yyyy}-${mm}-${dd}`;
                     const nextUrl = `/reserva-futbolito/?fecha=${fechaStr}&hora=${encodeURIComponent(selectedSlot)}`;
                     window.location.href = `/login/?next=${encodeURIComponent(nextUrl)}`;
+                    return;
+                }
+                if (config.isOrganizacion) {
+                    // Usuario org: redirigir al formulario de reserva de organización
+                    const yyyy = selectedDate.getFullYear();
+                    const mm = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+                    const dd = selectedDate.getDate().toString().padStart(2, '0');
+                    const fechaStr = `${yyyy}-${mm}-${dd}`;
+                    window.location.href = `${config.orgReservaBase}&fecha=${fechaStr}&hora=${encodeURIComponent(selectedSlot)}`;
                     return;
                 }
                 vDate.textContent = formatDate(selectedDate);

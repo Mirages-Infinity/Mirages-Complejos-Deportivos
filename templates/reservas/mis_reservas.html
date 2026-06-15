@@ -64,15 +64,16 @@
             {% endif %}
           </div>
         </div>
+        {% if r.tipo_reserva != 'ORGANIZACION' %}
         <span style="flex-shrink:0;font-size:0.62rem;font-weight:500;padding:3px 10px;border-radius:6px;border:0.5px solid;
           {% if r.estado == 'PENDIENTE' %}background:#fef3c7;color:#854f0b;border-color:#fcd34d;
           {% elif r.estado == 'APROBADA' %}background:#d7f3e0;color:#1a6e30;border-color:#86efac;
           {% elif r.estado == 'RECHAZADA' %}background:#fee2e2;color:#991b1b;border-color:#fca5a5;
           {% elif r.estado == 'CANCELADA' %}background:#f3f4f6;color:#6b7280;border-color:#d1d5db;
-          {% elif r.estado == 'PENDIENTE_ALCALDE' %}background:#ede9fe;color:#4a3880;border-color:#c4b5f4;
           {% else %}background:#f3f4f6;color:#6b7280;border-color:#d1d5db;{% endif %}">
           {{ r.get_estado_display }}
         </span>
+        {% endif %}
       </div>
 
       <!-- Fecha y hora -->
@@ -84,8 +85,113 @@
       <p style="font-size:0.72rem;color:#6b7280;font-weight:400;font-style:italic;margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;">"{{ r.motivo }}"</p>
       {% endif %}
 
+      <!-- Flujo de pasos para reservas de organización -->
+      {% if r.tipo_reserva == 'ORGANIZACION' %}
+      {% with paso1=True paso2=r.firma_org_en paso3=r.firma_alcalde_carta_en paso4=r.firma_alcalde_carta_en %}
+      <div style="margin:10px 0 12px;padding:12px 14px;background:#f9fafb;border-radius:12px;border:0.5px solid #e5e7eb;">
+
+        <!-- Título del estado actual -->
+        <p style="font-size:0.62rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">
+          {% if r.estado == 'RECHAZADA' %}Reserva rechazada
+          {% elif r.estado == 'APROBADA' %}Reserva aprobada
+          {% elif not r.firma_org_en %}Pendiente — firma de la organización
+          {% elif not r.firma_alcalde_carta_en %}En revisión — esperando firma del alcalde
+          {% endif %}
+        </p>
+
+        <!-- Stepper horizontal -->
+        <div style="display:flex;align-items:center;">
+
+          <!-- Paso 1: Solicitud enviada -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:52px;">
+            <div style="width:26px;height:26px;border-radius:50%;background:#1a6e30;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p style="font-size:0.58rem;font-weight:500;color:#1a6e30;text-align:center;line-height:1.2;">Enviada</p>
+          </div>
+
+          <!-- Conector 1→2 -->
+          <div style="flex:1;height:1.5px;background:{% if r.firma_org_en %}#1a6e30{% else %}#e5e7eb{% endif %};margin:0 2px;margin-bottom:16px;"></div>
+
+          <!-- Paso 2: Firma organización -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:52px;">
+            {% if r.firma_org_en %}
+            <div style="width:26px;height:26px;border-radius:50%;background:#1a6e30;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p style="font-size:0.58rem;font-weight:500;color:#1a6e30;text-align:center;line-height:1.2;">Firma org.</p>
+            {% else %}
+            <div style="width:26px;height:26px;border-radius:50%;background:#fef3c7;border:1.5px solid #fcd34d;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <div style="width:7px;height:7px;border-radius:50%;background:#f59e0b;"></div>
+            </div>
+            <p style="font-size:0.58rem;font-weight:500;color:#854f0b;text-align:center;line-height:1.2;">Firma org.</p>
+            {% endif %}
+          </div>
+
+          <!-- Conector 2→3 -->
+          <div style="flex:1;height:1.5px;background:{% if r.firma_alcalde_carta_en %}#1a6e30{% else %}#e5e7eb{% endif %};margin:0 2px;margin-bottom:16px;"></div>
+
+          <!-- Paso 3: Firma alcalde -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:52px;">
+            {% if r.firma_alcalde_carta_en %}
+            <div style="width:26px;height:26px;border-radius:50%;background:#1a6e30;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p style="font-size:0.58rem;font-weight:500;color:#1a6e30;text-align:center;line-height:1.2;">Firma alcalde</p>
+            {% elif r.firma_org_en %}
+            <div style="width:26px;height:26px;border-radius:50%;background:#ede9fe;border:1.5px solid #c4b5f4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <div style="width:7px;height:7px;border-radius:50%;background:#7c3aed;"></div>
+            </div>
+            <p style="font-size:0.58rem;font-weight:500;color:#4a3880;text-align:center;line-height:1.2;">Firma alcalde</p>
+            {% else %}
+            <div style="width:26px;height:26px;border-radius:50%;background:#f3f4f6;border:1.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <div style="width:7px;height:7px;border-radius:50%;background:#d1d5db;"></div>
+            </div>
+            <p style="font-size:0.58rem;font-weight:500;color:#9ca3af;text-align:center;line-height:1.2;">Firma alcalde</p>
+            {% endif %}
+          </div>
+
+          <!-- Conector 3→4 -->
+          <div style="flex:1;height:1.5px;background:{% if r.estado == 'APROBADA' %}#1a6e30{% else %}#e5e7eb{% endif %};margin:0 2px;margin-bottom:16px;"></div>
+
+          <!-- Paso 4: Aprobada -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:52px;">
+            {% if r.estado == 'APROBADA' %}
+            <div style="width:26px;height:26px;border-radius:50%;background:#1a6e30;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <p style="font-size:0.58rem;font-weight:500;color:#1a6e30;text-align:center;line-height:1.2;">Aprobada</p>
+            {% elif r.estado == 'RECHAZADA' %}
+            <div style="width:26px;height:26px;border-radius:50%;background:#fee2e2;border:1.5px solid #fca5a5;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 2l6 6M8 2l-6 6" stroke="#991b1b" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <p style="font-size:0.58rem;font-weight:500;color:#991b1b;text-align:center;line-height:1.2;">Rechazada</p>
+            {% else %}
+            <div style="width:26px;height:26px;border-radius:50%;background:#f3f4f6;border:1.5px solid #e5e7eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <div style="width:7px;height:7px;border-radius:50%;background:#d1d5db;"></div>
+            </div>
+            <p style="font-size:0.58rem;font-weight:500;color:#9ca3af;text-align:center;line-height:1.2;">Aprobada</p>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+      {% endwith %}
+      {% endif %}
+
       <!-- Acciones -->
       <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-top:10px;border-top:0.5px solid #1c1b1f;">
+        {% if r.tipo_reserva == 'ORGANIZACION' and not r.firma_org_en %}
+        <a href="{% url 'carta_solicitud_recinto' r.pk %}"
+           style="padding:8px 14px;border-radius:8px;font-size:0.72rem;font-weight:500;text-decoration:none;background:#fef3c7;color:#854f0b;border:0.5px solid #fcd34d;">
+          ✍️ Firmar carta
+        </a>
+        {% elif r.tipo_reserva == 'ORGANIZACION' and r.firma_org_en %}
+        <a href="{% url 'carta_preview_pdf' %}?reserva_id={{ r.pk }}" target="_blank" rel="noopener noreferrer"
+           style="padding:8px 14px;border-radius:8px;font-size:0.72rem;font-weight:500;text-decoration:none;background:#f0fdf4;color:#1a6e30;border:0.5px solid #86efac;">
+          📄 Ver carta
+        </a>
+        {% endif %}
         {% if r.metodo_pago == 'TRANSFERENCIA' and r.comprobante_transferencia %}
         <a href="{{ r.comprobante_transferencia.url }}" target="_blank" rel="noopener noreferrer"
            style="padding:8px 14px;border-radius:8px;font-size:0.72rem;font-weight:500;text-decoration:none;background:#e0f2fe;color:#0c5a8a;border:none;">
@@ -93,10 +199,17 @@
         </a>
         {% endif %}
         {% if r.es_editable %}
+        {% if r.tipo_reserva == 'ORGANIZACION' %}
+        <a href="{% url 'editar_reserva_organizacion' r.pk %}"
+           style="padding:8px 14px;border-radius:8px;font-size:0.72rem;font-weight:500;text-decoration:none;background:#e0f2fe;color:#0c5a8a;border:none;">
+          Editar
+        </a>
+        {% else %}
         <a href="{% url 'editar_mi_reserva' r.pk %}"
            style="padding:8px 14px;border-radius:8px;font-size:0.72rem;font-weight:500;text-decoration:none;background:#e0f2fe;color:#0c5a8a;border:none;">
           Editar
         </a>
+        {% endif %}
         {% endif %}
         {% if r.es_cancelable %}
         <button type="button"

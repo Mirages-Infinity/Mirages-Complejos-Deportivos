@@ -166,11 +166,20 @@ def _reserva_generica(request, nombre_cancha, template_name, context_key):
                 ).exists()
 
                 horas_bloqueadas = [b.hora.strftime("%H:%M") for b in bloqueos]
-                horas_reservadas = [r.hora_inicio.strftime("%H:%M") for r in reservas]
+
+                # Genera todos los slots cubiertos por cada reserva (org puede abarcar múltiples horas)
+                horas_reservadas = set()
+                _slot = timedelta(hours=1)
+                for r in reservas:
+                    cursor = datetime.combine(fecha, r.hora_inicio)
+                    fin    = datetime.combine(fecha, r.hora_fin)
+                    while cursor < fin:
+                        horas_reservadas.add(cursor.strftime("%H:%M"))
+                        cursor += _slot
 
                 return JsonResponse({
                     'bloqueos': list(set(horas_bloqueadas)),
-                    'reservadas': list(set(horas_reservadas)),
+                    'reservadas': list(horas_reservadas),
                     'bloqueado_periodo': bloqueado_periodo,
                 })
             except ValueError:
@@ -356,11 +365,12 @@ def check_hora_reservada(request):
     try:
         fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
         hora  = datetime.strptime(hora_str, '%H:%M').time()
-        # Para bloques de 1h el único conflicto posible es inicio idéntico
+        # Detecta solapamiento real: la hora cae dentro del rango de cualquier reserva existente
         qs = Reserva.objects.filter(
             cancha_id=cancha_id,
             fecha=fecha,
-            hora_inicio=hora,
+            hora_inicio__lte=hora,
+            hora_fin__gt=hora,
             estado__in=ESTADOS_OCUPAN_SLOT,
         )
         if reserva_id:
@@ -705,7 +715,9 @@ def crear_reserva_admin(request):
             if BloqueoHorario.objects.select_for_update().filter(cancha=cancha, fecha=fecha, hora=hora_inicio).exists():
                 return JsonResponse({'status': 'error', 'message': 'Ese horario está bloqueado.'}, status=400)
             if Reserva.objects.select_for_update().filter(
-                cancha=cancha, fecha=fecha, hora_inicio=hora_inicio, estado__in=ESTADOS_OCUPAN_SLOT
+                cancha=cancha, fecha=fecha,
+                hora_inicio__lt=hora_fin, hora_fin__gt=hora_inicio,
+                estado__in=ESTADOS_OCUPAN_SLOT,
             ).exists():
                 return JsonResponse({'status': 'error', 'message': 'Ese horario ya está reservado.'}, status=400)
 
@@ -742,118 +754,222 @@ def crear_reserva_admin(request):
         return JsonResponse({'status': 'error', 'message': f'Datos inválidos: {e}'}, status=400)
 
 
-@staff_required
+@login_required
 def crear_reserva_organizacion(request):
-    """Página completa para crear una reserva de organización (requiere firma del alcalde)."""
+    """Reserva de organización: accesible a admins (flujo completo) y a usuarios org (datos pre-cargados)."""
+    _perfil = getattr(request.user, 'perfil', None)
+    _es_admin = request.user.is_staff or request.user.is_superuser
+    _es_org_user = bool(_perfil and _perfil.es_organizacion)
+    if not (_es_admin or _es_org_user):
+        return redirect('inicio')
+
     cancha_id = request.GET.get('cancha_id') or request.POST.get('cancha_id')
     fecha_str = request.GET.get('fecha') or request.POST.get('fecha')
     hora_str = request.GET.get('hora') or request.POST.get('hora')
-
     cancha = get_object_or_404(ConfigCancha, id=cancha_id) if cancha_id else None
 
-    if request.method == 'POST':
-        nombre_org = request.POST.get('nombre_organizacion', '').strip()
-        rep_nombre = request.POST.get('representante_nombre', '').strip()
-        rep_rut = request.POST.get('representante_rut', '').strip()
-        rep_telefono = request.POST.get('representante_telefono', '').strip()
-        rep_email = request.POST.get('representante_email', '').strip()
-        motivo = request.POST.get('motivo', '').strip()
+    # Consumir mensajes de sesión anteriores sin mostrarlos
+    list(messages.get_messages(request))
 
-        errores = []
-        if not nombre_org:
-            errores.append('El nombre de la organización es requerido.')
-        if not rep_nombre:
-            errores.append('El nombre del representante legal es requerido.')
-        rep_rut_norm = normalizar_rut(rep_rut) if rep_rut else ''
-        if rep_rut and not rut_valido(rep_rut_norm):
-            errores.append('El RUT del representante no es válido.')
-        if not rep_email:
-            errores.append('El correo del representante es requerido.')
+    # Datos pre-cargados para usuarios org (no admin)
+    _prefill = {}
+    if _es_org_user and not _es_admin:
+        _prefill = {
+            'nombre_organizacion': _perfil.nombre_organizacion,
+            'representante_nombre': request.user.get_full_name(),
+            'representante_rut': _perfil.rut or '',
+            'representante_telefono': _perfil.telefono or '',
+            'representante_email': request.user.email,
+        }
 
-        # Precio fijo desde la configuración de la cancha (no editable en el formulario)
-        precio_original = cancha.precio if cancha else 0
-        precio_descuento = precio_original // 2
-        if cancha and not cancha.precio:
-            errores.append('Esta cancha no tiene precio configurado. Ve a Panel → Precios para definirlo.')
+    def _ctx_base(extra=None):
+        """Contexto común para el paso 1 (formulario)."""
+        precio_cancha = cancha.precio if cancha else 0
+        orgs_existentes = User.objects.filter(
+            is_staff=False, perfil__es_organizacion=True
+        ).select_related('perfil').order_by('perfil__nombre_organizacion') if _es_admin else []
+        ctx = {
+            'cancha': cancha, 'fecha': fecha_str, 'hora': hora_str,
+            'precio_cancha': precio_cancha, 'precio_descuento': precio_cancha // 2,
+            'orgs_existentes': orgs_existentes, 'step': 'form',
+            'es_org_user': _es_org_user and not _es_admin,
+            'prefill': _prefill,
+        }
+        if extra:
+            ctx.update(extra)
+        return ctx
 
-        fecha = None
-        hora_inicio = None
-        if not fecha_str or not hora_str or not cancha:
-            errores.append('Faltan datos del horario. Vuelve al calendario e intenta de nuevo.')
-        else:
+    def _calcular_hora_fin(fecha, hora_inicio, modo_fin_dia, hora_fin_manual_str):
+        if modo_fin_dia:
+            return cancha.hora_fin
+        if hora_fin_manual_str:
             try:
-                fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
-                hora_inicio = datetime.strptime(hora_str, "%H:%M").time()
+                return datetime.strptime(hora_fin_manual_str, "%H:%M").time()
             except ValueError:
-                errores.append('Fecha u hora inválida.')
+                pass
+        return (datetime.combine(fecha, hora_inicio) + timedelta(minutes=cancha.intervalo_minutos)).time()
 
-        if errores:
-            for e in errores:
-                messages.error(request, e)
-            return render(request, 'panel/crear_reserva_organizacion.html', {
-                'cancha': cancha, 'fecha': fecha_str, 'hora': hora_str, 'form_data': request.POST,
-            })
+    if request.method != 'POST':
+        return render(request, 'panel/crear_reserva_organizacion.html', _ctx_base({'form_data': _prefill}))
 
-        hora_fin_dt = datetime.combine(fecha, hora_inicio) + timedelta(minutes=cancha.intervalo_minutos)
-        hora_fin = hora_fin_dt.time()
+    step = request.POST.get('step', 'preview')
 
-        with transaction.atomic():
-            if BloqueoHorario.objects.select_for_update().filter(cancha=cancha, fecha=fecha, hora=hora_inicio).exists():
-                messages.error(request, 'Ese horario está bloqueado.')
-                return render(request, 'panel/crear_reserva_organizacion.html', {
-                    'cancha': cancha, 'fecha': fecha_str, 'hora': hora_str, 'form_data': request.POST,
-                })
-            if Reserva.objects.select_for_update().filter(
-                cancha=cancha, fecha=fecha, hora_inicio=hora_inicio, estado__in=ESTADOS_OCUPAN_SLOT
-            ).exists():
-                messages.error(request, 'Ese horario ya está reservado.')
-                return render(request, 'panel/crear_reserva_organizacion.html', {
-                    'cancha': cancha, 'fecha': fecha_str, 'hora': hora_str, 'form_data': request.POST,
-                })
+    # Leer datos del formulario
+    nombre_org = request.POST.get('nombre_organizacion', '').strip()
+    rep_nombre = request.POST.get('representante_nombre', '').strip()
+    rep_rut = request.POST.get('representante_rut', '').strip()
+    rep_telefono = request.POST.get('representante_telefono', '').strip()
+    rep_email = request.POST.get('representante_email', '').strip()
+    motivo = request.POST.get('motivo', '').strip()
+    modo_fin_dia = request.POST.get('modo_fin_dia') == '1'
+    hora_fin_manual_str = request.POST.get('hora_fin_manual', '').strip()
 
-            reserva = Reserva.objects.create(
-                cancha=cancha,
-                solicitante=None,
-                solicitante_nombre=rep_nombre,
-                solicitante_email=rep_email,
-                fecha=fecha,
-                hora_inicio=hora_inicio,
-                hora_fin=hora_fin,
-                motivo=motivo,
-                estado='PENDIENTE_ALCALDE',
-                metodo_pago='TARJETA',
-                tipo_reserva='ORGANIZACION',
-                nombre_organizacion=nombre_org,
-                representante_nombre=rep_nombre,
-                representante_rut=rep_rut_norm,
-                representante_telefono=rep_telefono,
-                representante_email=rep_email,
-                precio_original=precio_original,
-                precio_descuento=precio_descuento,
-                gestionado_por=request.user,
-            )
+    # Validar datos
+    errores = []
+    if not nombre_org:
+        errores.append('El nombre de la organización es requerido.')
+    if not rep_nombre:
+        errores.append('El nombre del representante legal es requerido.')
+    rep_rut_norm = normalizar_rut(rep_rut) if rep_rut else ''
+    if rep_rut and not rut_valido(rep_rut_norm):
+        errores.append('El RUT del representante no es válido.')
+    if not rep_email:
+        errores.append('El correo del representante es requerido.')
+    if cancha and not cancha.precio:
+        errores.append('Esta cancha no tiene precio configurado. Ve a Panel → Precios para definirlo.')
 
-        registrar_accion(
+    fecha = None
+    hora_inicio = None
+    if not fecha_str or not hora_str or not cancha:
+        errores.append('Faltan datos del horario. Vuelve al calendario e intenta de nuevo.')
+    else:
+        try:
+            fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+            hora_inicio = datetime.strptime(hora_str, "%H:%M").time()
+        except ValueError:
+            errores.append('Fecha u hora inválida.')
+
+    if errores:
+        return render(request, 'panel/crear_reserva_organizacion.html', _ctx_base({
+            'form_data': request.POST, 'errores': errores,
+        }))
+
+    hora_fin = _calcular_hora_fin(fecha, hora_inicio, modo_fin_dia, hora_fin_manual_str)
+    precio_original = cancha.precio
+    precio_descuento = precio_original // 2
+
+    meses_es = {1:'enero',2:'febrero',3:'marzo',4:'abril',5:'mayo',6:'junio',
+                7:'julio',8:'agosto',9:'septiembre',10:'octubre',11:'noviembre',12:'diciembre'}
+    fecha_carta = f"{timezone.now().day} de {meses_es[timezone.now().month]} de {timezone.now().year}"
+    fecha_res_fmt = f"{fecha.day} de {meses_es[fecha.month]} de {fecha.year}"
+
+    # ── PASO 1 → VISTA PREVIA ──
+    if step == 'preview':
+        from urllib.parse import urlencode
+        preview_params = urlencode({
+            'cancha_id': cancha.pk,
+            'fecha': fecha_str,
+            'hora_inicio': hora_inicio.strftime('%H:%M'),
+            'hora_fin': hora_fin.strftime('%H:%M'),
+            'nombre_org': nombre_org,
+            'rep_nombre': rep_nombre,
+            'rep_rut': rep_rut_norm,
+            'motivo': motivo,
+            'modo_fin_dia': '1' if modo_fin_dia else '0',
+            'nombre_recinto': cancha.nombre,
+        })
+        preview_pdf_url = f"/carta/preview-pdf/?{preview_params}"
+        hora_inicio_fmt = hora_inicio.strftime('%H:%M')
+        hora_fin_fmt = hora_fin.strftime('%H:%M')
+        return render(request, 'panel/crear_reserva_organizacion.html', {
+            'cancha': cancha, 'fecha': fecha_str, 'hora': hora_str,
+            'precio_cancha': precio_original, 'precio_descuento': precio_descuento,
+            'form_data': request.POST,
+            'step': 'preview',
+            'preview_pdf_url': preview_pdf_url,
+            'preview': {
+                'nombre_org': nombre_org,
+                'rep_nombre': rep_nombre,
+                'rep_rut': rep_rut_norm,
+                'rep_telefono': rep_telefono,
+                'rep_email': rep_email,
+                'motivo': motivo,
+                'modo_fin_dia': modo_fin_dia,
+                'hora_inicio': hora_inicio_fmt,
+                'hora_fin': hora_fin_fmt,
+                'fecha_res': fecha_res_fmt,
+                'nombre_recinto': cancha.nombre,
+                'fecha_carta': fecha_carta,
+                'precio_original': precio_original,
+                'precio_descuento': precio_descuento,
+            },
+        })
+
+    # ── PASO 2 → CONFIRMAR + CREAR + FIRMAR ──
+    with transaction.atomic():
+        if BloqueoHorario.objects.select_for_update().filter(cancha=cancha, fecha=fecha, hora=hora_inicio).exists():
+            return render(request, 'panel/crear_reserva_organizacion.html', _ctx_base({
+                'form_data': request.POST,
+                'errores': ['Ese horario está bloqueado. Elige otro.'],
+            }))
+        if Reserva.objects.select_for_update().filter(
+            cancha=cancha, fecha=fecha,
+            hora_inicio__lt=hora_fin, hora_fin__gt=hora_inicio,
+            estado__in=ESTADOS_OCUPAN_SLOT
+        ).exists():
+            return render(request, 'panel/crear_reserva_organizacion.html', _ctx_base({
+                'form_data': request.POST,
+                'errores': ['Ese horario (o parte del rango) ya está reservado.'],
+            }))
+
+        # Org user crea su propia reserva: se vincula a su cuenta y firma la carta después
+        es_autogestion = _es_org_user and not _es_admin
+        reserva = Reserva.objects.create(
+            cancha=cancha,
+            solicitante=request.user if es_autogestion else None,
+            solicitante_nombre=rep_nombre,
+            solicitante_email=rep_email,
+            fecha=fecha,
+            hora_inicio=hora_inicio,
+            hora_fin=hora_fin,
+            motivo=motivo,
+            estado='PENDIENTE_ALCALDE',
+            metodo_pago='TARJETA',
+            tipo_reserva='ORGANIZACION',
+            nombre_organizacion=nombre_org,
+            representante_nombre=rep_nombre,
+            representante_rut=rep_rut_norm,
+            representante_telefono=rep_telefono,
+            representante_email=rep_email,
+            precio_original=precio_original,
+            precio_descuento=precio_descuento,
+            gestionado_por=None if es_autogestion else request.user,
+            firma_org_en=None if es_autogestion else timezone.now(),
+        )
+
+    registrar_accion(
+        request.user,
+        "Creó reserva de organización",
+        f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')}–{hora_fin.strftime('%H:%M')} "
+        f"— Org: {nombre_org} — Pendiente firma alcalde",
+    )
+
+    _fecha_fmt = f"{fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')}–{hora_fin.strftime('%H:%M')}"
+    notificar_admins(
+        'RESERVA_PENDIENTE',
+        f'Nueva solicitud: {nombre_org}',
+        f'{nombre_org} solicitó {cancha.nombre} el {_fecha_fmt}. Pendiente de firma para continuar el flujo.',
+        reserva=reserva,
+    )
+    if es_autogestion:
+        crear_notificacion_reserva(
             request.user,
-            "Creó reserva de organización",
-            f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')} "
-            f"— Org: {nombre_org} — Pendiente firma alcalde",
+            'RESERVA_PENDIENTE',
+            'Solicitud de reserva creada',
+            f'Tu solicitud para {cancha.nombre} el {_fecha_fmt} fue creada. Firma la carta para que el alcalde pueda aprobarla.',
+            reserva=reserva,
         )
-        messages.success(
-            request,
-            f'Reserva creada para {nombre_org}. Pendiente de firma del alcalde.'
-        )
-        return redirect('panel_reservas')
-
-    precio_cancha = cancha.precio if cancha else 0
-    return render(request, 'panel/crear_reserva_organizacion.html', {
-        'cancha': cancha,
-        'fecha': fecha_str,
-        'hora': hora_str,
-        'form_data': {},
-        'precio_cancha': precio_cancha,
-        'precio_descuento': precio_cancha // 2,
-    })
+    return redirect('carta_solicitud_recinto', reserva_id=reserva.pk)
 
 
 @login_required
@@ -996,12 +1112,17 @@ def finalizar_reserva_cancha(request):
                 existe_reserva = Reserva.objects.select_for_update().filter(
                     cancha=cancha,
                     fecha=fecha,
-                    hora_inicio=hora_inicio,
+                    hora_inicio__lt=hora_fin,
+                    hora_fin__gt=hora_inicio,
                     estado__in=ESTADOS_OCUPAN_SLOT,
                 ).exists()
 
                 if existe_bloqueo or existe_reserva:
                     return JsonResponse({'status': 'error', 'message': 'El horario ya no está disponible.'}, status=400)
+
+                # Detectar si el solicitante es perfil de organización
+                perfil_solicitante = getattr(request.user, 'perfil', None) if not admin_override else None
+                es_org_user = bool(perfil_solicitante and perfil_solicitante.es_organizacion)
 
                 reserva = Reserva.objects.create(
                     cancha=cancha,
@@ -1015,6 +1136,14 @@ def finalizar_reserva_cancha(request):
                     metodo_pago=metodo_pago,
                     comprobante_transferencia=comprobante if metodo_pago == 'TRANSFERENCIA' else None,
                     gestionado_por=request.user if admin_override else None,
+                    tipo_reserva='ORGANIZACION' if es_org_user else 'PERSONAL',
+                    nombre_organizacion=perfil_solicitante.nombre_organizacion if es_org_user else '',
+                    representante_nombre=request.user.get_full_name() if es_org_user else '',
+                    representante_rut=perfil_solicitante.rut or '' if es_org_user else '',
+                    representante_telefono=perfil_solicitante.telefono or '' if es_org_user else '',
+                    representante_email=request.user.email if es_org_user else '',
+                    precio_original=cancha.precio if es_org_user else None,
+                    precio_descuento=cancha.precio // 2 if es_org_user and cancha.precio else None,
                 )
 
                 # Marcar cupón como usado dentro de la misma transacción
@@ -1430,7 +1559,10 @@ def mis_reservas(request):
     for r in page_obj:
         dt_naive = datetime.combine(r.fecha, r.hora_inicio)
         inicio_reserva = timezone.make_aware(dt_naive)
-        r.es_editable   = (r.estado == 'APROBADA'  and inicio_reserva > limite_edicion)
+        if r.tipo_reserva == 'ORGANIZACION':
+            r.es_editable = (r.firma_alcalde_carta_en is None and r.estado not in ('RECHAZADA', 'CANCELADA'))
+        else:
+            r.es_editable = (r.estado == 'APROBADA' and inicio_reserva > limite_edicion)
         
         if request.user.is_staff or request.user.is_superuser:
             r.es_cancelable = (r.estado in ('PENDIENTE', 'APROBADA'))
@@ -1442,6 +1574,127 @@ def mis_reservas(request):
         'estado_filtro': estado_filtro,
         'conteos': conteos,
         'total': qs.count()
+    })
+
+
+@login_required
+def editar_reserva_organizacion(request, reserva_id):
+    """Edición de reserva de organización: resetea firmas y redirige a carta."""
+    reserva = get_object_or_404(Reserva, pk=reserva_id, tipo_reserva='ORGANIZACION')
+
+    _perfil   = getattr(request.user, 'perfil', None)
+    _es_admin = request.user.is_staff or request.user.is_superuser
+    _es_prop  = reserva.solicitante == request.user
+    _es_org   = bool(_perfil and _perfil.es_organizacion and _es_prop)
+
+    if not (_es_admin or _es_prop):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+
+    if reserva.firma_alcalde_carta_en:
+        messages.error(request, 'La reserva ya fue firmada por el alcalde y no puede editarse.')
+        return redirect('mis_reservas')
+
+    cancha = reserva.cancha
+
+    if request.method == 'POST':
+        nombre_org     = request.POST.get('nombre_organizacion', '').strip()
+        rep_nombre     = request.POST.get('representante_nombre', '').strip()
+        rep_rut        = request.POST.get('representante_rut', '').strip()
+        rep_telefono   = request.POST.get('representante_telefono', '').strip()
+        rep_email      = request.POST.get('representante_email', '').strip()
+        motivo         = request.POST.get('motivo', '').strip()
+        modo_fin_dia   = request.POST.get('modo_fin_dia') == '1'
+        hora_fin_manual= request.POST.get('hora_fin_manual', '').strip()
+
+        errores = []
+        if not nombre_org:
+            errores.append('El nombre de la organización es requerido.')
+        if not rep_nombre:
+            errores.append('El nombre del representante es requerido.')
+        if not rep_email:
+            errores.append('El correo del representante es requerido.')
+
+        rep_rut_norm = normalizar_rut(rep_rut) if rep_rut else ''
+        if rep_rut and not rut_valido(rep_rut_norm):
+            errores.append('El RUT del representante no es válido.')
+
+        if errores:
+            return render(request, 'panel/crear_reserva_organizacion.html', {
+                'cancha': cancha, 'fecha': reserva.fecha.strftime('%Y-%m-%d'),
+                'hora': reserva.hora_inicio.strftime('%H:%M'),
+                'precio_cancha': cancha.precio if cancha else 0,
+                'precio_descuento': (cancha.precio // 2) if cancha else 0,
+                'orgs_existentes': [], 'step': 'form',
+                'es_org_user': _es_org and not _es_admin,
+                'editando': True, 'reserva_pk': reserva.pk,
+                'prefill': request.POST, 'form_data': request.POST,
+                'errores': errores,
+            })
+
+        # Calcular nueva hora_fin
+        if modo_fin_dia and cancha:
+            hora_fin = cancha.hora_fin
+        elif hora_fin_manual:
+            try:
+                hora_fin = datetime.strptime(hora_fin_manual, '%H:%M').time()
+            except ValueError:
+                hora_fin = reserva.hora_fin
+        else:
+            hora_fin = reserva.hora_fin
+
+        # Actualizar reserva y borrar firmas
+        reserva.nombre_organizacion      = nombre_org
+        reserva.representante_nombre     = rep_nombre
+        reserva.representante_rut        = rep_rut_norm
+        reserva.representante_telefono   = rep_telefono
+        reserva.representante_email      = rep_email
+        reserva.motivo                   = motivo
+        reserva.hora_fin                 = hora_fin
+        reserva.firma_org_en             = None
+        reserva.firma_alcalde_carta_en   = None
+        reserva.firmas_carta             = None
+        reserva.save()
+
+        registrar_accion(request.user, 'Editó reserva de organización',
+                         f'Reserva #{reserva.pk} — firmas reiniciadas')
+        _fecha_fmt = f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}–{reserva.hora_fin.strftime("%H:%M")}'
+        notificar_admins(
+            'RESERVA_PENDIENTE',
+            f'Solicitud editada: {reserva.nombre_organizacion}',
+            f'{reserva.nombre_organizacion} editó su solicitud para '
+            f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} el {_fecha_fmt}. '
+            f'Las firmas fueron reiniciadas.',
+            reserva=reserva,
+        )
+        notificar_alcaldes(
+            'RESERVA_PENDIENTE',
+            f'Solicitud editada: {reserva.nombre_organizacion}',
+            f'{reserva.nombre_organizacion} modificó su solicitud para '
+            f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} el {_fecha_fmt}. '
+            f'Deberá firmarse nuevamente.',
+            reserva=reserva,
+        )
+        return redirect('carta_solicitud_recinto', reserva_id=reserva.pk)
+
+    # GET — form pre-llenado con datos actuales
+    prefill = {
+        'nombre_organizacion':   reserva.nombre_organizacion,
+        'representante_nombre':  reserva.representante_nombre,
+        'representante_rut':     reserva.representante_rut,
+        'representante_telefono':reserva.representante_telefono,
+        'representante_email':   reserva.representante_email,
+        'motivo':                reserva.motivo,
+    }
+    return render(request, 'panel/crear_reserva_organizacion.html', {
+        'cancha': cancha, 'fecha': reserva.fecha.strftime('%Y-%m-%d'),
+        'hora': reserva.hora_inicio.strftime('%H:%M'),
+        'precio_cancha': cancha.precio if cancha else 0,
+        'precio_descuento': (cancha.precio // 2) if cancha else 0,
+        'orgs_existentes': [], 'step': 'form',
+        'es_org_user': _es_org and not _es_admin,
+        'editando': True, 'reserva_pk': reserva.pk,
+        'prefill': prefill, 'form_data': prefill,
     })
 
 
@@ -2174,7 +2427,9 @@ def alcalde_firmar_reserva(request, reserva_id):
     reserva = get_object_or_404(Reserva, pk=reserva_id, estado='PENDIENTE_ALCALDE')
     reserva.estado = 'APROBADA'
     reserva.gestionado_por = request.user
-    reserva.save(update_fields=['estado', 'gestionado_por', 'actualizado_en'])
+    if not reserva.firma_alcalde_carta_en:
+        reserva.firma_alcalde_carta_en = timezone.now()
+    reserva.save(update_fields=['estado', 'gestionado_por', 'firma_alcalde_carta_en', 'actualizado_en'])
 
     RegistroTesoreria.objects.create(reserva=reserva)
 
@@ -2183,6 +2438,24 @@ def alcalde_firmar_reserva(request, reserva_id):
         accion='Alcalde firmó reserva de organización',
         detalles=f'Reserva #{reserva.pk} — {reserva.nombre_organizacion} — '
                  f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}',
+    )
+    _fecha_fmt = f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}–{reserva.hora_fin.strftime("%H:%M")}'
+    if reserva.solicitante:
+        crear_notificacion_reserva(
+            reserva.solicitante,
+            'RESERVA_APROBADA',
+            '¡Reserva aprobada!',
+            f'Tu solicitud de {reserva.nombre_organizacion} para '
+            f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} '
+            f'el {_fecha_fmt} fue aprobada por el alcalde.',
+            reserva=reserva,
+        )
+    notificar_admins(
+        'RESERVA_APROBADA',
+        f'Reserva aprobada: {reserva.nombre_organizacion}',
+        f'El alcalde aprobó la solicitud de {reserva.nombre_organizacion} para '
+        f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} el {_fecha_fmt}.',
+        reserva=reserva,
     )
     messages.success(request, f'Reserva de {reserva.nombre_organizacion} firmada y aprobada.')
     return redirect('perfil_alcalde')
@@ -2203,6 +2476,26 @@ def alcalde_rechazar_reserva(request, reserva_id):
         admin=request.user,
         accion='Alcalde rechazó reserva de organización',
         detalles=f'Reserva #{reserva.pk} — {reserva.nombre_organizacion} — Motivo: {motivo_rechazo}',
+    )
+    _fecha_fmt = f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}–{reserva.hora_fin.strftime("%H:%M")}'
+    if reserva.solicitante:
+        crear_notificacion_reserva(
+            reserva.solicitante,
+            'RESERVA_RECHAZADA',
+            'Reserva rechazada',
+            f'Tu solicitud de {reserva.nombre_organizacion} para '
+            f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} '
+            f'el {_fecha_fmt} fue rechazada.'
+            + (f' Motivo: {motivo_rechazo}' if motivo_rechazo else ''),
+            reserva=reserva,
+        )
+    notificar_admins(
+        'RESERVA_RECHAZADA',
+        f'Reserva rechazada: {reserva.nombre_organizacion}',
+        f'El alcalde rechazó la solicitud de {reserva.nombre_organizacion} para '
+        f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} el {_fecha_fmt}.'
+        + (f' Motivo: {motivo_rechazo}' if motivo_rechazo else ''),
+        reserva=reserva,
     )
     messages.success(request, f'Reserva de {reserva.nombre_organizacion} rechazada.')
     return redirect('perfil_alcalde')
@@ -2511,15 +2804,19 @@ def panel_usuarios(request):
         is_staff=False, perfil__es_tesorero=True
     ).select_related('perfil').order_by('first_name', 'last_name')
 
-    # Usuarios normales (sin ningún rol especial)
-    usuarios = User.objects.filter(
+    # Usuarios normales y organizaciones (sin rol especial)
+    base_qs = User.objects.filter(
         is_staff=False, perfil__es_alcalde=False, perfil__es_tesorero=False
     ).select_related('perfil').order_by('-date_joined')
+
+    usuarios_personales = base_qs.filter(perfil__es_organizacion=False)
+    organizaciones = base_qs.filter(perfil__es_organizacion=True)
 
     admins = User.objects.filter(is_staff=True).select_related('perfil').order_by('-date_joined')
     total_superusuarios = User.objects.filter(is_superuser=True).count()
     return render(request, 'panel/usuarios.html', {
-        'usuarios': usuarios,
+        'usuarios': usuarios_personales,
+        'organizaciones': organizaciones,
         'admins': admins,
         'alcaldes': alcaldes,
         'tesoreros': tesoreros,
@@ -2553,13 +2850,19 @@ def panel_crear_usuario(request):
         rut = normalizar_rut(rut_ingresado)
         clave = request.POST.get('contrasena', '')
         clave2 = request.POST.get('contrasena2', '')
-        # Si hay rol_fijo, ese manda; si no, leer del formulario (solo usuario/admin)
-        rol = rol_fijo if rol_fijo else request.POST.get('rol', 'usuario')
+        tipo_perfil = request.POST.get('tipo_perfil', 'personal')
+        es_organizacion = (tipo_perfil == 'organizacion')
+        nombre_organizacion = request.POST.get('nombre_organizacion', '').strip()
+        # Organizaciones siempre son rol usuario; si hay rol_fijo, ese manda
+        rol = rol_fijo if rol_fijo else ('usuario' if es_organizacion else request.POST.get('rol', 'usuario'))
 
         errores = {}
 
+        if es_organizacion and not nombre_organizacion:
+            errores['nombre_organizacion'] = 'El nombre de la organización es obligatorio.'
         if not nombre:
-            errores['nombre'] = 'El nombre es obligatorio.'
+            lbl = 'El nombre del representante legal' if es_organizacion else 'El nombre'
+            errores['nombre'] = f'{lbl} es obligatorio.'
         if not email:
             errores['email'] = 'El correo es obligatorio.'
         elif User.objects.filter(email=email).exists():
@@ -2579,6 +2882,7 @@ def panel_crear_usuario(request):
             'errores': errores, 'datos': request.POST,
             'total_superusuarios': User.objects.filter(is_superuser=True).count(),
             'max_superusuarios': MAX_SUPERUSUARIOS, 'rol_fijo': rol_fijo,
+            'tipo_perfil': tipo_perfil,
         }
 
         if errores:
@@ -2596,8 +2900,12 @@ def panel_crear_usuario(request):
             rut=rut if rut_valido(rut) else None,
             es_alcalde=(rol == 'alcalde'),
             es_tesorero=(rol == 'tesorero'),
+            es_organizacion=es_organizacion,
+            nombre_organizacion=nombre_organizacion if es_organizacion else '',
         )
         rol_display = {'admin': 'Administrador', 'alcalde': 'Alcalde', 'tesorero': 'Tesorero'}.get(rol, 'Usuario')
+        if es_organizacion:
+            rol_display = f'Organización ({nombre_organizacion})'
         registrar_accion(request.user, f"Creó {rol_display.lower()} {email}", f"Nombre: {nombre} {apellido}")
         messages.success(request, f'{rol_display} creado correctamente.')
         return redirect('panel_usuarios')
@@ -2647,8 +2955,16 @@ def panel_editar_usuario(request, usuario_id):
         usuario.username = email
         usuario.save()
 
+        es_organizacion = request.POST.get('es_organizacion') in ('on', '1', 'true')
+        nombre_organizacion = request.POST.get('nombre_organizacion', '').strip()
+        if es_organizacion and not nombre_organizacion:
+            messages.error(request, 'El nombre de la organización es obligatorio.')
+            return render(request, 'panel/editar_usuario.html', ctx)
+
         perfil_obj.telefono = telefono
         perfil_obj.rut = rut if rut_valido(rut) else perfil_obj.rut
+        perfil_obj.es_organizacion = es_organizacion
+        perfil_obj.nombre_organizacion = nombre_organizacion if es_organizacion else ''
         perfil_obj.save()
 
         registrar_accion(request.user, f'Editó usuario {usuario.username}', 'Datos personales actualizados.')
@@ -2937,7 +3253,7 @@ def crear_notificacion_reserva(user, tipo, titulo, mensaje, reserva=None):
         reserva=reserva
     )
 
-def notificar_admins(tipo, titulo, mensaje):
+def notificar_admins(tipo, titulo, mensaje, reserva=None):
     """Crea una notificación para todos los administradores del sistema."""
     admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
     for admin in admins:
@@ -2945,6 +3261,440 @@ def notificar_admins(tipo, titulo, mensaje):
             user=admin,
             tipo=tipo,
             titulo=titulo,
-            mensaje=mensaje
+            mensaje=mensaje,
+            reserva=reserva,
         )
     return True
+
+
+def notificar_alcaldes(tipo, titulo, mensaje, reserva=None):
+    """Crea una notificación para todos los usuarios con perfil de alcalde."""
+    alcaldes = User.objects.filter(perfil__es_alcalde=True)
+    for alcalde in alcaldes:
+        Notificacion.objects.create(
+            user=alcalde,
+            tipo=tipo,
+            titulo=titulo,
+            mensaje=mensaje,
+            reserva=reserva,
+        )
+    return True
+
+
+@login_required
+def carta_solicitud_recinto(request, reserva_id):
+    """Carta de solicitud de recinto con flujo de dos firmas: organización → alcalde."""
+    reserva = get_object_or_404(Reserva, pk=reserva_id, tipo_reserva='ORGANIZACION')
+
+    perfil = getattr(request.user, 'perfil', None)
+    es_admin = request.user.is_staff or request.user.is_superuser
+    es_alcalde = bool(perfil and perfil.es_alcalde)
+    es_org_propia = bool(perfil and perfil.es_organizacion and reserva.solicitante == request.user)
+
+    if not (es_admin or es_alcalde or es_org_propia):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+
+        if accion == 'firma_org' and (es_admin or es_org_propia) and not reserva.firma_org_en:
+            reserva.firma_org_en = timezone.now()
+            reserva.save(update_fields=['firma_org_en'])
+            registrar_accion(
+                request.user,
+                'Firma de organización en carta',
+                f'Reserva #{reserva.pk} — {reserva.nombre_organizacion} — '
+                f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}',
+            )
+            notificar_alcaldes(
+                'RESERVA_PENDIENTE',
+                f'Carta firmada: {reserva.nombre_organizacion}',
+                f'{reserva.nombre_organizacion} firmó la carta de solicitud para '
+                f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} el '
+                f'{reserva.fecha.strftime("%d/%m/%Y")}. Pendiente de tu firma.',
+                reserva=reserva,
+            )
+
+        elif accion == 'firma_alcalde' and es_alcalde and reserva.firma_org_en and not reserva.firma_alcalde_carta_en:
+            reserva.firma_alcalde_carta_en = timezone.now()
+            reserva.save(update_fields=['firma_alcalde_carta_en'])
+
+        return redirect('carta_solicitud_recinto', reserva_id=reserva.pk)
+
+    nombre_recinto = reserva.cancha.nombre if reserva.cancha else (reserva.salon.nombre if reserva.salon else '')
+    modo_fin_dia = bool(reserva.cancha and reserva.hora_fin >= reserva.cancha.hora_fin)
+
+    meses_es = {
+        1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril', 5: 'mayo', 6: 'junio',
+        7: 'julio', 8: 'agosto', 9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre',
+    }
+    hoy = timezone.now()
+    fecha_carta = f"{hoy.day} de {meses_es[hoy.month]} de {hoy.year}"
+
+    return render(request, 'carta_solicitud_recinto.html', {
+        'reserva': reserva,
+        'nombre_recinto': nombre_recinto,
+        'modo_fin_dia': modo_fin_dia,
+        'fecha_carta': fecha_carta,
+        'es_admin': es_admin,
+        'es_alcalde': es_alcalde,
+        'es_org_propia': es_org_propia,
+    })
+
+
+def _carta_pdf_cabecera():
+    """Devuelve los flowables de la cabecera institucional (escudo | texto | logo)."""
+    import os
+    from django.conf import settings as djsettings
+    from reportlab.lib.units import cm
+    from reportlab.lib import colors
+    from reportlab.platypus import Table, TableStyle, Image as RLImage, Paragraph, Spacer
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_LEFT
+
+    negro = colors.black
+    escudo_path = os.path.join(djsettings.BASE_DIR, 'static', 'escudo_empedrado.jpeg')
+    logo_path   = os.path.join(djsettings.BASE_DIR, 'static', 'logo_empedrado.jpeg')
+
+    est_titulo = ParagraphStyle('cab_t', fontName='Helvetica-Bold', fontSize=8,   leading=11, textColor=negro, alignment=TA_LEFT)
+    est_sub    = ParagraphStyle('cab_s', fontName='Helvetica',      fontSize=7.5, leading=11, textColor=negro, alignment=TA_LEFT)
+
+    escudo_cell = RLImage(escudo_path, width=1.5*cm, height=1.8*cm) if os.path.exists(escudo_path) else Spacer(1.5*cm, 1.8*cm)
+
+    texto_cell = [
+        Paragraph('I. MUNICIPALIDAD DE EMPEDRADO', est_titulo),
+        Paragraph('REGIÓN DEL MAULE - CHILE',       est_sub),
+        Paragraph('ADMINISTRACIÓN MUNICIPAL',        est_sub),
+    ]
+
+    logo_cell = RLImage(logo_path, width=1.8*cm, height=1.8*cm) if os.path.exists(logo_path) else Spacer(1.8*cm, 1.8*cm)
+
+    cabecera = Table([[escudo_cell, texto_cell, logo_cell]], colWidths=[1.8*cm, 9.2*cm, 5*cm])
+    cabecera.setStyle(TableStyle([
+        ('VALIGN',        (0,0), (-1,-1), 'MIDDLE'),
+        ('ALIGN',         (2,0), (2,0),   'RIGHT'),
+        ('LEFTPADDING',   (1,0), (1,0),   6),
+        ('RIGHTPADDING',  (1,0), (1,0),   0),
+        ('LINEBELOW',     (0,0), (-1,-1), 0.5, negro),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+    ]))
+
+    return [cabecera, Spacer(1, 0.6*cm)]
+
+
+def carta_preview_pdf(request):
+    """PDF de carta. Con reserva_id carga desde DB mostrando firmas reales.
+    Sin reserva_id genera preview en blanco desde params GET."""
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    from django.http import HttpResponse
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.units import cm
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_RIGHT, TA_JUSTIFY, TA_CENTER
+    import os
+
+    perfil = getattr(request.user, 'perfil', None)
+    es_admin    = request.user.is_staff or request.user.is_superuser
+    es_alcalde  = bool(perfil and perfil.es_alcalde)
+    es_tesorero = bool(perfil and perfil.es_tesorero)
+    es_org      = bool(perfil and perfil.es_organizacion)
+    if not (es_admin or es_alcalde or es_tesorero or es_org):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+
+    # ── Fuente de datos ──
+    reserva_id_str = request.GET.get('reserva_id')
+    firma_org_en = None
+    firma_alc_en = None
+
+    if reserva_id_str:
+        # Carga real desde DB con firmas
+        try:
+            reserva = Reserva.objects.get(pk=int(reserva_id_str), tipo_reserva='ORGANIZACION')
+        except (Reserva.DoesNotExist, ValueError):
+            from django.http import HttpResponseNotFound
+            return HttpResponseNotFound()
+        if not (es_admin or es_alcalde or es_tesorero or (es_org and reserva.solicitante == request.user)):
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden()
+        nombre_org      = reserva.nombre_organizacion or ''
+        rep_nombre      = reserva.representante_nombre or ''
+        rep_rut         = reserva.representante_rut or ''
+        motivo          = reserva.motivo or ''
+        nombre_recinto  = (reserva.cancha.nombre if reserva.cancha else
+                           reserva.salon.nombre if reserva.salon else 'el recinto municipal')
+        fecha_reserva   = reserva.fecha.strftime("%d/%m/%Y")
+        hora_inicio_str = reserva.hora_inicio.strftime("%H:%M")
+        hora_fin_str    = reserva.hora_fin.strftime("%H:%M")
+        modo_fin_dia    = bool(reserva.cancha and reserva.hora_fin >= reserva.cancha.hora_fin)
+        firma_org_en    = reserva.firma_org_en
+        firma_alc_en    = reserva.firma_alcalde_carta_en
+    else:
+        # Preview desde params GET (flujo crear reserva)
+        fecha_str       = request.GET.get('fecha', '')
+        hora_inicio_str = request.GET.get('hora_inicio', '')
+        hora_fin_str    = request.GET.get('hora_fin', '')
+        nombre_org      = request.GET.get('nombre_org', '')
+        rep_nombre      = request.GET.get('rep_nombre', '')
+        rep_rut         = request.GET.get('rep_rut', '')
+        motivo          = request.GET.get('motivo', '')
+        modo_fin_dia    = request.GET.get('modo_fin_dia') == '1'
+        nombre_recinto  = request.GET.get('nombre_recinto', 'el recinto municipal')
+        try:
+            from datetime import datetime as dt
+            fecha_reserva = dt.strptime(fecha_str, "%Y-%m-%d").date().strftime("%d/%m/%Y")
+        except (ValueError, TypeError):
+            fecha_reserva = fecha_str
+
+    meses_es = {1:'enero',2:'febrero',3:'marzo',4:'abril',5:'mayo',6:'junio',
+                7:'julio',8:'agosto',9:'septiembre',10:'octubre',11:'noviembre',12:'diciembre'}
+    hoy = timezone.now()
+    fecha_carta = f"{hoy.day} de {meses_es[hoy.month]} de {hoy.year}"
+
+    bloque_horario = (
+        f"desde las <b>{hora_inicio_str}</b> horas hasta el cierre del recinto"
+        if modo_fin_dia else
+        f"desde las <b>{hora_inicio_str}</b> hasta las <b>{hora_fin_str}</b> horas"
+    )
+    motivo_txt = motivo if motivo else '…………………………………………………………………………'
+    cuerpo_txt = (
+        f"Junto con saludarlos espero que se encuentren bien, vengo a solicitar recinto "
+        f"específicamente <b>{nombre_recinto}</b>, el día <b>{fecha_reserva}</b> {bloque_horario}, "
+        f"con motivo de <b>{motivo_txt}</b>, por lo cual nos comprometemos a entregar el "
+        f"recinto en las condiciones adecuadas y limpia posterior al uso de nuestro evento."
+    )
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="carta.pdf"'
+    doc = SimpleDocTemplate(
+        response, pagesize=LETTER,
+        leftMargin=3*cm, rightMargin=3*cm, topMargin=2*cm, bottomMargin=3*cm,
+    )
+
+    azul      = colors.HexColor('#1a3a6b')
+    negro     = colors.black
+    gris      = colors.HexColor('#6b7280')
+    gris_claro = colors.HexColor('#9ca3af')
+
+    base        = ParagraphStyle('base',  fontName='Times-Roman',  fontSize=11, leading=18, textColor=negro)
+    est_fecha   = ParagraphStyle('fecha', parent=base, alignment=TA_RIGHT, fontSize=11)
+    est_dest    = ParagraphStyle('dest',  parent=base, fontName='Times-Bold', textColor=azul, fontSize=11, leading=17)
+    est_cuerpo  = ParagraphStyle('cuerpo',parent=base, alignment=TA_JUSTIFY, firstLineIndent=42, fontSize=11, leading=20)
+    est_fn      = ParagraphStyle('fn',    fontName='Times-Bold',   fontSize=10, leading=14, alignment=TA_CENTER, textColor=negro)
+    est_fs      = ParagraphStyle('fs',    fontName='Times-Roman',  fontSize=9,  leading=13, alignment=TA_CENTER, textColor=gris)
+    est_fn_gris = ParagraphStyle('fng',   fontName='Times-Roman',  fontSize=10, leading=14, alignment=TA_CENTER, textColor=gris_claro)
+    est_fs_gris = ParagraphStyle('fsg',   fontName='Times-Roman',  fontSize=9,  leading=13, alignment=TA_CENTER, textColor=gris_claro)
+
+    sello_path = os.path.join(settings.BASE_DIR, 'static', 'sello_municipalidad.jpeg')
+    sello_ok   = os.path.exists(sello_path)
+
+    def _bloque(firmado, fecha_firma, n1, n2, n3):
+        items = []
+        t = Table([['']], colWidths=[7*cm])
+        if firmado:
+            items.append(RLImage(sello_path, width=2.8*cm, height=2.8*cm) if sello_ok else Spacer(1, 2.8*cm))
+            items.append(Spacer(1, 4))
+            t.setStyle(TableStyle([('LINEABOVE', (0,0), (-1,-1), 0.8, negro)]))
+            items += [t, Spacer(1, 5), Paragraph(n1, est_fn)]
+            if n2: items.append(Paragraph(n2, est_fs))
+            if n3: items.append(Paragraph(n3, est_fs))
+            if fecha_firma:
+                items += [Spacer(1, 3), Paragraph(
+                    f"Firmado el {fecha_firma.strftime('%d/%m/%Y a las %H:%M')}h", est_fs_gris)]
+        else:
+            t.setStyle(TableStyle([('LINEABOVE', (0,0), (-1,-1), 0.6, gris_claro)]))
+            items += [Spacer(1, 2.2*cm), t, Spacer(1, 5), Paragraph(n1, est_fn_gris)]
+            if n2: items.append(Paragraph(n2, est_fs_gris))
+            if n3: items.append(Paragraph(n3, est_fs_gris))
+        return items
+
+    rut_rep   = f"RUT: {rep_rut}" if rep_rut else ''
+    org_items = _bloque(bool(firma_org_en), firma_org_en,
+                        rep_nombre or 'Representante Legal', rut_rep, nombre_org)
+    alc_items = _bloque(bool(firma_alc_en), firma_alc_en,
+                        'Carlos Correa Miños', 'Alcalde', 'I. Municipalidad de Empedrado')
+
+    firma_tabla = Table([[org_items, alc_items]], colWidths=[8*cm, 8*cm])
+    firma_tabla.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'BOTTOM'),
+        ('ALIGN',  (0,0), (-1,-1), 'CENTER'),
+    ]))
+
+    story = _carta_pdf_cabecera()
+    story += [
+        Paragraph(f"Empedrado, {fecha_carta}", est_fecha),
+        Spacer(1, 0.8*cm),
+        Paragraph("SR. CARLOS CORREA MIÑOS", est_dest),
+        Paragraph("ALCALDE", est_dest),
+        Paragraph("ILUSTRE MUNICIPALIDAD DE EMPEDRADO", est_dest),
+        Spacer(1, 0.9*cm),
+        Paragraph(cuerpo_txt, est_cuerpo),
+        Spacer(1, 0.5*cm),
+        Paragraph("Sin más que agregar y esperando una positiva respuesta le saluda atte.", est_cuerpo),
+        Spacer(1, 1.4*cm),
+        firma_tabla,
+    ]
+    doc.build(story)
+    return response
+
+
+def carta_solicitud_pdf(request, reserva_id):
+    """Genera y descarga la carta de solicitud de recinto como PDF usando ReportLab."""
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    from django.http import HttpResponse
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.lib.units import cm
+    from reportlab.lib import colors
+    from reportlab.platypus import (
+        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage,
+    )
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.enums import TA_RIGHT, TA_LEFT, TA_CENTER, TA_JUSTIFY
+    import os
+
+    reserva = get_object_or_404(Reserva, pk=reserva_id, tipo_reserva='ORGANIZACION')
+
+    perfil = getattr(request.user, 'perfil', None)
+    es_admin = request.user.is_staff or request.user.is_superuser
+    es_alcalde = bool(perfil and perfil.es_alcalde)
+    es_org_propia = bool(perfil and perfil.es_organizacion and reserva.solicitante == request.user)
+    if not (es_admin or es_alcalde or es_org_propia):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+
+    # ── Respuesta HTTP ──
+    response = HttpResponse(content_type='application/pdf')
+    nombre_archivo = f"carta_solicitud_{reserva.nombre_organizacion.replace(' ', '_')}_{reserva.fecha}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{nombre_archivo}"'
+
+    # ── Documento ──
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=LETTER,
+        leftMargin=3 * cm, rightMargin=3 * cm,
+        topMargin=2 * cm, bottomMargin=3 * cm,
+    )
+
+    # ── Estilos ──
+    azul = colors.HexColor('#1a3a6b')
+    negro = colors.black
+    gris = colors.HexColor('#6b7280')
+
+    base = ParagraphStyle('base', fontName='Times-Roman', fontSize=11, leading=18, textColor=negro)
+    est_fecha = ParagraphStyle('fecha', parent=base, alignment=TA_RIGHT, textColor=negro, fontSize=11)
+    est_dest = ParagraphStyle('dest', parent=base, fontName='Times-Bold', textColor=azul, fontSize=11, leading=17)
+    est_cuerpo = ParagraphStyle('cuerpo', parent=base, alignment=TA_JUSTIFY, firstLineIndent=42, fontSize=11, leading=20)
+    est_firma_nombre = ParagraphStyle('firma_n', fontName='Times-Bold', fontSize=10, leading=14, alignment=TA_CENTER, textColor=negro)
+    est_firma_sub = ParagraphStyle('firma_s', fontName='Times-Roman', fontSize=9, leading=13, alignment=TA_CENTER, textColor=gris)
+
+    # ── Contenido ──
+    meses_es = {1:'enero',2:'febrero',3:'marzo',4:'abril',5:'mayo',6:'junio',
+                7:'julio',8:'agosto',9:'septiembre',10:'octubre',11:'noviembre',12:'diciembre'}
+    hoy = timezone.now()
+    fecha_carta = f"{hoy.day} de {meses_es[hoy.month]} de {hoy.year}"
+
+    nombre_recinto = (reserva.cancha.nombre if reserva.cancha else
+                      reserva.salon.nombre if reserva.salon else 'el recinto municipal')
+    modo_fin_dia = bool(reserva.cancha and reserva.hora_fin >= reserva.cancha.hora_fin)
+    fecha_reserva = reserva.fecha.strftime("%d/%m/%Y")
+    hora_ini = reserva.hora_inicio.strftime("%H:%M")
+    hora_fin_str = reserva.hora_fin.strftime("%H:%M")
+
+    if modo_fin_dia:
+        bloque_horario = f"desde las <b>{hora_ini}</b> horas hasta el cierre del recinto"
+    else:
+        bloque_horario = f"desde las <b>{hora_ini}</b> hasta las <b>{hora_fin_str}</b> horas"
+
+    motivo_txt = reserva.motivo if reserva.motivo else '…………………………………………………………………………'
+
+    cuerpo_txt = (
+        f"Junto con saludarlos espero que se encuentren bien, vengo a solicitar recinto "
+        f"específicamente <b>{nombre_recinto}</b>, el día <b>{fecha_reserva}</b> {bloque_horario}, "
+        f"con motivo de <b>{motivo_txt}</b>, por lo cual nos comprometemos a entregar el "
+        f"recinto en las condiciones adecuadas y limpia posterior al uso de nuestro evento."
+    )
+    cierre_txt = "Sin más que agregar y esperando una positiva respuesta le saluda atte."
+
+    # Ruta del sello
+    sello_path = os.path.join(settings.BASE_DIR, 'static', 'sello_municipalidad.jpeg')
+    sello_disponible = os.path.exists(sello_path)
+
+    def _bloque_firma(firmado, nombre_linea1, nombre_linea2, nombre_linea3, fecha_firma=None):
+        """Devuelve una lista de flowables para un bloque de firma."""
+        items = []
+        if firmado and sello_disponible:
+            img = RLImage(sello_path, width=2.8 * cm, height=2.8 * cm)
+            items.append(img)
+            items.append(Spacer(1, 4))
+        else:
+            items.append(Spacer(1, 2.8 * cm + 4))
+
+        # Línea de firma (simulada con tabla de 1 celda con borde superior)
+        t = Table([['']], colWidths=[7 * cm])
+        t.setStyle(TableStyle([('LINEABOVE', (0, 0), (-1, -1), 0.8, negro)]))
+        items.append(t)
+        items.append(Spacer(1, 5))
+        items.append(Paragraph(nombre_linea1, est_firma_nombre))
+        if nombre_linea2:
+            items.append(Paragraph(nombre_linea2, est_firma_sub))
+        if nombre_linea3:
+            items.append(Paragraph(nombre_linea3, est_firma_sub))
+        if fecha_firma:
+            fecha_fmt = fecha_firma.strftime("%d/%m/%Y a las %H:%M") + "h"
+            items.append(Spacer(1, 3))
+            items.append(Paragraph(f"Firmado el {fecha_fmt}", est_firma_sub))
+        return items
+
+    # Firma org
+    rut_rep = f"RUT: {reserva.representante_rut}" if reserva.representante_rut else ''
+    firma_org_items = _bloque_firma(
+        firmado=bool(reserva.firma_org_en),
+        nombre_linea1=reserva.representante_nombre or 'Representante Legal',
+        nombre_linea2=rut_rep,
+        nombre_linea3=reserva.nombre_organizacion,
+        fecha_firma=reserva.firma_org_en,
+    )
+
+    # Firma alcalde
+    firma_alc_items = _bloque_firma(
+        firmado=bool(reserva.firma_alcalde_carta_en),
+        nombre_linea1='Carlos Correa Miños',
+        nombre_linea2='Alcalde',
+        nombre_linea3='I. Municipalidad de Empedrado',
+        fecha_firma=reserva.firma_alcalde_carta_en,
+    )
+
+    # Tabla de dos firmas lado a lado
+    firma_tabla = Table(
+        [[firma_org_items, firma_alc_items]],
+        colWidths=[8 * cm, 8 * cm],
+    )
+    firma_tabla.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'BOTTOM'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    ]))
+
+    story = _carta_pdf_cabecera()
+    story += [
+        Paragraph(f"Empedrado, {fecha_carta}", est_fecha),
+        Spacer(1, 0.8 * cm),
+        Paragraph("SR. CARLOS CORREA MIÑOS", est_dest),
+        Paragraph("ALCALDE", est_dest),
+        Paragraph("ILUSTRE MUNICIPALIDAD DE EMPEDRADO", est_dest),
+        Spacer(1, 0.9 * cm),
+        Paragraph(cuerpo_txt, est_cuerpo),
+        Spacer(1, 0.5 * cm),
+        Paragraph(cierre_txt, est_cuerpo),
+        Spacer(1, 1.4 * cm),
+        firma_tabla,
+    ]
+
+    doc.build(story)
+    return response

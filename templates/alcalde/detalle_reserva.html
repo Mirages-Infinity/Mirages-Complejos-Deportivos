@@ -77,6 +77,36 @@
   </div>
   {% endif %}
 
+  <!-- Carta de solicitud -->
+  {% if reserva.firma_org_en and not reserva.firma_alcalde_carta_en %}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+    <a href="{% url 'carta_preview_pdf' %}?reserva_id={{ reserva.pk }}" target="_blank"
+       style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:8px;background:white;border:0.5px solid #1c1b1f;color:#1c1b1f;font-size:0.85rem;font-weight:500;text-decoration:none;box-sizing:border-box;">
+      📄 Vista previa
+    </a>
+    <a href="{% url 'carta_solicitud_recinto' reserva.pk %}"
+       style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:8px;background:#1c1b1f;color:white;font-size:0.85rem;font-weight:500;text-decoration:none;box-sizing:border-box;">
+      ✍️ Firmar carta
+    </a>
+  </div>
+  {% elif reserva.firma_alcalde_carta_en %}
+  <div style="background:#d7f3e0;border-radius:10px;padding:10px 14px;margin-bottom:10px;border:0.5px solid #86efac;">
+    <p style="font-size:0.78rem;font-weight:500;color:#1a6e30;">✅ Carta firmada por ambas partes.</p>
+  </div>
+  <a href="{% url 'carta_preview_pdf' %}?reserva_id={{ reserva.pk }}" target="_blank"
+     style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:9px 16px;border-radius:8px;background:white;border:0.5px solid #1c1b1f;color:#1c1b1f;font-size:0.88rem;font-weight:500;text-decoration:none;margin-bottom:12px;box-sizing:border-box;">
+    📄 Descargar PDF final
+  </a>
+  {% else %}
+  <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;margin-bottom:10px;border:0.5px solid #fcd34d;">
+    <p style="font-size:0.78rem;font-weight:500;color:#854f0b;">Carta pendiente de firma por parte de la organización.</p>
+  </div>
+  <a href="{% url 'carta_solicitud_recinto' reserva.pk %}" target="_blank"
+     style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:9px 16px;border-radius:8px;background:white;border:0.5px solid #1c1b1f;color:#1c1b1f;font-size:0.88rem;font-weight:500;text-decoration:none;margin-bottom:12px;box-sizing:border-box;">
+    📄 Ver carta de solicitud
+  </a>
+  {% endif %}
+
   {% if reserva.estado == 'PENDIENTE_ALCALDE' %}
   <!-- Botones de acción -->
   <form method="post" action="{% url 'alcalde_firmar_reserva' reserva.pk %}" style="margin-bottom:10px;">

@@ -14,7 +14,7 @@
                 <span>👤</span>
                 <p style="font-size:1.35rem;font-weight:500;color:#1c1b1f;">
                     {% if user.is_superuser %}Admin:{% endif %}
-                    {{ user.first_name }} {{ user.last_name }}
+                    {% if user.perfil.es_organizacion %}{{ user.perfil.nombre_organizacion }}{% else %}{{ user.first_name }} {{ user.last_name }}{% endif %}
                 </p>
             </div>
             {% else %}

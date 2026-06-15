@@ -19,6 +19,8 @@ class UserProfile(models.Model):
     foto = models.FileField(upload_to='perfiles/', blank=True, null=True)
     es_alcalde = models.BooleanField(default=False, verbose_name='Es alcalde')
     es_tesorero = models.BooleanField(default=False, verbose_name='Es tesorero')
+    es_organizacion = models.BooleanField(default=False, verbose_name='Es organización')
+    nombre_organizacion = models.CharField(max_length=200, blank=True, verbose_name='Nombre organización')
 
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.user.email})"
@@ -147,6 +149,10 @@ class Reserva(models.Model):
     representante_email = models.EmailField(blank=True, verbose_name='Email representante')
     precio_original = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True, verbose_name='Precio original')
     precio_descuento = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True, verbose_name='Precio con descuento')
+
+    # Firmas de la carta de solicitud
+    firma_org_en = models.DateTimeField(null=True, blank=True, verbose_name='Carta firmada por org el')
+    firma_alcalde_carta_en = models.DateTimeField(null=True, blank=True, verbose_name='Carta firmada por alcalde el')
 
     # Gestión admin
     gestionado_por = models.ForeignKey(

@@ -33,6 +33,7 @@ urlpatterns = [
     path('reservas/', views.mis_reservas, name='mis_reservas'),
     path('reservas/nueva/<int:salon_id>/', views.crear_reserva, name='crear_reserva'),
     path('reservas/<int:reserva_id>/editar/', views.editar_mi_reserva, name='editar_mi_reserva'),
+    path('reservas/<int:reserva_id>/editar-org/', views.editar_reserva_organizacion, name='editar_reserva_organizacion'),
     path('reservas/<int:reserva_id>/cancelar/', views.cancelar_mi_reserva, name='cancelar_mi_reserva'),
     path('reservas/<int:reserva_id>/gestionar/', views.gestionar_reserva, name='gestionar_reserva'),
     
@@ -47,6 +48,9 @@ urlpatterns = [
     path('config-cancha/toggle-findes/', views.toggle_findes_semana_cancha, name='toggle_findes_semana_cancha'),
     path('canchas/admin/crear-reserva/', views.crear_reserva_admin, name='crear_reserva_admin'),
     path('canchas/admin/crear-reserva/organizacion/', views.crear_reserva_organizacion, name='crear_reserva_organizacion'),
+    path('reserva/<int:reserva_id>/carta/', views.carta_solicitud_recinto, name='carta_solicitud_recinto'),
+    path('reserva/<int:reserva_id>/carta/pdf/', views.carta_solicitud_pdf, name='carta_solicitud_pdf'),
+    path('carta/preview-pdf/', views.carta_preview_pdf, name='carta_preview_pdf'),
     path('reserva-tenis/finalizar/', views.finalizar_reserva_tenis, name='finalizar_reserva_tenis'),
 
     path('reserva-gimnasio/', views.reserva_gimnasio, name='reserva_gimnasio'),

@@ -130,6 +130,16 @@
             </svg>
           </a>
           {% endif %}
+          {% if reg.reserva.tipo_reserva == 'ORGANIZACION' and reg.reserva.firma_alcalde_carta_en %}
+          <a href="{% url 'carta_preview_pdf' %}?reserva_id={{ reg.reserva.pk }}" target="_blank" rel="noopener noreferrer"
+             title="Ver carta firmada"
+             style="width:36px;height:36px;border-radius:50%;background:#4a3880;display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+              <path d="M4 4h8l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M12 4v4h4M6 10h5M6 13h4" stroke="white" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+          </a>
+          {% endif %}
           <span id="badge-{{ reg.pk }}"
                 style="font-size:0.62rem;font-weight:500;padding:3px 10px;border-radius:6px;border:0.5px solid;
                   {% if reg.estado == 'INGRESADO' %}background:#d7f3e0;color:#1a6e30;border-color:#86efac;
