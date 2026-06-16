@@ -260,12 +260,96 @@ def toggle_bloqueo(request):
 
             if not created:
                 bloqueo.delete()
-                fecha_fmt = fecha.strftime("%d/%m/%Y")
-                hora_fmt = hora.strftime("%H:%M")
-                usuarios_todos = User.objects.filter(
-                    is_active=True, is_staff=False,
-                    perfil__es_tesorero=False, perfil__es_alcalde=False,
-                )
+                return JsonResponse({'status': 'success', 'action': 'unblocked'})
+
+            reservas_afectadas = Reserva.objects.filter(
+                cancha=cancha,
+                fecha=fecha,
+                hora_inicio=hora,
+                estado__in=ESTADOS_OCUPAN_SLOT,
+            )
+            avisos = reservas_afectadas.count()
+            return JsonResponse({
+                'status': 'success',
+                'action': 'blocked',
+                'avisos': avisos,
+            })
+        except (ValueError, TypeError, json.JSONDecodeError) as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+
+@login_required
+def notificar_bloqueos_batch(request):
+    """Envía notificaciones para todos los cambios de bloqueo de una sesión de edición."""
+    if not request.user.is_superuser:
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+    try:
+        data = json.loads(request.body)
+        cambios = data.get('cambios', [])
+        if not cambios:
+            return JsonResponse({'status': 'ok', 'enviadas': 0})
+
+        usuarios_todos = User.objects.filter(
+            is_active=True, is_staff=False,
+            perfil__es_tesorero=False, perfil__es_alcalde=False,
+        )
+        enviadas = 0
+
+        for cambio in cambios:
+            cancha_id = cambio.get('cancha_id')
+            fecha_str = cambio.get('fecha')
+            hora_str = cambio.get('hora')
+            action = cambio.get('action')
+            if not all([cancha_id, fecha_str, hora_str, action]):
+                continue
+            try:
+                cancha = ConfigCancha.objects.get(id=cancha_id)
+                fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+                hora = datetime.strptime(hora_str, "%H:%M").time()
+            except (ConfigCancha.DoesNotExist, ValueError):
+                continue
+
+            fecha_fmt = fecha.strftime("%d/%m/%Y")
+            hora_fmt = hora.strftime("%H:%M")
+
+            if action == 'blocked':
+                for u in usuarios_todos:
+                    Notificacion.objects.create(
+                        user=u,
+                        tipo='RESERVA_CANCELADA',
+                        titulo='Horario no disponible',
+                        mensaje=(
+                            f"El horario de las {hora_fmt} del {fecha_fmt} en {cancha.nombre} "
+                            f"ha sido restringido por la administración. "
+                            f"No podrás crear ni editar reservas para ese horario."
+                        ),
+                    )
+                    enviadas += 1
+                reservas_afectadas = Reserva.objects.filter(
+                    cancha=cancha, fecha=fecha, hora_inicio=hora,
+                    estado__in=ESTADOS_OCUPAN_SLOT,
+                ).select_related('solicitante')
+                for reserva in reservas_afectadas:
+                    if reserva.solicitante:
+                        Notificacion.objects.create(
+                            user=reserva.solicitante,
+                            tipo='RESERVA_CANCELADA',
+                            titulo='Tu reserva está en un horario restringido',
+                            mensaje=(
+                                f'Tu reserva en {cancha.nombre} el {fecha_fmt} a las {hora_fmt} '
+                                f'está en un horario restringido por la administración. '
+                                f'Debes cambiarla a un horario disponible. '
+                                f'De no hacerlo, será cancelada automáticamente '
+                                f'y recibirás un cupón para una futura reserva gratis.'
+                            ),
+                        )
+                        enviadas += 1
+
+            elif action == 'unblocked':
                 for u in usuarios_todos:
                     Notificacion.objects.create(
                         user=u,
@@ -277,61 +361,11 @@ def toggle_bloqueo(request):
                             f"Ya puedes reservar ese horario."
                         ),
                     )
-                return JsonResponse({'status': 'success', 'action': 'unblocked'})
+                    enviadas += 1
 
-            fecha_fmt = fecha.strftime("%d/%m/%Y")
-            hora_fmt = hora.strftime("%H:%M")
-
-            # 1. Notificación general a usuarios no-staff (excluye tesorero y alcalde)
-            usuarios_todos = User.objects.filter(
-                is_active=True, is_staff=False,
-                perfil__es_tesorero=False, perfil__es_alcalde=False,
-            )
-            for u in usuarios_todos:
-                Notificacion.objects.create(
-                    user=u,
-                    tipo='RESERVA_CANCELADA',
-                    titulo='Horario no disponible',
-                    mensaje=(
-                        f"El horario de las {hora_fmt} del {fecha_fmt} en {cancha.nombre} "
-                        f"ha sido restringido por la administración. "
-                        f"No podrás crear ni editar reservas para ese horario."
-                    ),
-                )
-
-            # 2. Notificación adicional a usuarios con reservas activas en esa hora
-            reservas_afectadas = Reserva.objects.filter(
-                cancha=cancha,
-                fecha=fecha,
-                hora_inicio=hora,
-                estado__in=ESTADOS_OCUPAN_SLOT,
-            ).select_related('solicitante')
-
-            for reserva in reservas_afectadas:
-                if reserva.solicitante:
-                    Notificacion.objects.create(
-                        user=reserva.solicitante,
-                        tipo='RESERVA_CANCELADA',
-                        titulo='Tu reserva está en un horario restringido',
-                        mensaje=(
-                            f'Tu reserva en {cancha.nombre} el {fecha_fmt} a las {hora_fmt} '
-                            f'está en un horario restringido por la administración. '
-                            f'Debes cambiarla a un horario disponible. '
-                            f'De no hacerlo, será cancelada automáticamente '
-                            f'y recibirás un cupón para una futura reserva gratis.'
-                        ),
-                    )
-
-            avisos = reservas_afectadas.count()
-            return JsonResponse({
-                'status': 'success',
-                'action': 'blocked',
-                'avisos': avisos,
-            })
-        except (ValueError, TypeError, json.JSONDecodeError) as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-    
-    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+        return JsonResponse({'status': 'ok', 'enviadas': enviadas})
+    except (json.JSONDecodeError, TypeError) as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
 @login_required
@@ -3051,14 +3085,24 @@ from django.core.paginator import Paginator
 
 @staff_required
 def panel_registro(request):
-    """Muestra el historial de acciones (log de auditoría) para los administradores con paginación."""
-    logs_list = Bitacora.objects.all().order_by('-creado_en')
-    paginator = Paginator(logs_list, 10) # 10 registros por página
-    
+    """Muestra el historial de acciones (log de auditoría) para los administradores con paginación y búsqueda."""
+    q = request.GET.get('q', '').strip()
+    logs_list = Bitacora.objects.select_related('admin').order_by('-creado_en')
+    if q:
+        logs_list = logs_list.filter(
+            Q(admin__username__icontains=q) |
+            Q(accion__icontains=q) |
+            Q(detalles__icontains=q)
+        )
+    total = logs_list.count()
+    paginator = Paginator(logs_list, 20)
     page_number = request.GET.get('page')
     logs = paginator.get_page(page_number)
-    
-    return render(request, 'panel/registro.html', {'logs': logs})
+    return render(request, 'panel/registro.html', {
+        'logs': logs,
+        'search_query': q,
+        'total': total,
+    })
 
 
 @staff_required
@@ -3142,7 +3186,7 @@ def panel_historial_reservas(request):
     search_query = request.GET.get('q', '')
     
     # Secuencia circular para estados
-    estados_ciclo = ['', 'PENDIENTE', 'APROBADA', 'RECHAZADA', 'CANCELADA', 'ELIMINADA']
+    estados_ciclo = ['', 'PENDIENTE', 'PENDIENTE_ALCALDE', 'APROBADA', 'RECHAZADA', 'CANCELADA', 'ELIMINADA']
     next_estado = estados_ciclo[(estados_ciclo.index(estado_filtro) + 1) % len(estados_ciclo)] if estado_filtro in estados_ciclo else 'PENDIENTE'
 
     # Secuencia circular para pagos

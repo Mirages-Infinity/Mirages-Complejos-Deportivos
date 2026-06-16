@@ -231,7 +231,7 @@
                 <div class="p-3 sm:p-4">
                     <!-- SECCIÓN 1: SELECTOR DE FECHA COMPACTO -->
                     <div
-                        class="flex items-center justify-between bg-gray-50 p-2 sm:p-3 rounded-xl mb-4 border border-gray-900">
+                        class="flex items-center justify-between bg-gray-50 p-2 sm:p-3 rounded-xl {% if user.is_superuser %}mb-2{% else %}mb-4{% endif %} border border-gray-900">
                         <div class="flex items-center gap-1 sm:gap-2">
                             <button id="prev-date"
                                 class="p-1.5 bg-white hover:bg-gray-100 rounded-lg transition-all text-gray-700 border border-gray-900">
@@ -252,65 +252,69 @@
                                 </svg>
                             </button>
                         </div>
-                        <div class="flex items-center gap-1.5 min-w-20">
-                            {% if user.is_superuser %}
-                            <button id="admin-findes-btn" onclick="toggleFindes()"
-                                title="{% if '5' in config_gimnasio.dias_semana and '6' in config_gimnasio.dias_semana %}Deshabilitar fines de semana (Sáb-Dom activos){% else %}Habilitar fines de semana (Sáb-Dom){% endif %}"
-                                class="relative p-2 bg-white border {% if '5' in config_gimnasio.dias_semana and '6' in config_gimnasio.dias_semana %}border-purple-400 text-purple-600 hover:border-purple-600{% else %}border-gray-900 text-gray-500 hover:border-purple-500 hover:text-purple-600{% endif %} rounded-lg transition-all group mr-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                                </svg>
-                                <span class="absolute -top-1 -right-1 text-[8px] font-black {% if '5' in config_gimnasio.dias_semana and '6' in config_gimnasio.dias_semana %}bg-purple-500{% else %}bg-gray-400{% endif %} text-white rounded-full px-1 leading-3 py-0.5">SD</span>
-                            </button>
-                            <button id="admin-horarios-btn" onclick="abrirModalHorarios()" title="Gestionar horarios e intervalos"
-                                class="p-2 bg-white border border-gray-900 hover:border-green-500 hover:text-green-600 rounded-lg transition-all group mr-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="text-gray-500">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <polyline points="12 6 12 12 16 14"></polyline>
-                                </svg>
-                            </button>
-                            <button id="admin-bloquear-periodo-btn" onclick="abrirModalBloqueoPeriodo()" title="Bloquear período de fechas"
-                                class="p-2 bg-white border border-gray-900 hover:border-orange-500 hover:text-orange-600 rounded-lg transition-all group mr-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" class="text-gray-500">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                    <line x1="12" y1="15" x2="12" y2="17"></line>
-                                </svg>
-                            </button>
-                            <button id="admin-edit-btn" title="Editar disponibilidad (Solo Admin)"
+                        <div class="relative">
+                            <button id="calendar-btn"
                                 class="p-2 bg-white border border-gray-900 hover:border-blue-500 hover:text-blue-600 rounded-lg transition-all group">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                     stroke-linejoin="round">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                                    <line x1="16" x2="16" y1="2" y2="6" />
+                                    <line x1="8" x2="8" y1="2" y2="6" />
+                                    <line x1="3" x2="21" y1="10" y2="10" />
                                 </svg>
                             </button>
-                            {% endif %}
-                            <div class="relative">
-                                <button id="calendar-btn"
-                                    class="p-2 bg-white border border-gray-900 hover:border-blue-500 hover:text-blue-600 rounded-lg transition-all group">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round">
-                                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                                        <line x1="16" x2="16" y1="2" y2="6" />
-                                        <line x1="8" x2="8" y1="2" y2="6" />
-                                        <line x1="3" x2="21" y1="10" y2="10" />
-                                    </svg>
-                                </button>
-                                <input type="date" id="hidden-datepicker"
-                                    class="absolute inset-0 opacity-0 cursor-pointer pointer-events-none"
-                                    style="visibility: hidden;">
-                            </div>
+                            <input type="date" id="hidden-datepicker"
+                                class="absolute inset-0 opacity-0 cursor-pointer pointer-events-none"
+                                style="visibility: hidden;">
                         </div>
                     </div>
+                    {% if user.is_superuser %}
+                    <div id="admin-buttons-row" class="flex items-center gap-2 flex-wrap bg-gray-50 px-2 py-2 rounded-xl mb-4 border border-gray-900">
+                        <button id="admin-findes-btn" onclick="toggleFindes()"
+                            title="{% if '5' in config_gimnasio.dias_semana and '6' in config_gimnasio.dias_semana %}Deshabilitar fines de semana (Sáb-Dom activos){% else %}Habilitar fines de semana (Sáb-Dom){% endif %}"
+                            class="relative flex items-center gap-1.5 p-2 sm:px-3 bg-white border {% if '5' in config_gimnasio.dias_semana and '6' in config_gimnasio.dias_semana %}border-purple-400 text-purple-600 hover:border-purple-600{% else %}border-gray-900 text-gray-500 hover:border-purple-500 hover:text-purple-600{% endif %} rounded-lg transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            <span class="hidden sm:inline text-[10px] font-medium">Fin semana</span>
+                            <span class="absolute -top-1 -right-1 text-[8px] font-black {% if '5' in config_gimnasio.dias_semana and '6' in config_gimnasio.dias_semana %}bg-purple-500{% else %}bg-gray-400{% endif %} text-white rounded-full px-1 leading-3 py-0.5">SD</span>
+                        </button>
+                        <button id="admin-horarios-btn" onclick="abrirModalHorarios()" title="Gestionar horarios e intervalos"
+                            class="flex items-center gap-1.5 p-2 sm:px-3 bg-white border border-gray-900 hover:border-green-500 hover:text-green-600 rounded-lg transition-all text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span class="hidden sm:inline text-[10px] font-medium">Horarios</span>
+                        </button>
+                        <button id="admin-bloquear-periodo-btn" onclick="abrirModalBloqueoPeriodo()" title="Bloquear período de fechas"
+                            class="flex items-center gap-1.5 p-2 sm:px-3 bg-white border border-gray-900 hover:border-orange-500 hover:text-orange-600 rounded-lg transition-all text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                <line x1="12" y1="15" x2="12" y2="17"></line>
+                            </svg>
+                            <span class="hidden sm:inline text-[10px] font-medium">Bloquear</span>
+                        </button>
+                        <button id="admin-edit-btn" title="Editar disponibilidad (Solo Admin)"
+                            class="flex items-center gap-1.5 p-2 sm:px-3 bg-white border border-gray-900 hover:border-blue-500 hover:text-blue-600 rounded-lg transition-all text-gray-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                            <span class="hidden sm:inline text-[10px] font-medium">Editar</span>
+                        </button>
+                    </div>
+                    {% endif %}
 
                     <!-- SECCIÓN 2: BLOQUES DE HORARIOS COMPACTOS -->
                     <div class="mb-3">
@@ -750,6 +754,7 @@
         let currentBloqueadoPeriodo = false;
         let isAdminEditMode = false;
         let adminMode = 'gestion'; // 'gestion' | 'creacion'
+        let pendingChanges = {};
         let transferProofFile = null;
 
         const displayDate = document.getElementById('display-date');
@@ -968,12 +973,20 @@
                 if (result.status === 'success') {
                     if (result.action === 'blocked') {
                         if (!currentBloqueos.includes(timeStr)) currentBloqueos.push(timeStr);
-                        if (result.avisos && result.avisos > 0) {
-                            const plural = result.avisos === 1 ? 'usuario' : 'usuarios';
-                            mostrarAvisoBloqueo(`Horario bloqueado. Se notificó a ${result.avisos} ${plural} con reservas en este horario.`);
+                        const key = `${fechaStr}-${timeStr}`;
+                        if (pendingChanges[key]?.action === 'unblocked') {
+                            delete pendingChanges[key];
+                        } else {
+                            pendingChanges[key] = { cancha_id: "{{ config_gimnasio.id }}", fecha: fechaStr, hora: timeStr, action: 'blocked', avisos: result.avisos || 0 };
                         }
                     } else {
                         currentBloqueos = currentBloqueos.filter(t => t !== timeStr);
+                        const key = `${fechaStr}-${timeStr}`;
+                        if (pendingChanges[key]?.action === 'blocked') {
+                            delete pendingChanges[key];
+                        } else {
+                            pendingChanges[key] = { cancha_id: "{{ config_gimnasio.id }}", fecha: fechaStr, hora: timeStr, action: 'unblocked' };
+                        }
                     }
                 } else if (result.message) {
                     alert(result.message);
@@ -1341,9 +1354,32 @@
 
         const adminEditBtn = document.getElementById('admin-edit-btn');
         if (adminEditBtn) {
-            adminEditBtn.onclick = () => {
+            adminEditBtn.onclick = async () => {
+                const wasEditing = isAdminEditMode;
                 isAdminEditMode = !isAdminEditMode;
                 document.body.classList.toggle('edit-mode-active', isAdminEditMode);
+                if (wasEditing) {
+                    const cambios = Object.values(pendingChanges);
+                    pendingChanges = {};
+                    if (cambios.length > 0) {
+                        try {
+                            await fetch("{% url 'notificar_bloqueos_batch' %}", {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                                body: JSON.stringify({ cambios })
+                            });
+                            const bloq = cambios.filter(c => c.action === 'blocked').length;
+                            const desbloq = cambios.filter(c => c.action === 'unblocked').length;
+                            let msg = '';
+                            if (bloq > 0 && desbloq > 0) msg = `${bloq} horario${bloq > 1 ? 's' : ''} bloqueado${bloq > 1 ? 's' : ''} y ${desbloq} habilitado${desbloq > 1 ? 's' : ''}. Notificaciones enviadas.`;
+                            else if (bloq > 0) msg = `${bloq} horario${bloq > 1 ? 's' : ''} bloqueado${bloq > 1 ? 's' : ''}. Notificaciones enviadas.`;
+                            else msg = `${desbloq} horario${desbloq > 1 ? 's' : ''} habilitado${desbloq > 1 ? 's' : ''} nuevamente. Notificaciones enviadas.`;
+                            mostrarAvisoBloqueo(msg);
+                        } catch (e) { console.error('Error enviando notificaciones de bloqueo:', e); }
+                    }
+                } else {
+                    pendingChanges = {};
+                }
                 renderSlots();
             };
         }
@@ -1355,35 +1391,22 @@
                 const icon = document.getElementById('admin-mode-icon');
                 const label = document.getElementById('admin-mode-label');
                 
-                const btnFindes = document.getElementById('admin-findes-btn');
-                const btnHorarios = document.getElementById('admin-horarios-btn');
-                const btnBloquear = document.getElementById('admin-bloquear-periodo-btn');
-                const btnEdit = document.getElementById('admin-edit-btn');
+                const adminButtonsRow = document.getElementById('admin-buttons-row');
 
                 if (adminMode === 'creacion') {
                     icon.textContent = '➕';
                     label.textContent = 'Modo Creación de Reservas';
                     adminModeToggleBtn.className = 'w-full bg-blue-100 border border-blue-200 text-blue-700 font-bold py-3 px-6 rounded-xl text-center text-sm transition-all hover:bg-blue-200 cursor-pointer flex items-center justify-center gap-2';
-                    
-                    if (btnFindes) btnFindes.classList.add('hidden');
-                    if (btnHorarios) btnHorarios.classList.add('hidden');
-                    if (btnBloquear) btnBloquear.classList.add('hidden');
-                    if (btnEdit) {
-                        btnEdit.classList.add('hidden');
-                        if (isAdminEditMode) {
-                            isAdminEditMode = false;
-                            document.body.classList.remove('edit-mode-active');
-                        }
+                    if (adminButtonsRow) adminButtonsRow.classList.add('hidden');
+                    if (isAdminEditMode) {
+                        isAdminEditMode = false;
+                        document.body.classList.remove('edit-mode-active');
                     }
                 } else {
                     icon.textContent = '🛠️';
                     label.textContent = 'Modo Gestión de Horarios';
                     adminModeToggleBtn.className = 'w-full bg-orange-100 border border-orange-200 text-orange-700 font-bold py-3 px-6 rounded-xl text-center text-sm transition-all hover:bg-orange-200 cursor-pointer flex items-center justify-center gap-2';
-                    
-                    if (btnFindes) btnFindes.classList.remove('hidden');
-                    if (btnHorarios) btnHorarios.classList.remove('hidden');
-                    if (btnBloquear) btnBloquear.classList.remove('hidden');
-                    if (btnEdit) btnEdit.classList.remove('hidden');
+                    if (adminButtonsRow) adminButtonsRow.classList.remove('hidden');
                 }
                 renderSlots();
             };

@@ -39,6 +39,7 @@ urlpatterns = [
     
     path('reserva-tenis/', views.reserva_tenis, name='reserva_tenis'),
     path('reserva-tenis/toggle-bloqueo/', views.toggle_bloqueo, name='toggle_bloqueo'),
+    path('canchas/notificar-bloqueos/', views.notificar_bloqueos_batch, name='notificar_bloqueos_batch'),
     path('canchas/bloquear-periodo/', views.bloquear_periodo, name='bloquear_periodo'),
     path('canchas/check-periodo/', views.check_periodo_bloqueado, name='check_periodo_bloqueado'),
     path('canchas/check-horario/', views.check_bloqueo_horario, name='check_bloqueo_horario'),
