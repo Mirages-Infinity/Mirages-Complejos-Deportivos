@@ -11,9 +11,11 @@ Correo F — Aviso de modificación/cancelación por usuario → admins del sal�
 """
 
 import logging
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 
 logger = logging.getLogger(__name__)
+
+TESORERIA_EMAIL = 'jovenprofesional@empedrado.cl'  # TEMPORAL: prueba, revertir a tesoreria@empedrado.cl
 
 
 def _enviar(subject, message, recipient_list):
@@ -65,6 +67,27 @@ def correo_confirmar_cambio_email(user, nuevo_email, confirm_url):
             f'Sistema de Reservas IME'
         ),
         recipient_list=[nuevo_email],
+    )
+
+
+# ─── Restablecimiento de contraseña por administrador ───────────────────────
+
+def correo_clave_restablecida_por_admin(user):
+    if not user.email:
+        return
+    nombre = user.first_name or user.email
+    _enviar(
+        subject='Tu contraseña fue restablecida - Sistema de Reservas IME',
+        message=(
+            f'Hola {nombre},\n\n'
+            f'Un administrador restableció la contraseña de tu cuenta, '
+            f'a solicitud de una situación de emergencia (por ejemplo, '
+            f'pérdida de acceso a tu correo de recuperación).\n\n'
+            f'Si tú no solicitaste este cambio, contacta de inmediato '
+            f'a la administración del sistema.\n\n'
+            f'Sistema de Reservas IME'
+        ),
+        recipient_list=[user.email],
     )
 
 
@@ -141,6 +164,42 @@ def correo_comprobante_a_solicitante(reserva):
         ),
         recipient_list=[email],
     )
+
+
+# ─── Comprobante de transferencia a tesorería ────────────────────────────────
+
+def correo_comprobante_a_tesoreria(reserva):
+    comprobante = reserva.comprobante_transferencia
+    if not comprobante:
+        return
+
+    recurso_nombre = reserva.salon.nombre if reserva.salon else reserva.cancha.nombre
+    solicitante_nombre = (
+        reserva.solicitante.get_full_name() or reserva.solicitante.email
+        if reserva.solicitante else (reserva.solicitante_nombre or 'Usuario eliminado')
+    )
+
+    try:
+        email = EmailMessage(
+            subject=f'Comprobante reserva {reserva.pk}',
+            body=(
+                f'Se adjunta el comprobante de transferencia de la siguiente reserva.\n\n'
+                f'Solicitante: {solicitante_nombre}\n'
+                f'Recinto: {recurso_nombre}\n'
+                f'Fecha: {reserva.fecha.strftime("%d/%m/%Y")}\n'
+                f'Horario: {reserva.hora_inicio.strftime("%H:%M")} – {reserva.hora_fin.strftime("%H:%M")}\n\n'
+                f'Sistema de Reservas IME'
+            ),
+            from_email=None,
+            to=[TESORERIA_EMAIL],
+        )
+        comprobante.open('rb')
+        contenido = comprobante.read()
+        comprobante.close()
+        email.attach(comprobante.name.split('/')[-1], contenido)
+        email.send()
+    except Exception:
+        logger.exception('Error al enviar comprobante de la reserva %s a tesorería', reserva.pk)
 
 
 # ─── Correo C ────────────────────────────────────────────────────────────────

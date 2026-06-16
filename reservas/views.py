@@ -32,6 +32,8 @@ from .emails import (
     correo_resultado_a_solicitante,
     correo_respaldo_a_admin,
     correo_modificacion_a_admins,
+    correo_clave_restablecida_por_admin,
+    correo_comprobante_a_tesoreria,
 )
 
 logger = logging.getLogger(__name__)
@@ -2022,6 +2024,7 @@ def gestionar_reserva(request, reserva_id):
 
         if reserva.estado == 'APROBADA' and estado_anterior == 'PENDIENTE':
             RegistroTesoreria.objects.get_or_create(reserva=reserva)
+            correo_comprobante_a_tesoreria(reserva)
 
         if (
             reserva.estado == 'APROBADA'
@@ -2586,6 +2589,9 @@ def tesorero_actualizar_estado(request, registro_id):
     registro = get_object_or_404(RegistroTesoreria, pk=registro_id)
     nuevo_estado = request.POST.get('estado', '').strip()
 
+    if registro.estado == 'INGRESADO':
+        return JsonResponse({'status': 'error', 'message': 'Este registro ya fue ingresado y no puede modificarse.'}, status=400)
+
     # Validar que el estado sea reconocido
     estados_validos = [e[0] for e in RegistroTesoreria.ESTADO_CHOICES]
     if nuevo_estado not in estados_validos:
@@ -2997,13 +3003,32 @@ def panel_editar_usuario(request, usuario_id):
             messages.error(request, 'El nombre de la organización es obligatorio.')
             return render(request, 'panel/editar_usuario.html', ctx)
 
+        nueva_clave = request.POST.get('nueva_contrasena', '')
+        nueva_clave2 = request.POST.get('nueva_contrasena2', '')
+        cambio_clave = False
+        if nueva_clave or nueva_clave2:
+            if len(nueva_clave) < 8:
+                messages.error(request, 'La nueva contraseña debe tener al menos 8 caracteres.')
+                return render(request, 'panel/editar_usuario.html', ctx)
+            if nueva_clave != nueva_clave2:
+                messages.error(request, 'Las contraseñas no coinciden.')
+                return render(request, 'panel/editar_usuario.html', ctx)
+            usuario.set_password(nueva_clave)
+            usuario.save()
+            cambio_clave = True
+
         perfil_obj.telefono = telefono
         perfil_obj.rut = rut if rut_valido(rut) else perfil_obj.rut
         perfil_obj.es_organizacion = es_organizacion
         perfil_obj.nombre_organizacion = nombre_organizacion if es_organizacion else ''
         perfil_obj.save()
 
-        registrar_accion(request.user, f'Editó usuario {usuario.username}', 'Datos personales actualizados.')
+        detalle = 'Datos personales actualizados.'
+        if cambio_clave:
+            detalle += ' Contraseña restablecida por el administrador.'
+        registrar_accion(request.user, f'Editó usuario {usuario.username}', detalle)
+        if cambio_clave:
+            correo_clave_restablecida_por_admin(usuario)
         messages.success(request, 'Usuario actualizado correctamente.')
         return redirect('panel_usuarios')
 

@@ -129,6 +129,25 @@
 
     </div>
 
+    <!-- === RESTABLECER CONTRASEÑA (uso de emergencia) === -->
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:12px 16px;border-bottom:1px solid #1c1b1f;background:#fff7ed;">
+        <p style="font-size:0.78rem;font-weight:500;color:#9a3412;">
+          Restablecer contraseña (opcional). Úsalo solo si el usuario perdió acceso a su correo de recuperación.
+        </p>
+      </div>
+      <div style="padding:12px 16px;border-bottom:1px solid #1c1b1f;">
+        <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Nueva contraseña</label>
+        <input type="password" name="nueva_contrasena" placeholder="Dejar en blanco para no cambiar" minlength="8"
+               style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
+      </div>
+      <div style="padding:12px 16px;">
+        <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:4px;">Confirmar nueva contraseña</label>
+        <input type="password" name="nueva_contrasena2" placeholder="Repetir la contraseña" minlength="8"
+               style="width:100%;font-size:0.875rem;font-weight:500;color:#1c1b1f;border:none;outline:none;background:transparent;">
+      </div>
+    </div>
+
     <button type="submit"
             style="width:100%;padding:11px;border-radius:8px;background:#1c1b1f;color:white;font-weight:500;font-size:0.9rem;border:none;cursor:pointer;">
       Guardar cambios

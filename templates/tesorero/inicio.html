@@ -70,9 +70,9 @@
         <!-- Palomilla -->
         <button type="button"
           id="check-{{ reg.pk }}"
-          onclick="toggleIngresado({{ reg.pk }}, '{{ reg.estado }}')"
-          title="{% if reg.estado == 'INGRESADO' %}Marcar como pendiente{% else %}Marcar como ingresado{% endif %}"
-          style="flex-shrink:0;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;
+          {% if reg.estado != 'INGRESADO' %}onclick="toggleIngresado({{ reg.pk }}, '{{ reg.estado }}')"{% endif %}
+          title="{% if reg.estado == 'INGRESADO' %}Ingresado: no se puede revertir{% else %}Marcar como ingresado{% endif %}"
+          style="flex-shrink:0;width:36px;height:36px;border-radius:50%;cursor:{% if reg.estado == 'INGRESADO' %}default{% else %}pointer{% endif %};display:flex;align-items:center;justify-content:center;transition:background 0.2s;
             {% if reg.estado == 'INGRESADO' %}background:#1a6e30;border:none;
             {% else %}background:white;border:0.5px solid #1c1b1f;{% endif %}">
           <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
@@ -207,7 +207,8 @@
 
       btn.style.background = ingresado ? '#1a6e30' : 'white';
       btn.style.border     = ingresado ? 'none' : '0.5px solid #1c1b1f';
-      btn.title = ingresado ? 'Marcar como pendiente' : 'Marcar como ingresado';
+      btn.style.cursor     = ingresado ? 'default' : 'pointer';
+      btn.title = ingresado ? 'Ingresado: no se puede revertir' : 'Marcar como ingresado';
       btn.querySelector('path').setAttribute('stroke', ingresado ? 'white' : '#d1d5db');
 
       badge.textContent        = ingresado ? 'Ingresado' : 'Pendiente';
@@ -218,7 +219,11 @@
       const nombre = card.querySelector('p[style*="font-weight:500"]');
       if (nombre) nombre.style.color = ingresado ? '#1a6e30' : '#1c1b1f';
 
-      btn.setAttribute('onclick', `toggleIngresado(${regId}, '${data.estado}')`);
+      if (ingresado) {
+        btn.removeAttribute('onclick');
+      } else {
+        btn.setAttribute('onclick', `toggleIngresado(${regId}, '${data.estado}')`);
+      }
     } catch (e) { console.error('Error actualizando estado', e); }
   }
 </script>
