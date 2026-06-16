@@ -69,7 +69,7 @@
     </div>
 
     <!-- Fecha e Inicio / Término -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:10px;">
       <div>
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:6px;">Fecha</p>
         <input type="date" name="fecha" id="fecha" value="{{ reserva.fecha|date:'Y-m-d' }}"

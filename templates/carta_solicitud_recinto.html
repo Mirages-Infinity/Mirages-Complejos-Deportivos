@@ -231,6 +231,16 @@
       font-family: 'Segoe UI', sans-serif;
     }
 
+    /* ── Responsive overrides ── */
+    @media (max-width: 600px) {
+      .page-wrap { padding-left: 8px; padding-right: 8px; }
+      .carta { padding: 24px 20px 32px; }
+      .firmas-row { grid-template-columns: 1fr; gap: 40px; }
+      .status-bar { flex-wrap: wrap; gap: 8px; }
+      .status-step { flex: 1 1 auto; }
+      .status-divider { display: none; }
+    }
+
     /* ── Print overrides ── */
     @media print {
       body { background: white; }

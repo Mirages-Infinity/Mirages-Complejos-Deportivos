@@ -86,6 +86,7 @@
   .admin-actions {
     display: flex;
     justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 8px;
     padding-top: 10px;
     border-top: 1px solid #1c1b1f;
@@ -107,6 +108,18 @@
 </style>
 
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1" style="padding:16px 16px;">
+
+  {% if messages %}
+  <div style="margin-bottom:14px;display:flex;flex-direction:column;gap:6px;">
+  {% for msg in messages %}
+  <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:500;
+    {% if msg.tags == 'success' %}background:#d7f3e0;color:#1a6e30;
+    {% else %}background:#fee2e2;color:#991b1b;{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+  </div>
+  {% endif %}
 
   <!-- Tabs de filtro -->
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
@@ -160,8 +173,8 @@
 
       <!-- Encabezado: salón + estado -->
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
-        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
-          <span style="font-size:1.1rem;">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden;">
+          <span style="font-size:1.1rem;flex-shrink:0;">
             {% if r.salon %}🏛️
             {% elif 'Tenis' in r.cancha.nombre %}🎾
             {% elif 'Futbolito' in r.cancha.nombre %}⚽
@@ -169,7 +182,7 @@
             {% elif 'Gimnasio' in r.cancha.nombre %}🏋️
             {% else %}🎾{% endif %}
           </span>
-          <p style="font-size:0.9rem;font-weight:500;color:#1c1b1f;margin:0;line-height:1.2;">
+          <p style="font-size:0.9rem;font-weight:500;color:#1c1b1f;margin:0;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
             {% if r.salon %}{{ r.salon.nombre }}{% else %}{{ r.cancha.nombre }}{% endif %}</p>
         </div>
         <span style="flex-shrink:0;font-size:0.62rem;font-weight:500;padding:3px 10px;border-radius:6px;border:0.5px solid;
@@ -260,13 +273,89 @@
         {% endif %}
       </div>
 
+      <!-- Stepper flujo org -->
+      {% if r.tipo_reserva == 'ORGANIZACION' %}
+      {% with paso1=True paso2=r.firma_org_en paso3=r.firma_alcalde_carta_en paso4=r.estado %}
+      <div style="display:flex;align-items:center;gap:0;margin:10px 0 12px;">
+
+        <!-- Paso 1: Enviada -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">
+          <div style="width:22px;height:22px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg style="width:12px;height:12px;color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <span style="font-size:0.55rem;font-weight:500;color:#22c55e;text-align:center;line-height:1.2;">Enviada</span>
+        </div>
+
+        <!-- Conector 1→2 -->
+        <div style="flex:1;height:1.5px;background:{% if paso2 %}#22c55e{% else %}#d1d5db{% endif %};margin-bottom:14px;"></div>
+
+        <!-- Paso 2: Firma org -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">
+          {% if paso2 %}
+          <div style="width:22px;height:22px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg style="width:12px;height:12px;color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <span style="font-size:0.55rem;font-weight:500;color:#22c55e;text-align:center;line-height:1.2;">Firma org.</span>
+          {% else %}
+          <div style="width:22px;height:22px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg style="width:10px;height:10px;color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+          </div>
+          <span style="font-size:0.55rem;font-weight:500;color:#f59e0b;text-align:center;line-height:1.2;">Firma org.</span>
+          {% endif %}
+        </div>
+
+        <!-- Conector 2→3 -->
+        <div style="flex:1;height:1.5px;background:{% if paso3 %}#22c55e{% elif paso2 %}#a855f7{% else %}#d1d5db{% endif %};margin-bottom:14px;"></div>
+
+        <!-- Paso 3: Firma alcalde -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">
+          {% if paso3 %}
+          <div style="width:22px;height:22px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg style="width:12px;height:12px;color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <span style="font-size:0.55rem;font-weight:500;color:#22c55e;text-align:center;line-height:1.2;">Firma alcalde</span>
+          {% elif paso2 %}
+          <div style="width:22px;height:22px;border-radius:50%;background:#a855f7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg style="width:10px;height:10px;color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+          </div>
+          <span style="font-size:0.55rem;font-weight:500;color:#a855f7;text-align:center;line-height:1.2;">Firma alcalde</span>
+          {% else %}
+          <div style="width:22px;height:22px;border-radius:50%;background:#d1d5db;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg style="width:10px;height:10px;color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+          </div>
+          <span style="font-size:0.55rem;font-weight:500;color:#9ca3af;text-align:center;line-height:1.2;">Firma alcalde</span>
+          {% endif %}
+        </div>
+
+        <!-- Conector 3→4 -->
+        <div style="flex:1;height:1.5px;background:{% if paso4 == 'APROBADA' %}#22c55e{% else %}#d1d5db{% endif %};margin-bottom:14px;"></div>
+
+        <!-- Paso 4: Aprobada -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">
+          {% if paso4 == 'APROBADA' %}
+          <div style="width:22px;height:22px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg style="width:12px;height:12px;color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <span style="font-size:0.55rem;font-weight:500;color:#22c55e;text-align:center;line-height:1.2;">Aprobada</span>
+          {% else %}
+          <div style="width:22px;height:22px;border-radius:50%;background:#d1d5db;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg style="width:10px;height:10px;color:white;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+          </div>
+          <span style="font-size:0.55rem;font-weight:500;color:#9ca3af;text-align:center;line-height:1.2;">Aprobada</span>
+          {% endif %}
+        </div>
+
+      </div>
+      {% endwith %}
+      {% endif %}
+
       <!-- Acciones de Administración -->
       <div class="admin-actions">
         <button type="button" onclick="abrirModalEliminar({{ r.id }}, '{{ r.get_estado_display }}')" class="btn-action btn-delete">
           Eliminar
         </button>
-        {% if r.tipo_reserva == 'ORGANIZACION' and r.firma_org_en %}
-        <a href="{% url 'carta_solicitud_recinto' r.id %}" class="btn-action btn-edit" style="background:#ede9fe;color:#4a3880;border-color:#c4b5f4;">
+        {% if r.tipo_reserva == 'ORGANIZACION' %}
+        <a href="{% url 'carta_solicitud_pdf' r.id %}" target="_blank" rel="noopener noreferrer" class="btn-action btn-edit" style="background:#ede9fe;color:#4a3880;border-color:#c4b5f4;">
           Ver carta
         </a>
         {% endif %}
@@ -340,7 +429,7 @@
 </div>
 
 <!-- Modal flotante de confirmación de eliminación -->
-<div id="modal-eliminar" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.45);">
+<div id="modal-eliminar" class="hidden fixed inset-0 z-50 items-center justify-center p-4" style="background:rgba(0,0,0,0.45);">
   <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:24px;width:100%;max-width:420px;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <span style="width:36px;height:36px;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">

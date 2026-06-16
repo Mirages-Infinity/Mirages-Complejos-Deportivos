@@ -122,7 +122,7 @@
             <p style="font-size:0.875rem;font-weight:500;color:#1c1b1f;">{{ n.titulo }}</p>
             <span style="font-size:0.65rem;font-weight:500;white-space:nowrap;flex-shrink:0;color:#9ca3af;">{{ n.creada_en|date:"d/m H:i" }}</span>
           </div>
-          <p style="font-size:0.75rem;color:#6b7280;font-weight:400;margin-top:4px;">{{ n.mensaje|safe }}</p>
+          <p style="font-size:0.75rem;color:#6b7280;font-weight:400;margin-top:4px;">{{ n.mensaje }}</p>
         </div>
       </div>
       {% if n.tipo == 'CUPON_EMITIDO' %}

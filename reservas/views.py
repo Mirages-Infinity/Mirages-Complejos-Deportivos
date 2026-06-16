@@ -169,7 +169,7 @@ def _reserva_generica(request, nombre_cancha, template_name, context_key):
 
                 # Genera todos los slots cubiertos por cada reserva (org puede abarcar múltiples horas)
                 horas_reservadas = set()
-                _slot = timedelta(hours=1)
+                _slot = timedelta(minutes=config.intervalo_minutos)
                 for r in reservas:
                     cursor = datetime.combine(fecha, r.hora_inicio)
                     fin    = datetime.combine(fecha, r.hora_fin)
@@ -2875,6 +2875,8 @@ def panel_crear_usuario(request):
             errores['contrasena'] = 'La contraseña debe tener al menos 8 caracteres.'
         elif clave != clave2:
             errores['contrasena'] = 'Las contraseñas no coinciden.'
+        if rol == 'admin' and not request.user.is_superuser:
+            errores['rol'] = 'Solo un superusuario puede crear cuentas de administrador.'
         if rol == 'admin' and User.objects.filter(is_superuser=True).count() >= MAX_SUPERUSUARIOS:
             errores['rol'] = f'Ya se alcanzó el límite de {MAX_SUPERUSUARIOS} superusuarios.'
 
@@ -3228,7 +3230,7 @@ def emitir_cupon(usuario, reserva, motivo):
         titulo='Cupón de reserva emitido',
         mensaje=(
             f'Dado que {motivo_txt} en {nombre_recurso}, se te emitió el cupón '
-            f'<strong>{cupon.codigo}</strong> válido para una futura reserva. '
+            f'{cupon.codigo} válido para una futura reserva. '
             f'Vence el {cupon.fecha_expiracion.strftime("%d/%m/%Y")}.'
         ),
     )
@@ -3315,6 +3317,10 @@ def carta_solicitud_recinto(request, reserva_id):
                 f'{reserva.fecha.strftime("%d/%m/%Y")}. Pendiente de tu firma.',
                 reserva=reserva,
             )
+            messages.success(request, f'Documento firmado correctamente. La carta de {reserva.nombre_organizacion} fue enviada al alcalde.')
+            if es_admin:
+                return redirect('panel_reservas')
+            return redirect('mis_reservas')
 
         elif accion == 'firma_alcalde' and es_alcalde and reserva.firma_org_en and not reserva.firma_alcalde_carta_en:
             reserva.firma_alcalde_carta_en = timezone.now()

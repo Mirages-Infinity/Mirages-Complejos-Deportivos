@@ -42,7 +42,7 @@
 
       <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:16px;">
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:14px;">Agenda</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:12px;">
           <div>
             <label for="fecha" style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Fecha</label>
             <input type="date" name="fecha" id="fecha" value="{{ reserva.fecha|date:'Y-m-d' }}"

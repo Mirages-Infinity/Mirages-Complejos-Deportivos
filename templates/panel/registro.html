@@ -17,41 +17,41 @@
   <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:20px;">Registro de acciones</h1>
 
   <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;">
-    <div style="overflow-x:auto;">
-      <table style="width:100%;text-align:left;border-collapse:collapse;">
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <table style="width:100%;text-align:left;border-collapse:collapse;min-width:520px;">
         <thead>
           <tr style="background:#f9fafb;border-bottom:1px solid #f3f4f6;">
-            <th style="padding:12px 20px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">Fecha y Hora</th>
-            <th style="padding:12px 20px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">Administrador</th>
-            <th style="padding:12px 20px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">Acción</th>
-            <th style="padding:12px 20px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">Detalles</th>
+            <th style="padding:10px 14px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">Fecha</th>
+            <th style="padding:10px 14px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">Admin</th>
+            <th style="padding:10px 14px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">Acción</th>
+            <th style="padding:10px 14px;font-weight:500;font-size:0.72rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;">Detalles</th>
           </tr>
         </thead>
         <tbody>
           {% for log in logs %}
           <tr style="{% if not forloop.last %}border-bottom:0.5px solid #1c1b1f;{% endif %}">
-            <td style="padding:14px 20px;">
+            <td style="padding:12px 14px;white-space:nowrap;">
               {% load l10n %}
               {% localize off %}
-              <p style="font-size:0.8rem;font-weight:500;color:#1c1b1f;white-space:nowrap;">{{ log.creado_en|date:"d-m-Y" }}</p>
-              <p style="font-size:0.7rem;color:#9ca3af;margin-top:1px;">{{ log.creado_en|date:"H:i" }}</p>
+              <p style="font-size:0.78rem;font-weight:500;color:#1c1b1f;">{{ log.creado_en|date:"d-m-Y" }}</p>
+              <p style="font-size:0.68rem;color:#9ca3af;margin-top:1px;">{{ log.creado_en|date:"H:i" }}</p>
               {% endlocalize %}
             </td>
-            <td style="padding:14px 20px;">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <div style="width:28px;height:28px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:500;color:#1d4ed8;flex-shrink:0;">
+            <td style="padding:12px 14px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="width:26px;height:26px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:500;color:#1d4ed8;flex-shrink:0;">
                   {{ log.admin.username|default:"S"|slice:":1"|upper }}
                 </div>
-                <p style="font-size:0.78rem;font-weight:500;color:#374151;">{{ log.admin.username|default:"Sistema" }}</p>
+                <p style="font-size:0.75rem;font-weight:500;color:#374151;white-space:nowrap;">{{ log.admin.username|default:"Sistema" }}</p>
               </div>
             </td>
-            <td style="padding:14px 20px;">
-              <span style="display:inline-block;padding:3px 10px;background:#f3f4f6;border-radius:6px;border:0.5px solid #e5e7eb;font-size:0.68rem;font-weight:500;color:#374151;text-transform:uppercase;letter-spacing:0.04em;max-width:200px;">
+            <td style="padding:12px 14px;">
+              <span style="display:inline-block;padding:3px 8px;background:#f3f4f6;border-radius:6px;border:0.5px solid #e5e7eb;font-size:0.65rem;font-weight:500;color:#374151;text-transform:uppercase;letter-spacing:0.04em;">
                 {{ log.accion }}
               </span>
             </td>
-            <td style="padding:14px 20px;">
-              <p style="font-size:0.72rem;color:#6b7280;line-height:1.5;min-width:150px;max-width:300px;word-break:break-word;">
+            <td style="padding:12px 14px;">
+              <p style="font-size:0.72rem;color:#6b7280;line-height:1.5;word-break:break-word;max-width:260px;">
                 {{ log.detalles|default:"-" }}
               </p>
             </td>
