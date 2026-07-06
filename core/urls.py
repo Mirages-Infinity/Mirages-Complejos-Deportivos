@@ -104,4 +104,9 @@ urlpatterns = [
     path('perfil/notificaciones/', views.notificaciones, name='notificaciones'),
     path('perfil/mis-cupones/', views.mis_cupones, name='mis_cupones'),
     path('perfil/validar-cupon/', views.validar_cupon, name='validar_cupon'),
+
+    # Webpay Plus
+    path('webpay/iniciar/<int:reserva_id>/', views.webpay_iniciar, name='webpay_iniciar'),
+    path('webpay/retorno/', views.webpay_retorno, name='webpay_retorno'),
+    path('panel/configuracion-webpay/', views.panel_configuracion_webpay, name='panel_configuracion_webpay'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

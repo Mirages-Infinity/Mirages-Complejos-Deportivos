@@ -95,3 +95,21 @@ class DatosTransferencia(models.Model):
 
     def __str__(self):
         return f"Datos de transferencia ({self.banco})"
+
+
+class ConfiguracionWebpay(models.Model):
+    ENTORNO_CHOICES = [
+        ('INTEGRACION', 'Integración (Pruebas)'),
+        ('PRODUCCION', 'Producción'),
+    ]
+    entorno = models.CharField(max_length=20, choices=ENTORNO_CHOICES, default='INTEGRACION')
+    commerce_code = models.CharField(max_length=100, default="597055555532", help_text="Código de comercio entregado por Transbank. Por defecto es el de pruebas.")
+    api_key = models.CharField(max_length=255, default="579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C", help_text="Llave secreta entregada por Transbank. Por defecto es la de pruebas.")
+    activo = models.BooleanField(default=True, help_text="Activar/Desactivar el pago con Webpay")
+
+    class Meta:
+        verbose_name = 'Configuración Webpay'
+        verbose_name_plural = 'Configuraciones Webpay'
+
+    def __str__(self):
+        return f"Webpay ({self.get_entorno_display()})"

@@ -1301,12 +1301,16 @@
 
                     const result = await response.json();
                     if (result.status === 'success') {
-                        // Pequeña pausa para que se vea el procesamiento
+                        // Procesamiento completado
                         const wasAdmin = !!window.adminCreacionInfo;
                         window.adminCreacionInfo = null;
-                        setTimeout(() => {
-                            window.location.href = wasAdmin ? location.pathname : "{% url 'mis_reservas' %}";
-                        }, 500);
+                        if (!wasAdmin && selectedPaymentMethod === 'tarjeta' && result.reserva_id) {
+                            window.location.href = '/webpay/iniciar/' + result.reserva_id + '/';
+                        } else {
+                            setTimeout(() => {
+                                window.location.href = wasAdmin ? location.pathname : "{% url 'mis_reservas' %}";
+                            }, 500);
+                        }
                     } else {
                         alert(result.message || 'Error al procesar la reserva');
                         finalSubmitBtn.disabled = false;

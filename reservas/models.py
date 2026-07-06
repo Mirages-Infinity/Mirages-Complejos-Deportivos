@@ -344,3 +344,33 @@ class RegistroTesoreria(models.Model):
 
     def __str__(self):
         return f'Tesorería #{self.reserva_id} — {self.get_estado_display()}'
+
+
+class TransaccionWebpay(models.Model):
+    ESTADO_CHOICES = [
+        ('INICIADA', 'Iniciada'),
+        ('AUTORIZADA', 'Autorizada'),
+        ('RECHAZADA', 'Rechazada'),
+        ('ANULADA', 'Anulada'),
+        ('FALLIDA', 'Fallida'),
+    ]
+
+    reserva = models.OneToOneField('Reserva', on_delete=models.CASCADE, related_name='pago_webpay')
+    token_ws = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    buy_order = models.CharField(max_length=100, unique=True)
+    session_id = models.CharField(max_length=100)
+    monto = models.DecimalField(max_digits=10, decimal_places=0)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='INICIADA')
+    authorization_code = models.CharField(max_length=50, blank=True, null=True)
+    payment_type_code = models.CharField(max_length=10, blank=True, null=True)
+    response_code = models.IntegerField(blank=True, null=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Transacción Webpay'
+        verbose_name_plural = 'Transacciones Webpay'
+        ordering = ['-creado_en']
+
+    def __str__(self):
+        return f"Webpay {self.buy_order} - {self.get_estado_display()}"
