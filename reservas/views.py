@@ -44,7 +44,7 @@ from .emails import (
 
 logger = logging.getLogger(__name__)
 
-# Estados que bloquean un slot horario (reserva activa u organizaciÃ³n esperando firma)
+# Estados que bloquean un slot horario (reserva activa u organización esperando firma)
 ESTADOS_OCUPAN_SLOT = ['PENDIENTE', 'PENDIENTE_ALCALDE', 'APROBADA']
 
 RUT_REGEX = re.compile(r'^\d{7,8}-[\dkK]$')
@@ -118,18 +118,18 @@ def tesorero_required(view_func):
 
 
 def _rate_limit_exceeded(request, action, limit=5, period=300):
-    """Devuelve True si la IP superÃ³ el lÃ­mite de intentos para la acciÃ³n dada.
+    """Devuelve True si la IP superó el límite de intentos para la acción dada.
 
     Usa REMOTE_ADDR directamente para evitar que clientes malintencionados
-    falsifiquen X-Forwarded-For y evadan el lÃ­mite. Si el sistema se despliega
-    detrÃ¡s de un proxy de confianza configurable, TRUSTED_PROXY_IPS puede
+    falsifiquen X-Forwarded-For y evadan el límite. Si el sistema se despliega
+    detrás de un proxy de confianza configurable, TRUSTED_PROXY_IPS puede
     habilitarse en settings.py.
     """
     trusted_proxies = getattr(settings, 'TRUSTED_PROXY_IPS', [])
     remote_addr = request.META.get('REMOTE_ADDR', 'unknown')
 
     if trusted_proxies and remote_addr in trusted_proxies:
-        # Solo confiar en X-Forwarded-For si el proxy estÃ¡ en la lista blanca
+        # Solo confiar en X-Forwarded-For si el proxy está en la lista blanca
         forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
         ip = forwarded.split(',')[0].strip() if forwarded else remote_addr
     else:
@@ -152,10 +152,10 @@ def inicio(request):
 
 
 def _reserva_generica(request, nombre_cancha, template_name, context_key):
-    """FunciÃ³n auxiliar para manejar la lÃ³gica comÃºn de reserva de recintos."""
+    """Función auxiliar para manejar la lógica común de reserva de recintos."""
     config = ConfigCancha.objects.filter(nombre=nombre_cancha).first()
     
-    # Manejar peticiones AJAX para obtener bloqueos y reservas de un dÃ­a
+    # Manejar peticiones AJAX para obtener bloqueos y reservas de un día
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax'):
         fecha_str = request.GET.get('fecha')
         if config and fecha_str:
@@ -175,7 +175,7 @@ def _reserva_generica(request, nombre_cancha, template_name, context_key):
 
                 horas_bloqueadas = [b.hora.strftime("%H:%M") for b in bloqueos]
 
-                # Genera todos los slots cubiertos por cada reserva (org puede abarcar mÃºltiples horas)
+                # Genera todos los slots cubiertos por cada reserva (org puede abarcar múltiples horas)
                 horas_reservadas = set()
                 _slot = timedelta(minutes=config.intervalo_minutos)
                 for r in reservas:
@@ -210,7 +210,7 @@ def _reserva_generica(request, nombre_cancha, template_name, context_key):
     hoy = date.today()
     hoy_val = hoy.strftime('%Y-%m-%d')
 
-    # Calcular dÃ­as bloqueados en perÃ­odos futuros para extender la ventana de reserva
+    # Calcular días bloqueados en períodos futuros para extender la ventana de reserva
     dias_bloqueados = 0
     if config:
         periodos = BloqueoPeriodo.objects.filter(cancha=config, fecha_fin__gte=hoy)
@@ -285,16 +285,16 @@ def toggle_bloqueo(request):
         except (ValueError, TypeError, json.JSONDecodeError) as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-    return JsonResponse({'status': 'error', 'message': 'MÃ©todo no permitido'}, status=405)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 
 @login_required
 def notificar_bloqueos_batch(request):
-    """EnvÃ­a notificaciones para todos los cambios de bloqueo de una sesiÃ³n de ediciÃ³n."""
+    """Envía notificaciones para todos los cambios de bloqueo de una sesión de edición."""
     if not request.user.is_superuser:
         return JsonResponse({'error': 'No autorizado'}, status=403)
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'MÃ©todo no permitido'}, status=405)
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
     try:
         data = json.loads(request.body)
         cambios = data.get('cambios', [])
@@ -332,8 +332,8 @@ def notificar_bloqueos_batch(request):
                         titulo='Horario no disponible',
                         mensaje=(
                             f"El horario de las {hora_fmt} del {fecha_fmt} en {cancha.nombre} "
-                            f"ha sido restringido por la administraciÃ³n. "
-                            f"No podrÃ¡s crear ni editar reservas para ese horario."
+                            f"ha sido restringido por la administración. "
+                            f"No podrás crear ni editar reservas para ese horario."
                         ),
                     )
                     enviadas += 1
@@ -346,13 +346,13 @@ def notificar_bloqueos_batch(request):
                         Notificacion.objects.create(
                             user=reserva.solicitante,
                             tipo='RESERVA_CANCELADA',
-                            titulo='Tu reserva estÃ¡ en un horario restringido',
+                            titulo='Tu reserva está en un horario restringido',
                             mensaje=(
                                 f'Tu reserva en {cancha.nombre} el {fecha_fmt} a las {hora_fmt} '
-                                f'estÃ¡ en un horario restringido por la administraciÃ³n. '
+                                f'está en un horario restringido por la administración. '
                                 f'Debes cambiarla a un horario disponible. '
-                                f'De no hacerlo, serÃ¡ cancelada automÃ¡ticamente '
-                                f'y recibirÃ¡s un cupÃ³n para una futura reserva gratis.'
+                                f'De no hacerlo, será cancelada automáticamente '
+                                f'y recibirás un cupón para una futura reserva gratis.'
                             ),
                         )
                         enviadas += 1
@@ -365,7 +365,7 @@ def notificar_bloqueos_batch(request):
                         titulo='Horario disponible nuevamente',
                         mensaje=(
                             f"El horario de las {hora_fmt} del {fecha_fmt} en {cancha.nombre} "
-                            f"ha sido habilitado nuevamente por la administraciÃ³n. "
+                            f"ha sido habilitado nuevamente por la administración. "
                             f"Ya puedes reservar ese horario."
                         ),
                     )
@@ -378,7 +378,7 @@ def notificar_bloqueos_batch(request):
 
 @login_required
 def check_periodo_bloqueado(request):
-    """Devuelve si una fecha estÃ¡ dentro de un perÃ­odo bloqueado para una cancha."""
+    """Devuelve si una fecha está dentro de un período bloqueado para una cancha."""
     cancha_id = request.GET.get('cancha_id')
     fecha_str = request.GET.get('fecha')
     if not cancha_id or not fecha_str:
@@ -397,7 +397,7 @@ def check_periodo_bloqueado(request):
 
 @login_required
 def check_hora_reservada(request):
-    """Devuelve si una hora ya estÃ¡ reservada en una cancha/fecha (excluyendo la reserva actual)."""
+    """Devuelve si una hora ya está reservada en una cancha/fecha (excluyendo la reserva actual)."""
     cancha_id  = request.GET.get('cancha_id')
     fecha_str  = request.GET.get('fecha')
     hora_str   = request.GET.get('hora')
@@ -472,7 +472,7 @@ def bloquear_periodo(request):
                 ff = solapamiento.fecha_fin.strftime("%d/%m/%Y")
                 return JsonResponse({
                     'status': 'error',
-                    'message': f'Ya existe un perÃ­odo bloqueado que se superpone con estas fechas ({fi} â†’ {ff}).'
+                    'message': f'Ya existe un período bloqueado que se superpone con estas fechas ({fi} → {ff}).'
                 }, status=400)
 
             BloqueoPeriodo.objects.create(
@@ -482,12 +482,12 @@ def bloquear_periodo(request):
                 creado_por=request.user,
             )
 
-            registrar_accion(request.user, "BloqueÃ³ perÃ­odo", f"{cancha.nombre}: {fecha_inicio.strftime('%d/%m/%Y')} â†’ {fecha_fin.strftime('%d/%m/%Y')}")
+            registrar_accion(request.user, "Bloqueó período", f"{cancha.nombre}: {fecha_inicio.strftime('%d/%m/%Y')} → {fecha_fin.strftime('%d/%m/%Y')}")
 
             fecha_inicio_fmt = fecha_inicio.strftime("%d/%m/%Y")
             fecha_fin_fmt = fecha_fin.strftime("%d/%m/%Y")
 
-            # 1. NotificaciÃ³n general a usuarios no-staff (excluye tesorero y alcalde)
+            # 1. Notificación general a usuarios no-staff (excluye tesorero y alcalde)
             usuarios_todos = User.objects.filter(
                 is_active=True, is_staff=False,
                 perfil__es_tesorero=False, perfil__es_alcalde=False,
@@ -496,14 +496,14 @@ def bloquear_periodo(request):
                 Notificacion.objects.create(
                     user=u,
                     tipo='RESERVA_CANCELADA',
-                    titulo='PerÃ­odo no disponible',
+                    titulo='Período no disponible',
                     mensaje=(
-                        f"{cancha.nombre} estarÃ¡ no disponible desde el {fecha_inicio_fmt} hasta el {fecha_fin_fmt}. "
-                        f"Durante este perÃ­odo no podrÃ¡s crear ni editar reservas para estas fechas."
+                        f"{cancha.nombre} estará no disponible desde el {fecha_inicio_fmt} hasta el {fecha_fin_fmt}. "
+                        f"Durante este período no podrás crear ni editar reservas para estas fechas."
                     ),
                 )
 
-            # 2. NotificaciÃ³n adicional y personalizada a usuarios con reservas activas en el rango,
+            # 2. Notificación adicional y personalizada a usuarios con reservas activas en el rango,
             #    agrupando todas sus reservas afectadas en un solo mensaje.
             reservas_afectadas = (
                 Reserva.objects
@@ -533,13 +533,13 @@ def bloquear_periodo(request):
                 Notificacion.objects.create(
                     user=usuario,
                     tipo='RESERVA_CANCELADA',
-                    titulo='Tienes reservas en un perÃ­odo restringido',
+                    titulo='Tienes reservas en un período restringido',
                     mensaje=(
-                        f"Tienes {len(reservas)} {plural} en {cancha.nombre} dentro del perÃ­odo bloqueado "
-                        f"({fecha_inicio_fmt} â€“ {fecha_fin_fmt}) que {'debe ser cambiada' if len(reservas) == 1 else 'deben ser cambiadas'} "
+                        f"Tienes {len(reservas)} {plural} en {cancha.nombre} dentro del período bloqueado "
+                        f"({fecha_inicio_fmt} – {fecha_fin_fmt}) que {'debe ser cambiada' if len(reservas) == 1 else 'deben ser cambiadas'} "
                         f"a un horario disponible. De no hacerlo, "
-                        f"{'serÃ¡ cancelada' if len(reservas) == 1 else 'serÃ¡n canceladas'} automÃ¡ticamente "
-                        f"y recibirÃ¡s un cupÃ³n por cada una para una futura reserva gratis.\n\n"
+                        f"{'será cancelada' if len(reservas) == 1 else 'serán canceladas'} automáticamente "
+                        f"y recibirás un cupón por cada una para una futura reserva gratis.\n\n"
                         f"{'Reserva afectada:' if len(reservas) == 1 else 'Reservas afectadas:'}\n{detalle}"
                     ),
                 )
@@ -547,13 +547,13 @@ def bloquear_periodo(request):
             avisos = len(reservas_por_usuario)
             return JsonResponse({
                 'status': 'success',
-                'message': 'PerÃ­odo bloqueado correctamente.',
+                'message': 'Período bloqueado correctamente.',
                 'avisos': avisos,
             })
         except (ValueError, TypeError, json.JSONDecodeError) as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-    return JsonResponse({'status': 'error', 'message': 'MÃ©todo no permitido'}, status=405)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 
 @login_required
@@ -569,7 +569,7 @@ def toggle_cancha_status(request):
             cancha.activo = not cancha.activo
             cancha.save()
             
-            registrar_accion(request.user, f"{'HabilitÃ³' if cancha.activo else 'InhabilitÃ³'} el complejo", f"ID: {cancha.id} - Nombre: {cancha.nombre}")
+            registrar_accion(request.user, f"{'Habilitó' if cancha.activo else 'Inhabilitó'} el complejo", f"ID: {cancha.id} - Nombre: {cancha.nombre}")
             
             return JsonResponse({
                 'status': 'success',
@@ -578,20 +578,20 @@ def toggle_cancha_status(request):
             })
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'MÃ©todo no permitido'}, status=405)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 
 INTERVALOS_VALIDOS = {30, 45, 60, 90, 120}
-DIAS_FINDE = {5, 6}  # 5 = SÃ¡bado, 6 = Domingo
+DIAS_FINDE = {5, 6}  # 5 = Sábado, 6 = Domingo
 
 
 @login_required
 def toggle_findes_semana_cancha(request):
-    """Habilita o deshabilita SÃ¡bado y Domingo como dÃ­as reservables."""
+    """Habilita o deshabilita Sábado y Domingo como días reservables."""
     if not request.user.is_superuser:
         return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'MÃ©todo no permitido'}, status=405)
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
     try:
         data = json.loads(request.body)
@@ -600,7 +600,7 @@ def toggle_findes_semana_cancha(request):
         findes_activos = DIAS_FINDE.issubset(dias_actuales)
 
         if findes_activos:
-            # Antes de quitar el finde verificar reservas activas sÃ¡bado/domingo
+            # Antes de quitar el finde verificar reservas activas sábado/domingo
             hoy = date.today()
             reservas_finde = (
                 Reserva.objects
@@ -617,16 +617,16 @@ def toggle_findes_semana_cancha(request):
                     'status': 'error',
                     'message': (
                         f'No puedes deshabilitar los fines de semana: existen {total} {plural} '
-                        f'de sÃ¡bado o domingo en {cancha.nombre}. La Ãºltima es el '
-                        f'{ultima.strftime("%d/%m/%Y")}. PodrÃ¡s aplicar este cambio desde el '
+                        f'de sábado o domingo en {cancha.nombre}. La última es el '
+                        f'{ultima.strftime("%d/%m/%Y")}. Podrás aplicar este cambio desde el '
                         f'{disponible_desde.strftime("%d/%m/%Y")}.'
                     ),
                 }, status=400)
             nuevos = sorted(dias_actuales - DIAS_FINDE)
-            accion = 'deshabilitÃ³'
+            accion = 'deshabilitó'
         else:
             nuevos = sorted(dias_actuales | DIAS_FINDE)
-            accion = 'habilitÃ³'
+            accion = 'habilitó'
 
         cancha.dias_semana = ','.join(str(d) for d in nuevos)
         cancha.save(update_fields=['dias_semana'])
@@ -634,7 +634,7 @@ def toggle_findes_semana_cancha(request):
         registrar_accion(
             request.user,
             f"{accion.capitalize()} fines de semana",
-            f"{cancha.nombre} (dÃ­as activos: {cancha.dias_semana})",
+            f"{cancha.nombre} (días activos: {cancha.dias_semana})",
         )
 
         return JsonResponse({
@@ -643,7 +643,7 @@ def toggle_findes_semana_cancha(request):
             'message': f'Fines de semana {accion}s correctamente.',
         })
     except (ValueError, TypeError, json.JSONDecodeError) as e:
-        return JsonResponse({'status': 'error', 'message': f'Datos invÃ¡lidos: {e}'}, status=400)
+        return JsonResponse({'status': 'error', 'message': f'Datos inválidos: {e}'}, status=400)
 
 
 @login_required
@@ -652,7 +652,7 @@ def actualizar_horario_cancha(request):
     if not request.user.is_superuser:
         return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'MÃ©todo no permitido'}, status=405)
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
     try:
         data = json.loads(request.body)
@@ -670,7 +670,7 @@ def actualizar_horario_cancha(request):
             return JsonResponse({'status': 'error', 'message': 'La hora de fin debe ser posterior a la de inicio.'}, status=400)
         if intervalo not in INTERVALOS_VALIDOS:
             opciones = ', '.join(str(i) for i in sorted(INTERVALOS_VALIDOS))
-            return JsonResponse({'status': 'error', 'message': f'Intervalo invÃ¡lido. Valores permitidos: {opciones} minutos.'}, status=400)
+            return JsonResponse({'status': 'error', 'message': f'Intervalo inválido. Valores permitidos: {opciones} minutos.'}, status=400)
 
         hay_cambios = (
             cancha.hora_inicio != hora_inicio
@@ -695,8 +695,8 @@ def actualizar_horario_cancha(request):
                     'status': 'error',
                     'message': (
                         f'No puedes modificar los horarios: existen {total} {plural} en {cancha.nombre} '
-                        f'a partir de hoy. La Ãºltima es el {ultima_reserva.fecha.strftime("%d/%m/%Y")}. '
-                        f'PodrÃ¡s aplicar este cambio desde el {disponible_desde.strftime("%d/%m/%Y")}.'
+                        f'a partir de hoy. La última es el {ultima_reserva.fecha.strftime("%d/%m/%Y")}. '
+                        f'Podrás aplicar este cambio desde el {disponible_desde.strftime("%d/%m/%Y")}.'
                     ),
                 }, status=400)
 
@@ -712,15 +712,15 @@ def actualizar_horario_cancha(request):
 
         registrar_accion(
             request.user,
-            "ActualizÃ³ horarios del complejo",
-            f"{cancha.nombre}: {anterior[0]}-{anterior[1]} ({anterior[2]} min) â†’ "
+            "Actualizó horarios del complejo",
+            f"{cancha.nombre}: {anterior[0]}-{anterior[1]} ({anterior[2]} min) → "
             f"{hora_inicio.strftime('%H:%M')}-{hora_fin.strftime('%H:%M')} ({intervalo} min)",
         )
 
         return JsonResponse({'status': 'success', 'message': 'Horarios actualizados correctamente.'})
 
     except (ValueError, TypeError, json.JSONDecodeError) as e:
-        return JsonResponse({'status': 'error', 'message': f'Datos invÃ¡lidos: {e}'}, status=400)
+        return JsonResponse({'status': 'error', 'message': f'Datos inválidos: {e}'}, status=400)
 
 
 @login_required
@@ -729,7 +729,7 @@ def crear_reserva_admin(request):
     if not request.user.is_superuser:
         return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'MÃ©todo no permitido'}, status=405)
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
     try:
         data = json.loads(request.body)
@@ -745,23 +745,23 @@ def crear_reserva_admin(request):
             return JsonResponse({'status': 'error', 'message': 'Debes ingresar el nombre del solicitante.'}, status=400)
 
         if fecha.weekday() not in cancha.dias_semana_list():
-            return JsonResponse({'status': 'error', 'message': 'Ese dÃ­a no estÃ¡ habilitado para este recinto.'}, status=400)
+            return JsonResponse({'status': 'error', 'message': 'Ese día no está habilitado para este recinto.'}, status=400)
 
         if BloqueoPeriodo.objects.filter(cancha=cancha, fecha_inicio__lte=fecha, fecha_fin__gte=fecha).exists():
-            return JsonResponse({'status': 'error', 'message': 'Esa fecha estÃ¡ dentro de un perÃ­odo bloqueado.'}, status=400)
+            return JsonResponse({'status': 'error', 'message': 'Esa fecha está dentro de un período bloqueado.'}, status=400)
 
         hora_fin_dt = datetime.combine(fecha, hora_inicio) + timedelta(minutes=cancha.intervalo_minutos)
         hora_fin = hora_fin_dt.time()
 
         with transaction.atomic():
             if BloqueoHorario.objects.select_for_update().filter(cancha=cancha, fecha=fecha, hora=hora_inicio).exists():
-                return JsonResponse({'status': 'error', 'message': 'Ese horario estÃ¡ bloqueado.'}, status=400)
+                return JsonResponse({'status': 'error', 'message': 'Ese horario está bloqueado.'}, status=400)
             if Reserva.objects.select_for_update().filter(
                 cancha=cancha, fecha=fecha,
                 hora_inicio__lt=hora_fin, hora_fin__gt=hora_inicio,
                 estado__in=ESTADOS_OCUPAN_SLOT,
             ).exists():
-                return JsonResponse({'status': 'error', 'message': 'Ese horario ya estÃ¡ reservado.'}, status=400)
+                return JsonResponse({'status': 'error', 'message': 'Ese horario ya está reservado.'}, status=400)
 
             reserva = Reserva.objects.create(
                 cancha=cancha,
@@ -782,7 +782,7 @@ def crear_reserva_admin(request):
 
         registrar_accion(
             request.user,
-            "CreÃ³ reserva personal manualmente",
+            "Creó reserva personal manualmente",
             f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')} para {nombre}",
         )
 
@@ -793,12 +793,12 @@ def crear_reserva_admin(request):
             'message': 'Reserva creada y aprobada.',
         })
     except (ValueError, TypeError, json.JSONDecodeError) as e:
-        return JsonResponse({'status': 'error', 'message': f'Datos invÃ¡lidos: {e}'}, status=400)
+        return JsonResponse({'status': 'error', 'message': f'Datos inválidos: {e}'}, status=400)
 
 
 @login_required
 def crear_reserva_organizacion(request):
-    """Reserva de organizaciÃ³n: accesible a admins (flujo completo) y a usuarios org (datos pre-cargados)."""
+    """Reserva de organización: accesible a admins (flujo completo) y a usuarios org (datos pre-cargados)."""
     _perfil = getattr(request.user, 'perfil', None)
     _es_admin = request.user.is_staff or request.user.is_superuser
     _es_org_user = bool(_perfil and _perfil.es_organizacion)
@@ -810,7 +810,7 @@ def crear_reserva_organizacion(request):
     hora_str = request.GET.get('hora') or request.POST.get('hora')
     cancha = get_object_or_404(ConfigCancha, id=cancha_id) if cancha_id else None
 
-    # Consumir mensajes de sesiÃ³n anteriores sin mostrarlos
+    # Consumir mensajes de sesión anteriores sin mostrarlos
     list(messages.get_messages(request))
 
     # Datos pre-cargados para usuarios org (no admin)
@@ -825,7 +825,7 @@ def crear_reserva_organizacion(request):
         }
 
     def _ctx_base(extra=None):
-        """Contexto comÃºn para el paso 1 (formulario)."""
+        """Contexto común para el paso 1 (formulario)."""
         precio_cancha = cancha.precio if cancha else 0
         orgs_existentes = User.objects.filter(
             is_staff=False, perfil__es_organizacion=True
@@ -869,16 +869,16 @@ def crear_reserva_organizacion(request):
     # Validar datos
     errores = []
     if not nombre_org:
-        errores.append('El nombre de la organizaciÃ³n es requerido.')
+        errores.append('El nombre de la organización es requerido.')
     if not rep_nombre:
         errores.append('El nombre del representante legal es requerido.')
     rep_rut_norm = normalizar_rut(rep_rut) if rep_rut else ''
     if rep_rut and not rut_valido(rep_rut_norm):
-        errores.append('El RUT del representante no es vÃ¡lido.')
+        errores.append('El RUT del representante no es válido.')
     if not rep_email:
         errores.append('El correo del representante es requerido.')
     if cancha and not cancha.precio:
-        errores.append('Esta cancha no tiene precio configurado. Ve a Panel â†’ Precios para definirlo.')
+        errores.append('Esta cancha no tiene precio configurado. Ve a Panel → Precios para definirlo.')
 
     fecha = None
     hora_inicio = None
@@ -889,7 +889,7 @@ def crear_reserva_organizacion(request):
             fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
             hora_inicio = datetime.strptime(hora_str, "%H:%M").time()
         except ValueError:
-            errores.append('Fecha u hora invÃ¡lida.')
+            errores.append('Fecha u hora inválida.')
 
     if errores:
         return render(request, 'panel/crear_reserva_organizacion.html', _ctx_base({
@@ -905,7 +905,7 @@ def crear_reserva_organizacion(request):
     fecha_carta = f"{timezone.now().day} de {meses_es[timezone.now().month]} de {timezone.now().year}"
     fecha_res_fmt = f"{fecha.day} de {meses_es[fecha.month]} de {fecha.year}"
 
-    # â”€â”€ PASO 1 â†’ VISTA PREVIA â”€â”€
+    # ── PASO 1 → VISTA PREVIA ──
     if step == 'preview':
         from urllib.parse import urlencode
         preview_params = urlencode({
@@ -947,12 +947,12 @@ def crear_reserva_organizacion(request):
             },
         })
 
-    # â”€â”€ PASO 2 â†’ CONFIRMAR + CREAR + FIRMAR â”€â”€
+    # ── PASO 2 → CONFIRMAR + CREAR + FIRMAR ──
     with transaction.atomic():
         if BloqueoHorario.objects.select_for_update().filter(cancha=cancha, fecha=fecha, hora=hora_inicio).exists():
             return render(request, 'panel/crear_reserva_organizacion.html', _ctx_base({
                 'form_data': request.POST,
-                'errores': ['Ese horario estÃ¡ bloqueado. Elige otro.'],
+                'errores': ['Ese horario está bloqueado. Elige otro.'],
             }))
         if Reserva.objects.select_for_update().filter(
             cancha=cancha, fecha=fecha,
@@ -961,10 +961,10 @@ def crear_reserva_organizacion(request):
         ).exists():
             return render(request, 'panel/crear_reserva_organizacion.html', _ctx_base({
                 'form_data': request.POST,
-                'errores': ['Ese horario (o parte del rango) ya estÃ¡ reservado.'],
+                'errores': ['Ese horario (o parte del rango) ya está reservado.'],
             }))
 
-        # Org user crea su propia reserva: se vincula a su cuenta y firma la carta despuÃ©s
+        # Org user crea su propia reserva: se vincula a su cuenta y firma la carta después
         es_autogestion = _es_org_user and not _es_admin
         reserva = Reserva.objects.create(
             cancha=cancha,
@@ -991,16 +991,16 @@ def crear_reserva_organizacion(request):
 
     registrar_accion(
         request.user,
-        "CreÃ³ reserva de organizaciÃ³n",
-        f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')}â€“{hora_fin.strftime('%H:%M')} "
-        f"â€” Org: {nombre_org} â€” Pendiente firma alcalde",
+        "Creó reserva de organización",
+        f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')}–{hora_fin.strftime('%H:%M')} "
+        f"— Org: {nombre_org} — Pendiente firma alcalde",
     )
 
-    _fecha_fmt = f"{fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')}â€“{hora_fin.strftime('%H:%M')}"
+    _fecha_fmt = f"{fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')}–{hora_fin.strftime('%H:%M')}"
     notificar_admins(
         'RESERVA_PENDIENTE',
         f'Nueva solicitud: {nombre_org}',
-        f'{nombre_org} solicitÃ³ {cancha.nombre} el {_fecha_fmt}. Pendiente de firma para continuar el flujo.',
+        f'{nombre_org} solicitó {cancha.nombre} el {_fecha_fmt}. Pendiente de firma para continuar el flujo.',
         reserva=reserva,
     )
     if es_autogestion:
@@ -1044,14 +1044,14 @@ def finalizar_reserva_cancha(request):
             fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
             hora_inicio = datetime.strptime(hora_str, "%H:%M").time()
 
-            # Validar dÃ­a de semana
+            # Validar día de semana
             dias_disponibles = cancha.dias_semana_list()
             if fecha.weekday() not in dias_disponibles:
-                nombres_dias = ['Lun', 'Mar', 'MiÃ©', 'Jue', 'Vie', 'SÃ¡b', 'Dom']
+                nombres_dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
                 disponibles_str = ', '.join(nombres_dias[d] for d in sorted(dias_disponibles))
                 return JsonResponse({
                     'status': 'error',
-                    'message': f'Este recinto no estÃ¡ disponible ese dÃ­a. DÃ­as habilitados: {disponibles_str}.',
+                    'message': f'Este recinto no está disponible ese día. Días habilitados: {disponibles_str}.',
                 }, status=400)
 
             # Validar que la hora no caiga en la pausa
@@ -1060,20 +1060,20 @@ def finalizar_reserva_cancha(request):
                     return JsonResponse({
                         'status': 'error',
                         'message': (
-                            f'El recinto no estÃ¡ disponible entre las '
+                            f'El recinto no está disponible entre las '
                             f'{cancha.pausa_inicio.strftime("%H:%M")} y las '
                             f'{cancha.pausa_fin.strftime("%H:%M")}.'
                         ),
                     }, status=400)
 
-            # ValidaciÃ³n de 4 horas de anticipaciÃ³n para el mismo dÃ­a (admin queda exento)
+            # Validación de 4 horas de anticipación para el mismo día (admin queda exento)
             if not admin_override:
                 ahora = timezone.now()
                 inicio_solicitado = timezone.make_aware(datetime.combine(fecha, hora_inicio))
                 if inicio_solicitado < ahora + timedelta(hours=4):
                     return JsonResponse({
                         'status': 'error',
-                        'message': 'Las reservas para el mismo dÃ­a deben realizarse con al menos 4 horas de anticipaciÃ³n.'
+                        'message': 'Las reservas para el mismo día deben realizarse con al menos 4 horas de anticipación.'
                     }, status=400)
 
             minutos = cancha.intervalo_minutos
@@ -1084,9 +1084,9 @@ def finalizar_reserva_cancha(request):
             metodo_pago = (metodo_pago or '').upper()
 
             if metodo_pago not in ('TARJETA', 'TRANSFERENCIA', 'CUPON'):
-                return JsonResponse({'status': 'error', 'message': 'MÃ©todo de pago invÃ¡lido.'}, status=400)
+                return JsonResponse({'status': 'error', 'message': 'Método de pago inválido.'}, status=400)
 
-            # Validar cupÃ³n antes de seguir
+            # Validar cupón antes de seguir
             cupon_obj = None
             if metodo_pago == 'CUPON' and admin_override:
                 return JsonResponse({
@@ -1096,18 +1096,18 @@ def finalizar_reserva_cancha(request):
             if metodo_pago == 'CUPON':
                 cupon_codigo = request.POST.get('cupon_codigo', '').strip().upper()
                 if not cupon_codigo:
-                    return JsonResponse({'status': 'error', 'message': 'Debes ingresar el cÃ³digo del cupÃ³n.'}, status=400)
+                    return JsonResponse({'status': 'error', 'message': 'Debes ingresar el código del cupón.'}, status=400)
                 try:
                     cupon_obj = Cupon.objects.get(codigo=cupon_codigo, usuario=request.user)
                 except Cupon.DoesNotExist:
-                    return JsonResponse({'status': 'error', 'message': 'CupÃ³n no vÃ¡lido o no te pertenece.'}, status=400)
+                    return JsonResponse({'status': 'error', 'message': 'Cupón no válido o no te pertenece.'}, status=400)
                 if not cupon_obj.esta_vigente():
-                    return JsonResponse({'status': 'error', 'message': 'El cupÃ³n estÃ¡ expirado o ya fue usado.'}, status=400)
-                # Verificar que el cupÃ³n corresponde a esta cancha
+                    return JsonResponse({'status': 'error', 'message': 'El cupón está expirado o ya fue usado.'}, status=400)
+                # Verificar que el cupón corresponde a esta cancha
                 if cupon_obj.nombre_recurso and cupon_obj.nombre_recurso != cancha.nombre:
                     return JsonResponse({
                         'status': 'error',
-                        'message': f'Este cupÃ³n solo es vÃ¡lido para {cupon_obj.nombre_recurso}.',
+                        'message': f'Este cupón solo es válido para {cupon_obj.nombre_recurso}.',
                     }, status=400)
 
             if metodo_pago == 'CUPON':
@@ -1131,7 +1131,7 @@ def finalizar_reserva_cancha(request):
                 if not content_type.startswith('image/'):
                     return JsonResponse({
                         'status': 'error',
-                        'message': 'Solo se permiten imÃ¡genes como comprobante.'
+                        'message': 'Solo se permiten imágenes como comprobante.'
                     }, status=400)
 
                 try:
@@ -1142,10 +1142,10 @@ def finalizar_reserva_cancha(request):
                 except (UnidentifiedImageError, OSError, ValueError):
                     return JsonResponse({
                         'status': 'error',
-                        'message': 'El archivo subido no es una imagen vÃ¡lida.'
+                        'message': 'El archivo subido no es una imagen válida.'
                     }, status=400)
             
-            # Verificar disponibilidad y crear dentro de una transacciÃ³n atÃ³mica
+            # Verificar disponibilidad y crear dentro de una transacción atómica
             # para evitar double-booking por concurrencia
             with transaction.atomic():
                 existe_bloqueo = BloqueoHorario.objects.select_for_update().filter(
@@ -1160,9 +1160,9 @@ def finalizar_reserva_cancha(request):
                 ).exists()
 
                 if existe_bloqueo or existe_reserva:
-                    return JsonResponse({'status': 'error', 'message': 'El horario ya no estÃ¡ disponible.'}, status=400)
+                    return JsonResponse({'status': 'error', 'message': 'El horario ya no está disponible.'}, status=400)
 
-                # Detectar si el solicitante es perfil de organizaciÃ³n
+                # Detectar si el solicitante es perfil de organización
                 perfil_solicitante = getattr(request.user, 'perfil', None) if not admin_override else None
                 es_org_user = bool(perfil_solicitante and perfil_solicitante.es_organizacion)
 
@@ -1188,7 +1188,7 @@ def finalizar_reserva_cancha(request):
                     precio_descuento=cancha.precio // 2 if es_org_user and cancha.precio else None,
                 )
 
-                # Marcar cupÃ³n como usado dentro de la misma transacciÃ³n
+                # Marcar cupón como usado dentro de la misma transacción
                 if cupon_obj:
                     cupon_obj.estado = 'USADO'
                     cupon_obj.reserva_uso = reserva
@@ -1196,8 +1196,8 @@ def finalizar_reserva_cancha(request):
                     Notificacion.objects.create(
                         user=request.user,
                         tipo='CUPON_USADO',
-                        titulo='CupÃ³n aplicado',
-                        mensaje=f'Usaste el cupÃ³n {cupon_obj.codigo} para tu reserva en {cancha.nombre} el {fecha.strftime("%d/%m/%Y")}.',
+                        titulo='Cupón aplicado',
+                        mensaje=f'Usaste el cupón {cupon_obj.codigo} para tu reserva en {cancha.nombre} el {fecha.strftime("%d/%m/%Y")}.',
                     )
 
                 if reserva.estado == 'APROBADA':
@@ -1209,31 +1209,31 @@ def finalizar_reserva_cancha(request):
                         request.user,
                         'RESERVA_PENDIENTE',
                         'Reserva enviada',
-                        f'Tu reserva para {cancha.nombre} del {fecha.strftime("%d/%m/%Y")} quedÃ³ pendiente de aprobaciÃ³n.',
+                        f'Tu reserva para {cancha.nombre} del {fecha.strftime("%d/%m/%Y")} quedó pendiente de aprobación.',
                         reserva,
                     )
                 elif reserva.estado == 'APROBADA':
                     crear_notificacion_reserva(
                         request.user,
                         'RESERVA_APROBADA',
-                        'Reserva realizada con Ã©xito',
+                        'Reserva realizada con éxito',
                         f'Tu reserva para {cancha.nombre} del {fecha.strftime("%d/%m/%Y")} ha sido confirmada.',
                         reserva,
                     )
             else:
                 registrar_accion(
                     request.user,
-                    "CreÃ³ reserva manualmente (flujo de pago)",
+                    "Creó reserva manualmente (flujo de pago)",
                     f"{cancha.nombre} {fecha.strftime('%d/%m/%Y')} {hora_inicio.strftime('%H:%M')} "
-                    f"para {admin_nombre.strip()} â€” mÃ©todo: {metodo_pago}, estado: {estado}",
+                    f"para {admin_nombre.strip()} — método: {metodo_pago}, estado: {estado}",
                 )
             
-            # Correo de confirmaciÃ³n (basado en la lÃ³gica existente)
+            # Correo de confirmación (basado en la lógica existente)
             correo_comprobante_a_solicitante(reserva)
 
-            # NotificaciÃ³n in-app a administradores
+            # Notificación in-app a administradores
             admins = User.objects.filter(is_staff=True)
-            txt_estado = "pendiente de aprobaciÃ³n" if reserva.estado == 'PENDIENTE' else "confirmada (pago tarjeta)"
+            txt_estado = "pendiente de aprobación" if reserva.estado == 'PENDIENTE' else "confirmada (pago tarjeta)"
             for admin in admins:
                 Notificacion.objects.create(
                     user=admin,
@@ -1246,7 +1246,7 @@ def finalizar_reserva_cancha(request):
             return JsonResponse({
                 'status': 'success', 
                 'reserva_id': reserva.id,
-                'mensaje': 'Reserva creada con Ã©xito'
+                'mensaje': 'Reserva creada con éxito'
             })
             
         except (ValueError, TypeError, json.JSONDecodeError) as e:
@@ -1274,7 +1274,7 @@ def registro(request):
             return render(request, 'registro.html', {
                 'dias': range(1, 32),
                 'anios': range(2010, 1919, -1),
-                'errores': {'general': 'Demasiados registros desde esta direcciÃ³n. Intenta mÃ¡s tarde.'},
+                'errores': {'general': 'Demasiados registros desde esta dirección. Intenta más tarde.'},
             })
 
         nombre = request.POST.get('nombre', '').strip()
@@ -1286,21 +1286,21 @@ def registro(request):
         dia = request.POST.get('dia')
         mes = request.POST.get('mes')
         anio = request.POST.get('anio')
-        clave = request.POST.get('contraseÃ±a', '')
-        clave2 = request.POST.get('contraseÃ±a2', '')
+        clave = request.POST.get('contraseña', '')
+        clave2 = request.POST.get('contraseña2', '')
 
         errores = {}
 
         if not rut_valido(rut):
-            errores['rut'] = 'Ingresa un RUT vÃ¡lido.'
+            errores['rut'] = 'Ingresa un RUT válido.'
         if User.objects.filter(email=email).exists():
             errores['email'] = 'Ya existe una cuenta con ese correo.'
         if rut_valido(rut) and UserProfile.objects.filter(rut=rut).exists():
             errores['rut'] = 'Ya existe una cuenta con ese RUT.'
         if clave != clave2:
-            errores['clave'] = 'Las contraseÃ±as no coinciden.'
+            errores['clave'] = 'Las contraseñas no coinciden.'
         if len(clave) < 8:
-            errores['clave'] = 'La contraseÃ±a debe tener al menos 8 caracteres.'
+            errores['clave'] = 'La contraseña debe tener al menos 8 caracteres.'
 
         if not errores:
             user = User.objects.create_user(
@@ -1324,17 +1324,17 @@ def registro(request):
             )
             login(request, user)
             
-            # NotificaciÃ³n in-app a administradores
+            # Notificación in-app a administradores
             admins = User.objects.filter(is_staff=True)
             for admin in admins:
                 Notificacion.objects.create(
                     user=admin,
-                    tipo='PERFIL_ACTUALIZADO', # Reutilizamos tipo o uno genÃ©rico
+                    tipo='PERFIL_ACTUALIZADO', # Reutilizamos tipo o uno genérico
                     titulo='Nuevo usuario registrado',
                     mensaje=f'El usuario {nombre} {apellido} ({email}) se ha registrado en el sistema.',
                 )
 
-            messages.success(request, f'Â¡Bienvenido/a, {nombre}!')
+            messages.success(request, f'¡Bienvenido/a, {nombre}!')
             return redirect('inicio')
 
         return render(request, 'registro.html', {
@@ -1394,7 +1394,7 @@ def login_view(request):
                     })
             except User.DoesNotExist:
                 pass
-            return render(request, 'login.html', {'error': 'Correo o contraseÃ±a incorrectos.', 'next': next_url})
+            return render(request, 'login.html', {'error': 'Correo o contraseña incorrectos.', 'next': next_url})
 
     return render(request, 'login.html', {'next': next_url})
 
@@ -1457,12 +1457,12 @@ def resetear_clave(request, uidb64, token):
 
         if len(clave) < 8:
             return render(request, 'resetear_clave.html', {
-                'error': 'La contraseÃ±a debe tener al menos 8 caracteres.',
+                'error': 'La contraseña debe tener al menos 8 caracteres.',
                 'uidb64': uidb64, 'token': token,
             })
         if clave != clave2:
             return render(request, 'resetear_clave.html', {
-                'error': 'Las contraseÃ±as no coinciden.',
+                'error': 'Las contraseñas no coinciden.',
                 'uidb64': uidb64, 'token': token,
             })
 
@@ -1473,12 +1473,12 @@ def resetear_clave(request, uidb64, token):
     return render(request, 'resetear_clave.html', {'uidb64': uidb64, 'token': token})
 
 
-# â”€â”€â”€ Vistas de Reservas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Vistas de Reservas ──────────────────────────────────────────────────────
 
 @login_required
 def crear_reserva(request, salon_id):
     """
-    Crea una nueva reserva para el salÃ³n indicado.
+    Crea una nueva reserva para el salón indicado.
     """
     salon = get_object_or_404(Salon, pk=salon_id, activo=True)
 
@@ -1503,14 +1503,14 @@ def crear_reserva(request, salon_id):
 
         es_admin = request.user.is_staff or request.user.is_superuser
 
-        # ValidaciÃ³n 4 horas mismo dÃ­a ANTES de crear la reserva
+        # Validación 4 horas mismo día ANTES de crear la reserva
         if not es_admin:
             ahora = timezone.now()
             f_obj = datetime.strptime(fecha, "%Y-%m-%d").date()
             h_obj = datetime.strptime(hora_inicio, "%H:%M").time()
             inicio_sol = timezone.make_aware(datetime.combine(f_obj, h_obj))
             if inicio_sol < ahora + timedelta(hours=4):
-                messages.error(request, 'Las reservas para el mismo dÃ­a deben hacerse con al menos 4 horas de anticipaciÃ³n.')
+                messages.error(request, 'Las reservas para el mismo día deben hacerse con al menos 4 horas de anticipación.')
                 return render(request, 'reservas/crear_reserva.html', contexto)
 
         estado_inicial = 'APROBADA' if es_admin else 'PENDIENTE'
@@ -1531,14 +1531,14 @@ def crear_reserva(request, salon_id):
                 request.user,
                 'RESERVA_PENDIENTE',
                 'Reserva enviada',
-                f'Tu reserva para {salon.nombre} del {reserva.fecha.strftime("%d/%m/%Y")} quedÃ³ pendiente de aprobaciÃ³n.',
+                f'Tu reserva para {salon.nombre} del {reserva.fecha.strftime("%d/%m/%Y")} quedó pendiente de aprobación.',
                 reserva,
             )
         elif reserva.estado == 'APROBADA':
             crear_notificacion_reserva(
                 request.user,
                 'RESERVA_APROBADA',
-                'Reserva realizada con Ã©xito',
+                'Reserva realizada con éxito',
                 f'Tu reserva para {salon.nombre} del {reserva.fecha.strftime("%d/%m/%Y")} ha sido confirmada.',
                 reserva,
             )
@@ -1548,22 +1548,22 @@ def crear_reserva(request, salon_id):
         correo_comprobante_a_solicitante(reserva)
 
         if reserva.estado == 'PENDIENTE':
-            # Correo A: notificar a admins del salÃ³n
+            # Correo A: notificar a admins del salón
             correo_nueva_solicitud_a_admins(reserva)
 
-        # NotificaciÃ³n in-app a administradores
+        # Notificación in-app a administradores
         admins = User.objects.filter(is_staff=True)
-        txt_estado = "pendiente de aprobaciÃ³n" if reserva.estado == 'PENDIENTE' else "confirmada (admin/staff)"
+        txt_estado = "pendiente de aprobación" if reserva.estado == 'PENDIENTE' else "confirmada (admin/staff)"
         for admin in admins:
             Notificacion.objects.create(
                 user=admin,
                 tipo='RESERVA_PENDIENTE' if reserva.estado == 'PENDIENTE' else 'RESERVA_APROBADA',
-                titulo='Nueva reserva de salÃ³n',
-                mensaje=f'{reserva.get_solicitante_display()} ha reservado el salÃ³n {salon.nombre} para el {reserva.fecha.strftime("%d/%m/%Y")}. Estado: {txt_estado}.',
+                titulo='Nueva reserva de salón',
+                mensaje=f'{reserva.get_solicitante_display()} ha reservado el salón {salon.nombre} para el {reserva.fecha.strftime("%d/%m/%Y")}. Estado: {txt_estado}.',
                 reserva=reserva,
             )
 
-        messages.success(request, f'Reserva creada con Ã©xito.')
+        messages.success(request, f'Reserva creada con éxito.')
         return redirect('mis_reservas')
 
     return render(request, 'reservas/crear_reserva.html', contexto)
@@ -1593,10 +1593,10 @@ def mis_reservas(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Inyectar si es editable / cancelable solo a los de la pÃ¡gina actual
+    # Inyectar si es editable / cancelable solo a los de la página actual
     ahora = timezone.now()
-    limite_edicion  = ahora + timedelta(hours=4)   # mÃ­nimo absoluto para editar
-    limite_cancelar = ahora + timedelta(hours=12)  # mÃ­nimo para cancelar
+    limite_edicion  = ahora + timedelta(hours=4)   # mínimo absoluto para editar
+    limite_cancelar = ahora + timedelta(hours=12)  # mínimo para cancelar
 
     for r in page_obj:
         dt_naive = datetime.combine(r.fecha, r.hora_inicio)
@@ -1621,7 +1621,7 @@ def mis_reservas(request):
 
 @login_required
 def editar_reserva_organizacion(request, reserva_id):
-    """EdiciÃ³n de reserva de organizaciÃ³n: resetea firmas y redirige a carta."""
+    """Edición de reserva de organización: resetea firmas y redirige a carta."""
     reserva = get_object_or_404(Reserva, pk=reserva_id, tipo_reserva='ORGANIZACION')
 
     _perfil   = getattr(request.user, 'perfil', None)
@@ -1651,7 +1651,7 @@ def editar_reserva_organizacion(request, reserva_id):
 
         errores = []
         if not nombre_org:
-            errores.append('El nombre de la organizaciÃ³n es requerido.')
+            errores.append('El nombre de la organización es requerido.')
         if not rep_nombre:
             errores.append('El nombre del representante es requerido.')
         if not rep_email:
@@ -1659,7 +1659,7 @@ def editar_reserva_organizacion(request, reserva_id):
 
         rep_rut_norm = normalizar_rut(rep_rut) if rep_rut else ''
         if rep_rut and not rut_valido(rep_rut_norm):
-            errores.append('El RUT del representante no es vÃ¡lido.')
+            errores.append('El RUT del representante no es válido.')
 
         if errores:
             return render(request, 'panel/crear_reserva_organizacion.html', {
@@ -1698,13 +1698,13 @@ def editar_reserva_organizacion(request, reserva_id):
         reserva.firmas_carta             = None
         reserva.save()
 
-        registrar_accion(request.user, 'EditÃ³ reserva de organizaciÃ³n',
-                         f'Reserva #{reserva.pk} â€” firmas reiniciadas')
-        _fecha_fmt = f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}â€“{reserva.hora_fin.strftime("%H:%M")}'
+        registrar_accion(request.user, 'Editó reserva de organización',
+                         f'Reserva #{reserva.pk} — firmas reiniciadas')
+        _fecha_fmt = f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}–{reserva.hora_fin.strftime("%H:%M")}'
         notificar_admins(
             'RESERVA_PENDIENTE',
             f'Solicitud editada: {reserva.nombre_organizacion}',
-            f'{reserva.nombre_organizacion} editÃ³ su solicitud para '
+            f'{reserva.nombre_organizacion} editó su solicitud para '
             f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} el {_fecha_fmt}. '
             f'Las firmas fueron reiniciadas.',
             reserva=reserva,
@@ -1712,14 +1712,14 @@ def editar_reserva_organizacion(request, reserva_id):
         notificar_alcaldes(
             'RESERVA_PENDIENTE',
             f'Solicitud editada: {reserva.nombre_organizacion}',
-            f'{reserva.nombre_organizacion} modificÃ³ su solicitud para '
+            f'{reserva.nombre_organizacion} modificó su solicitud para '
             f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} el {_fecha_fmt}. '
-            f'DeberÃ¡ firmarse nuevamente.',
+            f'Deberá firmarse nuevamente.',
             reserva=reserva,
         )
         return redirect('carta_solicitud_recinto', reserva_id=reserva.pk)
 
-    # GET â€” form pre-llenado con datos actuales
+    # GET — form pre-llenado con datos actuales
     prefill = {
         'nombre_organizacion':   reserva.nombre_organizacion,
         'representante_nombre':  reserva.representante_nombre,
@@ -1743,20 +1743,20 @@ def editar_reserva_organizacion(request, reserva_id):
 @login_required
 def editar_mi_reserva(request, reserva_id):
     """
-    El solicitante edita su reserva APROBADA (segÃºn reglas de 12 horas).
+    El solicitante edita su reserva APROBADA (según reglas de 12 horas).
     """
     reserva = get_object_or_404(Reserva, pk=reserva_id, solicitante=request.user)
     
-    # RestricciÃ³n DinÃ¡mica: 12h para adelantar, 4h para posponer
+    # Restricción Dinámica: 12h para adelantar, 4h para posponer
     ahora = timezone.now()
     inicio_original = timezone.make_aware(datetime.combine(reserva.fecha, reserva.hora_inicio))
     
     if reserva.estado != 'APROBADA':
-        messages.error(request, 'Solo puedes editar reservas que ya estÃ©n aprobadas.')
+        messages.error(request, 'Solo puedes editar reservas que ya estén aprobadas.')
         return redirect('mis_reservas')
         
     if inicio_original <= ahora + timedelta(hours=4):
-        messages.error(request, 'No puedes editar la reserva con menos de 4 horas de anticipaciÃ³n.')
+        messages.error(request, 'No puedes editar la reserva con menos de 4 horas de anticipación.')
         return redirect('mis_reservas')
 
     if request.method == 'POST':
@@ -1769,23 +1769,23 @@ def editar_mi_reserva(request, reserva_id):
             h_ini = datetime.strptime(h_ini_str, "%H:%M").time()
             h_fin = datetime.strptime(h_fin_str, "%H:%M").time()
             
-            # Regla DinÃ¡mica de AnticipaciÃ³n
+            # Regla Dinámica de Anticipación
             inicio_nuevo = timezone.make_aware(datetime.combine(f, h_ini))
             
             if inicio_nuevo < inicio_original:
                 # Caso: Adelantar la reserva
                 if ahora + timedelta(hours=12) > inicio_original:
-                    raise Exception('Para adelantar una reserva debes hacerlo con al menos 12 horas de anticipaciÃ³n a la hora original.')
+                    raise Exception('Para adelantar una reserva debes hacerlo con al menos 12 horas de anticipación a la hora original.')
             else:
                 # Caso: Posponer la reserva
                 if ahora + timedelta(hours=4) > inicio_original:
-                    raise Exception('Para modificar una reserva debes hacerlo con al menos 4 horas de anticipaciÃ³n a la hora original.')
+                    raise Exception('Para modificar una reserva debes hacerlo con al menos 4 horas de anticipación a la hora original.')
 
-            # NUEVO: Validar que el nuevo horario solicitado cumpla el mÃ­nimo de 4h desde AHORA
+            # NUEVO: Validar que el nuevo horario solicitado cumpla el mínimo de 4h desde AHORA
             if inicio_nuevo < ahora + timedelta(hours=4):
-                raise Exception('El nuevo horario seleccionado debe tener al menos 4 horas de anticipaciÃ³n desde el momento actual.')
+                raise Exception('El nuevo horario seleccionado debe tener al menos 4 horas de anticipación desde el momento actual.')
 
-            # Validar que el nuevo horario no sea idÃ©ntico al actual
+            # Validar que el nuevo horario no sea idéntico al actual
             if f == reserva.fecha and h_ini == reserva.hora_inicio and h_fin == reserva.hora_fin:
                 raise Exception('El horario seleccionado es exactamente el mismo que ya tienes. Por favor elige una fecha u hora diferente.')
 
@@ -1797,7 +1797,7 @@ def editar_mi_reserva(request, reserva_id):
                     dias_bloqueados += (p.fecha_fin - inicio_p).days + 1
             limite_futuro = date.today() + timedelta(days=31 + dias_bloqueados)
             if f > limite_futuro:
-                raise Exception('Solo se permiten reservas hasta 31 dÃ­as a futuro.')
+                raise Exception('Solo se permiten reservas hasta 31 días a futuro.')
             
             if reserva.cancha:
                 hora_min = reserva.cancha.hora_inicio
@@ -1809,21 +1809,21 @@ def editar_mi_reserva(request, reserva_id):
 
             dt_ini = datetime.combine(f, h_ini)
             dt_fin = datetime.combine(f, h_fin)
-            if dt_fin <= dt_ini:   # paso por medianoche (23:00 â†’ 00:00)
+            if dt_fin <= dt_ini:   # paso por medianoche (23:00 → 00:00)
                 dt_fin += timedelta(days=1)
             diff = dt_fin - dt_ini
             if diff != timedelta(hours=1):
-                raise Exception('La ediciÃ³n debe mantener bloques de 1 hora.')
+                raise Exception('La edición debe mantener bloques de 1 hora.')
 
-            # Validar que la nueva fecha no estÃ© en un perÃ­odo bloqueado
+            # Validar que la nueva fecha no esté en un período bloqueado
             if reserva.cancha_id:
                 if BloqueoPeriodo.objects.filter(cancha_id=reserva.cancha_id, fecha_inicio__lte=f, fecha_fin__gte=f).exists():
-                    raise Exception('La fecha seleccionada estÃ¡ dentro de un perÃ­odo bloqueado por el administrador. Por favor elige otra fecha disponible.')
+                    raise Exception('La fecha seleccionada está dentro de un período bloqueado por el administrador. Por favor elige otra fecha disponible.')
 
-            # Validar que la hora no estÃ© bloqueada manualmente
+            # Validar que la hora no esté bloqueada manualmente
             if reserva.cancha_id:
                 if BloqueoHorario.objects.filter(cancha_id=reserva.cancha_id, fecha=f, hora=h_ini).exists():
-                    raise Exception('El horario seleccionado estÃ¡ bloqueado por el administrador. Por favor elige otro horario disponible.')
+                    raise Exception('El horario seleccionado está bloqueado por el administrador. Por favor elige otro horario disponible.')
 
             # Disponibilidad: verificar que no choque con otra reserva del mismo recurso
             choca_query = Reserva.objects.filter(fecha=f, estado__in=ESTADOS_OCUPAN_SLOT).exclude(pk=reserva.pk)
@@ -1833,9 +1833,9 @@ def editar_mi_reserva(request, reserva_id):
                 choca_query = choca_query.filter(cancha=reserva.cancha)
                 
             if choca_query.filter(hora_inicio__lt=h_fin, hora_fin__gt=h_ini).exists():
-                raise Exception('El horario seleccionado ya estÃ¡ ocupado por otra reserva. Por favor elige otro horario disponible.')
+                raise Exception('El horario seleccionado ya está ocupado por otra reserva. Por favor elige otro horario disponible.')
 
-            # Soportar auditorÃ­a: Guardar valores previos antes del cambio
+            # Soportar auditoría: Guardar valores previos antes del cambio
             reserva.fecha_anterior = reserva.fecha
             reserva.hora_inicio_anterior = reserva.hora_inicio
             reserva.hora_fin_anterior = reserva.hora_fin
@@ -1847,18 +1847,18 @@ def editar_mi_reserva(request, reserva_id):
             # Actualizar otros campos (Motivo)
             reserva.motivo = request.POST.get('motivo', '').strip()
 
-            reserva.estado = 'PENDIENTE' # Volver a pendiente para re-validaciÃ³n
+            reserva.estado = 'PENDIENTE' # Volver a pendiente para re-validación
             reserva.save()
 
             crear_notificacion_reserva(
                 request.user,
                 'RESERVA_PENDIENTE',
                 'Cambios en reserva enviados',
-                f'Has modificado tu reserva para {(reserva.salon.nombre if reserva.salon else reserva.cancha.nombre)}. Ha vuelto a estado pendiente para su validaciÃ³n.',
+                f'Has modificado tu reserva para {(reserva.salon.nombre if reserva.salon else reserva.cancha.nombre)}. Ha vuelto a estado pendiente para su validación.',
                 reserva,
             )
 
-            # NotificaciÃ³n in-app a administradores
+            # Notificación in-app a administradores
             admins = User.objects.filter(is_staff=True)
             recurso = reserva.salon.nombre if reserva.salon else reserva.cancha.nombre
             for admin in admins:
@@ -1866,11 +1866,11 @@ def editar_mi_reserva(request, reserva_id):
                     user=admin,
                     tipo='RESERVA_PENDIENTE',
                     titulo='Reserva modificada',
-                    mensaje=f'{reserva.get_solicitante_display()} ha modificado su reserva de {recurso} al {reserva.fecha.strftime("%d/%m/%Y")}. Requiere revisiÃ³n.',
+                    mensaje=f'{reserva.get_solicitante_display()} ha modificado su reserva de {recurso} al {reserva.fecha.strftime("%d/%m/%Y")}. Requiere revisión.',
                     reserva=reserva,
                 )
 
-            messages.success(request, 'Cambios guardados. Su reserva volverÃ¡ a ser evaluada.')
+            messages.success(request, 'Cambios guardados. Su reserva volverá a ser evaluada.')
             return redirect('mis_reservas')
         except Exception as e:
             messages.error(request, f'Error: {str(e)}')
@@ -1902,8 +1902,8 @@ def editar_mi_reserva(request, reserva_id):
 @login_required
 def cancelar_mi_reserva(request, reserva_id):
     """
-    El solicitante cancela su propia reserva (mÃ­nimo 12 h de anticipaciÃ³n).
-    No requiere aprobaciÃ³n. Notifica a los admins por correo y por notificaciÃ³n in-app.
+    El solicitante cancela su propia reserva (mínimo 12 h de anticipación).
+    No requiere aprobación. Notifica a los admins por correo y por notificación in-app.
     """
     reserva = get_object_or_404(Reserva, pk=reserva_id, solicitante=request.user)
 
@@ -1916,7 +1916,7 @@ def cancelar_mi_reserva(request, reserva_id):
         ahora = timezone.now()
         inicio_reserva = timezone.make_aware(datetime.combine(reserva.fecha, reserva.hora_inicio))
         if inicio_reserva <= ahora + timedelta(hours=12):
-            messages.error(request, 'Solo puedes cancelar con al menos 12 horas de anticipaciÃ³n.')
+            messages.error(request, 'Solo puedes cancelar con al menos 12 horas de anticipación.')
             return redirect('mis_reservas')
 
     if request.method == 'POST':
@@ -1926,7 +1926,7 @@ def cancelar_mi_reserva(request, reserva_id):
 
         recurso = reserva.salon.nombre if reserva.salon else reserva.cancha.nombre
 
-        # NotificaciÃ³n in-app a todos los administradores
+        # Notificación in-app a todos los administradores
         admins = User.objects.filter(is_staff=True)
         solicitante_nombre = reserva.get_solicitante_display()
         for admin in admins:
@@ -1934,13 +1934,13 @@ def cancelar_mi_reserva(request, reserva_id):
                 user=admin,
                 tipo='RESERVA_CANCELADA',
                 titulo='Reserva cancelada por el usuario',
-                mensaje=f'{solicitante_nombre} cancelÃ³ su reserva de {recurso} '
+                mensaje=f'{solicitante_nombre} canceló su reserva de {recurso} '
                         f'del {reserva.fecha.strftime("%d/%m/%Y")} '
-                        f'({reserva.hora_inicio.strftime("%H:%M")} â€“ {reserva.hora_fin.strftime("%H:%M")}).',
+                        f'({reserva.hora_inicio.strftime("%H:%M")} – {reserva.hora_fin.strftime("%H:%M")}).',
                 reserva=reserva,
             )
 
-        # NotificaciÃ³n al usuario que cancela
+        # Notificación al usuario que cancela
         crear_notificacion_reserva(
             request.user,
             'RESERVA_CANCELADA',
@@ -1949,7 +1949,7 @@ def cancelar_mi_reserva(request, reserva_id):
             reserva,
         )
 
-        # Emitir cupÃ³n si la reserva ya estaba aprobada (= pagada)
+        # Emitir cupón si la reserva ya estaba aprobada (= pagada)
         if fue_pagada:
             emitir_cupon(request.user, reserva, 'CANCELACION_USUARIO')
 
@@ -1960,7 +1960,7 @@ def cancelar_mi_reserva(request, reserva_id):
             pass
 
         if fue_pagada:
-            messages.success(request, 'Tu reserva fue cancelada. Se emitiÃ³ un cupÃ³n de compensaciÃ³n en Mis cupones.')
+            messages.success(request, 'Tu reserva fue cancelada. Se emitió un cupón de compensación en Mis cupones.')
         else:
             messages.success(request, 'Tu reserva fue cancelada correctamente.')
         return redirect('mis_reservas')
@@ -1974,17 +1974,17 @@ def gestionar_reserva(request, reserva_id):
     Admin aprueba, rechaza o cancela una reserva.
 
     Usa @login_required (no @staff_required) intencionalmente: los admins
-    de salÃ³n asignados en Salon.admins tambiÃ©n deben poder gestionar reservas
-    aunque no sean staff globales. La autorizaciÃ³n se verifica dentro de la vista.
+    de salón asignados en Salon.admins también deben poder gestionar reservas
+    aunque no sean staff globales. La autorización se verifica dentro de la vista.
 
     Flujo de correos al gestionar:
     - Correo C: resultado al solicitante
-    - Correo D: respaldo al admin que gestionÃ³
+    - Correo D: respaldo al admin que gestionó
     - Correo E: al encargado de equipos (solo si aprueba + tiene insumos)
     """
     reserva = get_object_or_404(Reserva, pk=reserva_id)
 
-    # VerificaciÃ³n de permisos: Staff, Superuser o Admin del SalÃ³n especÃ­fico
+    # Verificación de permisos: Staff, Superuser o Admin del Salón específico
     if not (request.user.is_staff or request.user.is_superuser):
         if reserva.salon:
             if not reserva.salon.admins.filter(pk=request.user.pk).exists():
@@ -2005,7 +2005,7 @@ def gestionar_reserva(request, reserva_id):
         estado_anterior = reserva.estado
 
         if accion not in ('aprobar', 'rechazar', 'cancelar'):
-            messages.error(request, 'AcciÃ³n no vÃ¡lida.')
+            messages.error(request, 'Acción no válida.')
             return render(request, 'reservas/gestionar_reserva.html', {'reserva': reserva})
 
         mapa_estados = {
@@ -2019,13 +2019,13 @@ def gestionar_reserva(request, reserva_id):
         
         reserva.save()
 
-        # Registrar en bitÃ¡cora
+        # Registrar en bitácora
         recurso = reserva.salon.nombre if reserva.salon else reserva.cancha.nombre
         usuario_str = reserva.solicitante.username if reserva.solicitante else 'Usuario eliminado'
         registrar_accion(
             request.user,
-            f"GestionÃ³ reserva {reserva.id}",
-            f"AcciÃ³n: {accion.upper()} | Recinto: {recurso} | Usuario: {usuario_str}"
+            f"Gestionó reserva {reserva.id}",
+            f"Acción: {accion.upper()} | Recinto: {recurso} | Usuario: {usuario_str}"
         )
 
         if reserva.estado == 'APROBADA' and estado_anterior == 'PENDIENTE':
@@ -2043,7 +2043,7 @@ def gestionar_reserva(request, reserva_id):
             if es_cambio:
                 msg = f'Tu cambio de horario para la reserva de {(reserva.salon.nombre if reserva.salon else reserva.cancha.nombre)} del {reserva.fecha.strftime("%d/%m/%Y")} fue aprobado.'
             else:
-                msg = f'Tu reserva para {(reserva.salon.nombre if reserva.salon else reserva.cancha.nombre)} del {reserva.fecha.strftime("%d/%m/%Y")} fue aprobada por administraciÃ³n.'
+                msg = f'Tu reserva para {(reserva.salon.nombre if reserva.salon else reserva.cancha.nombre)} del {reserva.fecha.strftime("%d/%m/%Y")} fue aprobada por administración.'
 
             crear_notificacion_reserva(
                 reserva.solicitante,
@@ -2064,7 +2064,7 @@ def gestionar_reserva(request, reserva_id):
             crear_notificacion_reserva(
                 reserva.solicitante,
                 'RESERVA_CANCELADA',
-                'Reserva cancelada por administraciÃ³n',
+                'Reserva cancelada por administración',
                 f'Tu reserva para {(reserva.salon.nombre if reserva.salon else reserva.cancha.nombre)} del {reserva.fecha.strftime("%d/%m/%Y")} ha sido cancelada por el administrador.',
                 reserva,
             )
@@ -2072,7 +2072,7 @@ def gestionar_reserva(request, reserva_id):
         # Correo C: resultado al solicitante
         correo_resultado_a_solicitante(reserva)
 
-        # Correo D: respaldo al admin que gestionÃ³
+        # Correo D: respaldo al admin que gestionó
         correo_respaldo_a_admin(reserva)
 
         messages.success(request, f'Reserva {reserva.get_estado_display().lower()} correctamente.')
@@ -2083,7 +2083,7 @@ def gestionar_reserva(request, reserva_id):
     return render(request, 'reservas/gestionar_reserva.html', {'reserva': reserva})
 
 
-# â”€â”€â”€ Vistas de Perfil â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Vistas de Perfil ────────────────────────────────────────────────────────
 
 @login_required
 def perfil(request):
@@ -2092,7 +2092,7 @@ def perfil(request):
     if request.method == 'POST' and request.FILES.get('foto'):
         foto = request.FILES['foto']
 
-        # Validar tamaÃ±o (mÃ¡x 5 MB)
+        # Validar tamaño (máx 5 MB)
         if foto.size > 5 * 1024 * 1024:
             messages.error(request, 'La imagen no puede superar los 5 MB.')
             return redirect('perfil')
@@ -2100,7 +2100,7 @@ def perfil(request):
         # Validar content-type declarado
         content_type = (getattr(foto, 'content_type', '') or '').lower()
         if not content_type.startswith('image/'):
-            messages.error(request, 'Solo se permiten imÃ¡genes como foto de perfil.')
+            messages.error(request, 'Solo se permiten imágenes como foto de perfil.')
             return redirect('perfil')
 
         # Validar magic bytes con PIL (evita archivos disfrazados de imagen)
@@ -2110,7 +2110,7 @@ def perfil(request):
             img.verify()
             foto.seek(0)
         except (UnidentifiedImageError, OSError, ValueError):
-            messages.error(request, 'El archivo subido no es una imagen vÃ¡lida.')
+            messages.error(request, 'El archivo subido no es una imagen válida.')
             return redirect('perfil')
 
         perfil_obj.foto = foto
@@ -2147,14 +2147,14 @@ def mis_datos(request):
             request.user, 
             'PERFIL_ACTUALIZADO', 
             'Datos personales actualizados', 
-            'Has actualizado correctamente tu informaciÃ³n de perfil (nombre, telÃ©fono, etc.).'
+            'Has actualizado correctamente tu información de perfil (nombre, teléfono, etc.).'
         )
         
         # Avisar a los administradores en su panel de avisos
         notificar_admins(
             'PERFIL_ACTUALIZADO',
-            'Usuario actualizÃ³ sus datos',
-            f"El usuario {request.user.email} actualizÃ³ sus datos personales (Nombre: {nombre} {apellido})."
+            'Usuario actualizó sus datos',
+            f"El usuario {request.user.email} actualizó sus datos personales (Nombre: {nombre} {apellido})."
         )
 
         return redirect('mis_datos')
@@ -2174,15 +2174,15 @@ def cambiar_email(request):
             return render(request, 'perfil/cambiar_email.html')
 
         if not nuevo_email:
-            messages.error(request, 'Ingresa un correo vÃ¡lido.')
+            messages.error(request, 'Ingresa un correo válido.')
             return render(request, 'perfil/cambiar_email.html')
 
         if User.objects.filter(email=nuevo_email).exclude(pk=request.user.pk).exists():
-            messages.error(request, 'Ese correo ya estÃ¡ en uso por otra cuenta.')
+            messages.error(request, 'Ese correo ya está en uso por otra cuenta.')
             return render(request, 'perfil/cambiar_email.html')
 
         if not request.user.check_password(clave):
-            messages.error(request, 'La contraseÃ±a ingresada es incorrecta.')
+            messages.error(request, 'La contraseña ingresada es incorrecta.')
             return render(request, 'perfil/cambiar_email.html')
 
         cambio = CambioEmailPendiente.crear_para(request.user, nuevo_email)
@@ -2200,11 +2200,11 @@ def confirmar_cambio_email(request, token):
     try:
         cambio = CambioEmailPendiente.objects.select_related('user').get(token=token)
     except CambioEmailPendiente.DoesNotExist:
-        return render(request, 'perfil/confirmar_email_resultado.html', {'error': 'El enlace no es vÃ¡lido.'})
+        return render(request, 'perfil/confirmar_email_resultado.html', {'error': 'El enlace no es válido.'})
 
     if not cambio.esta_vigente():
         cambio.delete()
-        return render(request, 'perfil/confirmar_email_resultado.html', {'error': 'El enlace expirÃ³ (24 h). Solicita uno nuevo.'})
+        return render(request, 'perfil/confirmar_email_resultado.html', {'error': 'El enlace expiró (24 h). Solicita uno nuevo.'})
 
     user = cambio.user
     user.email = cambio.nuevo_email
@@ -2212,19 +2212,19 @@ def confirmar_cambio_email(request, token):
     user.save()
     cambio.delete()
 
-    # Notificar al usuario (aunque se le desloguee, lo verÃ¡ al volver)
+    # Notificar al usuario (aunque se le desloguee, lo verá al volver)
     crear_notificacion_reserva(
         user, 
         'SEGURIDAD_CAMBIO_EMAIL', 
-        'Correo electrÃ³nico actualizado', 
+        'Correo electrónico actualizado', 
         f'Has confirmado exitosamente el cambio de tu correo a: {user.email}.'
     )
     
     # Avisar a los administradores en su panel de avisos
     notificar_admins(
         'SEGURIDAD_CAMBIO_EMAIL',
-        'Cambio de correo electrÃ³nico',
-        f"El usuario {user.username} ha confirmado el cambio de su direcciÃ³n de correo electrÃ³nico."
+        'Cambio de correo electrónico',
+        f"El usuario {user.username} ha confirmado el cambio de su dirección de correo electrónico."
     )
 
     logout(request)
@@ -2239,15 +2239,15 @@ def cambiar_contrasena(request):
         nueva_clave2 = request.POST.get('nueva_clave2', '')
 
         if not request.user.check_password(clave_actual):
-            messages.error(request, 'La contraseÃ±a actual es incorrecta.')
+            messages.error(request, 'La contraseña actual es incorrecta.')
             return render(request, 'perfil/cambiar_contrasena.html')
 
         if len(nueva_clave) < 8:
-            messages.error(request, 'La nueva contraseÃ±a debe tener al menos 8 caracteres.')
+            messages.error(request, 'La nueva contraseña debe tener al menos 8 caracteres.')
             return render(request, 'perfil/cambiar_contrasena.html')
 
         if nueva_clave != nueva_clave2:
-            messages.error(request, 'Las contraseÃ±as nuevas no coinciden.')
+            messages.error(request, 'Las contraseñas nuevas no coinciden.')
             return render(request, 'perfil/cambiar_contrasena.html')
 
         request.user.set_password(nueva_clave)
@@ -2258,18 +2258,18 @@ def cambiar_contrasena(request):
         crear_notificacion_reserva(
             request.user, 
             'SEGURIDAD_CAMBIO_CLAVE', 
-            'ContraseÃ±a cambiada', 
-            'Has actualizado la contraseÃ±a de tu cuenta exitosamente.'
+            'Contraseña cambiada', 
+            'Has actualizado la contraseña de tu cuenta exitosamente.'
         )
         
         # Avisar a los administradores en su panel de avisos
         notificar_admins(
             'SEGURIDAD_CAMBIO_CLAVE',
-            'Cambio de contraseÃ±a de usuario',
-            f"El usuario {request.user.email} ha modificado su contraseÃ±a de acceso."
+            'Cambio de contraseña de usuario',
+            f"El usuario {request.user.email} ha modificado su contraseña de acceso."
         )
 
-        messages.success(request, 'ContraseÃ±a actualizada correctamente.')
+        messages.success(request, 'Contraseña actualizada correctamente.')
         return redirect('perfil')
 
     return render(request, 'perfil/cambiar_contrasena.html')
@@ -2323,21 +2323,21 @@ def validar_cupon(request):
     codigo = request.GET.get('codigo', '').strip().upper()
     cancha_nombre = request.GET.get('cancha', '').strip()
     if not codigo:
-        return JsonResponse({'valido': False, 'mensaje': 'CÃ³digo vacÃ­o.'})
+        return JsonResponse({'valido': False, 'mensaje': 'Código vacío.'})
     try:
         cupon = Cupon.objects.get(codigo=codigo, usuario=request.user)
     except Cupon.DoesNotExist:
-        return JsonResponse({'valido': False, 'mensaje': 'CupÃ³n no encontrado o no te pertenece.'})
+        return JsonResponse({'valido': False, 'mensaje': 'Cupón no encontrado o no te pertenece.'})
     if not cupon.esta_vigente():
-        return JsonResponse({'valido': False, 'mensaje': f'CupÃ³n {cupon.get_estado_display().lower()}.'})
+        return JsonResponse({'valido': False, 'mensaje': f'Cupón {cupon.get_estado_display().lower()}.'})
     if cancha_nombre and cupon.nombre_recurso and cupon.nombre_recurso != cancha_nombre:
         return JsonResponse({
             'valido': False,
-            'mensaje': f'Este cupÃ³n solo es vÃ¡lido para {cupon.nombre_recurso}.',
+            'mensaje': f'Este cupón solo es válido para {cupon.nombre_recurso}.',
         })
     return JsonResponse({
         'valido': True,
-        'mensaje': f'CupÃ³n vÃ¡lido â€” expira el {cupon.fecha_expiracion.strftime("%d/%m/%Y")}.',
+        'mensaje': f'Cupón válido — expira el {cupon.fecha_expiracion.strftime("%d/%m/%Y")}.',
         'recurso': cupon.nombre_recurso,
     })
 
@@ -2384,18 +2384,18 @@ def panel_crear_cupon_reserva(request):
             try:
                 usuario = User.objects.get(pk=int(usuario_id), is_staff=False, is_active=True)
             except (User.DoesNotExist, ValueError):
-                errores.append('Usuario invÃ¡lido.')
+                errores.append('Usuario inválido.')
 
         fecha_expiracion = None
         if not fecha_expiracion_str:
-            errores.append('La fecha de expiraciÃ³n es requerida.')
+            errores.append('La fecha de expiración es requerida.')
         else:
             try:
                 fecha_expiracion = date.fromisoformat(fecha_expiracion_str)
                 if fecha_expiracion <= date.today():
-                    errores.append('La fecha de expiraciÃ³n debe ser futura.')
+                    errores.append('La fecha de expiración debe ser futura.')
             except ValueError:
-                errores.append('Fecha de expiraciÃ³n invÃ¡lida.')
+                errores.append('Fecha de expiración inválida.')
 
         if errores:
             for e in errores:
@@ -2414,17 +2414,17 @@ def panel_crear_cupon_reserva(request):
         Notificacion.objects.create(
             user=usuario,
             tipo='CUPON_EMITIDO',
-            titulo='CupÃ³n de reserva emitido',
-            mensaje=f'El administrador te ha emitido un cupÃ³n de reserva: {cupon.codigo}. '
-                    f'VÃ¡lido hasta el {fecha_expiracion.strftime("%d/%m/%Y")}.'
+            titulo='Cupón de reserva emitido',
+            mensaje=f'El administrador te ha emitido un cupón de reserva: {cupon.codigo}. '
+                    f'Válido hasta el {fecha_expiracion.strftime("%d/%m/%Y")}.'
                     + (f' Cancha: {nombre_recurso}.' if nombre_recurso else ''),
         )
         Bitacora.objects.create(
             admin=request.user,
-            accion='CupÃ³n de reserva creado manualmente',
-            detalles=f'CÃ³digo: {cupon.codigo} | Usuario: {usuario.email} | Vence: {fecha_expiracion}',
+            accion='Cupón de reserva creado manualmente',
+            detalles=f'Código: {cupon.codigo} | Usuario: {usuario.email} | Vence: {fecha_expiracion}',
         )
-        messages.success(request, f'CupÃ³n de reserva {cupon.codigo} creado para {usuario.email}.')
+        messages.success(request, f'Cupón de reserva {cupon.codigo} creado para {usuario.email}.')
         return redirect('panel_cupones')
 
     return render(request, 'panel/crear_cupon_reserva.html', {
@@ -2432,7 +2432,7 @@ def panel_crear_cupon_reserva(request):
     })
 
 
-# â”€â”€â”€ Perfil Alcalde â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Perfil Alcalde ──────────────────────────────────────────────────────────
 
 @alcalde_required
 def perfil_alcalde(request):
@@ -2478,16 +2478,16 @@ def alcalde_firmar_reserva(request, reserva_id):
 
     Bitacora.objects.create(
         admin=request.user,
-        accion='Alcalde firmÃ³ reserva de organizaciÃ³n',
-        detalles=f'Reserva #{reserva.pk} â€” {reserva.nombre_organizacion} â€” '
+        accion='Alcalde firmó reserva de organización',
+        detalles=f'Reserva #{reserva.pk} — {reserva.nombre_organizacion} — '
                  f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}',
     )
-    _fecha_fmt = f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}â€“{reserva.hora_fin.strftime("%H:%M")}'
+    _fecha_fmt = f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}–{reserva.hora_fin.strftime("%H:%M")}'
     if reserva.solicitante:
         crear_notificacion_reserva(
             reserva.solicitante,
             'RESERVA_APROBADA',
-            'Â¡Reserva aprobada!',
+            '¡Reserva aprobada!',
             f'Tu solicitud de {reserva.nombre_organizacion} para '
             f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} '
             f'el {_fecha_fmt} fue aprobada por el alcalde.',
@@ -2496,7 +2496,7 @@ def alcalde_firmar_reserva(request, reserva_id):
     notificar_admins(
         'RESERVA_APROBADA',
         f'Reserva aprobada: {reserva.nombre_organizacion}',
-        f'El alcalde aprobÃ³ la solicitud de {reserva.nombre_organizacion} para '
+        f'El alcalde aprobó la solicitud de {reserva.nombre_organizacion} para '
         f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} el {_fecha_fmt}.',
         reserva=reserva,
     )
@@ -2517,10 +2517,10 @@ def alcalde_rechazar_reserva(request, reserva_id):
 
     Bitacora.objects.create(
         admin=request.user,
-        accion='Alcalde rechazÃ³ reserva de organizaciÃ³n',
-        detalles=f'Reserva #{reserva.pk} â€” {reserva.nombre_organizacion} â€” Motivo: {motivo_rechazo}',
+        accion='Alcalde rechazó reserva de organización',
+        detalles=f'Reserva #{reserva.pk} — {reserva.nombre_organizacion} — Motivo: {motivo_rechazo}',
     )
-    _fecha_fmt = f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}â€“{reserva.hora_fin.strftime("%H:%M")}'
+    _fecha_fmt = f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}–{reserva.hora_fin.strftime("%H:%M")}'
     if reserva.solicitante:
         crear_notificacion_reserva(
             reserva.solicitante,
@@ -2535,7 +2535,7 @@ def alcalde_rechazar_reserva(request, reserva_id):
     notificar_admins(
         'RESERVA_RECHAZADA',
         f'Reserva rechazada: {reserva.nombre_organizacion}',
-        f'El alcalde rechazÃ³ la solicitud de {reserva.nombre_organizacion} para '
+        f'El alcalde rechazó la solicitud de {reserva.nombre_organizacion} para '
         f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} el {_fecha_fmt}.'
         + (f' Motivo: {motivo_rechazo}' if motivo_rechazo else ''),
         reserva=reserva,
@@ -2544,7 +2544,7 @@ def alcalde_rechazar_reserva(request, reserva_id):
     return redirect('perfil_alcalde')
 
 
-# â”€â”€â”€ Perfil Tesorero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Perfil Tesorero ──────────────────────────────────────────────────────────
 
 @tesorero_required
 def perfil_tesorero(request):
@@ -2591,7 +2591,7 @@ def perfil_tesorero(request):
 @tesorero_required
 def tesorero_actualizar_estado(request, registro_id):
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'MÃ©todo no permitido'}, status=405)
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
     registro = get_object_or_404(RegistroTesoreria, pk=registro_id)
     nuevo_estado = request.POST.get('estado', '').strip()
 
@@ -2601,7 +2601,7 @@ def tesorero_actualizar_estado(request, registro_id):
     # Validar que el estado sea reconocido
     estados_validos = [e[0] for e in RegistroTesoreria.ESTADO_CHOICES]
     if nuevo_estado not in estados_validos:
-        return JsonResponse({'status': 'error', 'message': 'Estado invÃ¡lido'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'Estado inválido'}, status=400)
 
     registro.estado = nuevo_estado
     registro.notas = request.POST.get('notas', registro.notas).strip()
@@ -2609,7 +2609,7 @@ def tesorero_actualizar_estado(request, registro_id):
     return JsonResponse({'status': 'success', 'estado': nuevo_estado, 'estado_display': registro.get_estado_display()})
 
 
-# â”€â”€â”€ Panel de AdministraciÃ³n â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─── Panel de Administración ─────────────────────────────────────────────────
 
 
 
@@ -2676,7 +2676,7 @@ def panel_reservas(request):
 
 @staff_required
 def panel_eliminar_reserva(request, reserva_id):
-    """Borrado lÃ³gico de una reserva desde el panel admin."""
+    """Borrado lógico de una reserva desde el panel admin."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -2688,14 +2688,14 @@ def panel_eliminar_reserva(request, reserva_id):
     reserva.estado = 'ELIMINADA'
     reserva.save(update_fields=['estado'])
     
-    registrar_accion(request.user, f"EliminÃ³ reserva {reserva_id}", detalles)
+    registrar_accion(request.user, f"Eliminó reserva {reserva_id}", detalles)
     messages.success(request, 'Reserva marcada como eliminada y movida al historial.')
     return redirect('panel_reservas')
 
 
 @staff_required
 def panel_cancelar_reserva(request, reserva_id):
-    """CancelaciÃ³n administrativa de una reserva."""
+    """Cancelación administrativa de una reserva."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -2711,20 +2711,20 @@ def panel_cancelar_reserva(request, reserva_id):
 
     recurso = reserva.salon.nombre if reserva.salon else reserva.cancha.nombre
 
-    # Notificar al usuario solicitante solo si aÃºn existe
+    # Notificar al usuario solicitante solo si aún existe
     if reserva.solicitante:
         Notificacion.objects.create(
             user=reserva.solicitante,
             tipo='RESERVA_CANCELADA',
             titulo='Reserva cancelada por el administrador',
-            mensaje=f'Tu reserva para {recurso} del {reserva.fecha.strftime("%d/%m/%Y")} ha sido cancelada por la administraciÃ³n.',
+            mensaje=f'Tu reserva para {recurso} del {reserva.fecha.strftime("%d/%m/%Y")} ha sido cancelada por la administración.',
             reserva=reserva,
         )
 
-    # Registrar en bitÃ¡cora
+    # Registrar en bitácora
     usuario_str = reserva.solicitante.username if reserva.solicitante else 'Usuario eliminado'
     detalles = f"Recinto: {recurso} | Usuario: {usuario_str}"
-    registrar_accion(request.user, f"CancelÃ³ reserva {reserva_id}", detalles)
+    registrar_accion(request.user, f"Canceló reserva {reserva_id}", detalles)
     
     messages.success(request, 'Reserva cancelada correctamente.')
     return redirect('panel_reservas')
@@ -2732,17 +2732,17 @@ def panel_cancelar_reserva(request, reserva_id):
 
 @staff_required
 def panel_editar_reserva(request, reserva_id):
-    """EdiciÃ³n administrativa de una reserva con todas las restricciones del sistema."""
+    """Edición administrativa de una reserva con todas las restricciones del sistema."""
     reserva = get_object_or_404(Reserva, pk=reserva_id)
 
-    # Reservas personales: solo editables cuando estÃ¡n PENDIENTE
+    # Reservas personales: solo editables cuando están PENDIENTE
     if reserva.tipo_reserva == 'PERSONAL' and reserva.estado != 'PENDIENTE':
-        messages.error(request, 'Las reservas personales solo pueden editarse mientras estÃ¡n pendientes.')
+        messages.error(request, 'Las reservas personales solo pueden editarse mientras están pendientes.')
         return redirect('panel_reservas')
 
-    # Reservas de organizaciÃ³n: solo editables cuando estÃ¡n PENDIENTE_ALCALDE
+    # Reservas de organización: solo editables cuando están PENDIENTE_ALCALDE
     if reserva.tipo_reserva == 'ORGANIZACION' and reserva.estado != 'PENDIENTE_ALCALDE':
-        messages.error(request, 'Las reservas de organizaciÃ³n solo pueden editarse mientras estÃ¡n pendientes de firma.')
+        messages.error(request, 'Las reservas de organización solo pueden editarse mientras están pendientes de firma.')
         return redirect('panel_reservas')
 
     # Datos para restricciones en el HTML
@@ -2766,7 +2766,7 @@ def panel_editar_reserva(request, reserva_id):
 
         estados_validos = [e[0] for e in Reserva.ESTADO_RESERVA]
         if estado not in estados_validos:
-            messages.error(request, 'Estado de reserva no vÃ¡lido.')
+            messages.error(request, 'Estado de reserva no válido.')
             return render(request, 'panel/editar_reserva.html', contexto)
 
         try:
@@ -2774,10 +2774,10 @@ def panel_editar_reserva(request, reserva_id):
             h_ini = datetime.strptime(hora_inicio_str, "%H:%M").time()
             h_fin = datetime.strptime(hora_fin_str, "%H:%M").time()
             
-            # 1. Rango de fecha: MÃ¡ximo 1 mes (31 dÃ­as) a futuro
+            # 1. Rango de fecha: Máximo 1 mes (31 días) a futuro
             limite_futuro = date.today() + timedelta(days=31)
             if f > limite_futuro:
-                messages.error(request, 'Error: Solo se permiten reservas hasta 31 dÃ­as a futuro.')
+                messages.error(request, 'Error: Solo se permiten reservas hasta 31 días a futuro.')
                 return render(request, 'panel/editar_reserva.html', contexto)
             
             # 2. Rango de horario: 09:00 a 23:00
@@ -2785,7 +2785,7 @@ def panel_editar_reserva(request, reserva_id):
                 messages.error(request, 'Error: El horario permitido es de 09:00 a 23:00.')
                 return render(request, 'panel/editar_reserva.html', contexto)
 
-            # 3. ValidaciÃ³n: exactamente 1 hora
+            # 3. Validación: exactamente 1 hora
             dt_ini = datetime.combine(f, h_ini)
             dt_fin = datetime.combine(f, h_fin)
             if dt_fin <= dt_ini:
@@ -2802,7 +2802,7 @@ def panel_editar_reserva(request, reserva_id):
                 estado__in=ESTADOS_OCUPAN_SLOT
             ).exclude(pk=reserva.pk)
             
-            # Filtro segÃºn recurso (SalÃ³n o Cancha)
+            # Filtro según recurso (Salón o Cancha)
             if reserva.salon:
                 choca = choca.filter(salon=reserva.salon)
             else:
@@ -2815,7 +2815,7 @@ def panel_editar_reserva(request, reserva_id):
             ).exists()
             
             if overlap:
-                messages.error(request, f'Error: El horario {h_ini.strftime("%H:%M")} - {h_fin.strftime("%H:%M")} ya estÃ¡ ocupado.')
+                messages.error(request, f'Error: El horario {h_ini.strftime("%H:%M")} - {h_fin.strftime("%H:%M")} ya está ocupado.')
                 return render(request, 'panel/editar_reserva.html', contexto)
 
             # Guardar cambios
@@ -2829,13 +2829,13 @@ def panel_editar_reserva(request, reserva_id):
             messages.success(request, 'Reserva actualizada correctamente.')
 
             reserva.save()
-            registrar_accion(request.user, f"EditÃ³ reserva {reserva.id}", f"Estado: {estado_log} | Fecha: {f.strftime('%d-%m-%Y')} | Hora: {h_ini.strftime('%H:%M')}")
+            registrar_accion(request.user, f"Editó reserva {reserva.id}", f"Estado: {estado_log} | Fecha: {f.strftime('%d-%m-%Y')} | Hora: {h_ini.strftime('%H:%M')}")
             return redirect('panel_reservas')
         except (ValueError, TypeError) as e:
-            messages.error(request, f'Datos invÃ¡lidos: {e}')
+            messages.error(request, f'Datos inválidos: {e}')
         except Exception:
             logger.exception('Error inesperado en panel_editar_reserva')
-            messages.error(request, 'OcurriÃ³ un error interno al guardar los cambios.')
+            messages.error(request, 'Ocurrió un error interno al guardar los cambios.')
 
     return render(request, 'panel/editar_reserva.html', contexto)
 
@@ -2879,12 +2879,12 @@ def panel_crear_usuario(request):
     rol_fijo = request.GET.get('rol', '') if request.method == 'GET' else request.POST.get('rol_fijo', '')
     rol_fijo = rol_fijo if rol_fijo in ('alcalde', 'tesorero') else ''
 
-    # Bloquear creaciÃ³n si ya existe ese rol Ãºnico
+    # Bloquear creación si ya existe ese rol único
     if rol_fijo == 'alcalde' and UserProfile.objects.filter(es_alcalde=True).exists():
-        messages.error(request, 'Ya existe un perfil de alcalde. EdÃ­talo desde la lista.')
+        messages.error(request, 'Ya existe un perfil de alcalde. Edítalo desde la lista.')
         return redirect('panel_usuarios')
     if rol_fijo == 'tesorero' and UserProfile.objects.filter(es_tesorero=True).exists():
-        messages.error(request, 'Ya existe un perfil de tesorero. EdÃ­talo desde la lista.')
+        messages.error(request, 'Ya existe un perfil de tesorero. Edítalo desde la lista.')
         return redirect('panel_usuarios')
 
     if request.method == 'POST':
@@ -2905,7 +2905,7 @@ def panel_crear_usuario(request):
         errores = {}
 
         if es_organizacion and not nombre_organizacion:
-            errores['nombre_organizacion'] = 'El nombre de la organizaciÃ³n es obligatorio.'
+            errores['nombre_organizacion'] = 'El nombre de la organización es obligatorio.'
         if not nombre:
             lbl = 'El nombre del representante legal' if es_organizacion else 'El nombre'
             errores['nombre'] = f'{lbl} es obligatorio.'
@@ -2914,17 +2914,17 @@ def panel_crear_usuario(request):
         elif User.objects.filter(email=email).exists():
             errores['email'] = 'Ya existe una cuenta con ese correo.'
         if rut_ingresado and not rut_valido(rut):
-            errores['rut'] = 'Ingresa un RUT vÃ¡lido.'
+            errores['rut'] = 'Ingresa un RUT válido.'
         elif rut_valido(rut) and UserProfile.objects.filter(rut=rut).exists():
             errores['rut'] = 'Ya existe una cuenta con ese RUT.'
         if len(clave) < 8:
-            errores['contrasena'] = 'La contraseÃ±a debe tener al menos 8 caracteres.'
+            errores['contrasena'] = 'La contraseña debe tener al menos 8 caracteres.'
         elif clave != clave2:
-            errores['contrasena'] = 'Las contraseÃ±as no coinciden.'
+            errores['contrasena'] = 'Las contraseñas no coinciden.'
         if rol == 'admin' and not request.user.is_superuser:
             errores['rol'] = 'Solo un superusuario puede crear cuentas de administrador.'
         if rol == 'admin' and User.objects.filter(is_superuser=True).count() >= MAX_SUPERUSUARIOS:
-            errores['rol'] = f'Ya se alcanzÃ³ el lÃ­mite de {MAX_SUPERUSUARIOS} superusuarios.'
+            errores['rol'] = f'Ya se alcanzó el límite de {MAX_SUPERUSUARIOS} superusuarios.'
 
         ctx = {
             'errores': errores, 'datos': request.POST,
@@ -2953,8 +2953,8 @@ def panel_crear_usuario(request):
         )
         rol_display = {'admin': 'Administrador', 'alcalde': 'Alcalde', 'tesorero': 'Tesorero'}.get(rol, 'Usuario')
         if es_organizacion:
-            rol_display = f'OrganizaciÃ³n ({nombre_organizacion})'
-        registrar_accion(request.user, f"CreÃ³ {rol_display.lower()} {email}", f"Nombre: {nombre} {apellido}")
+            rol_display = f'Organización ({nombre_organizacion})'
+        registrar_accion(request.user, f"Creó {rol_display.lower()} {email}", f"Nombre: {nombre} {apellido}")
         messages.success(request, f'{rol_display} creado correctamente.')
         return redirect('panel_usuarios')
 
@@ -2988,13 +2988,13 @@ def panel_editar_usuario(request, usuario_id):
             messages.error(request, 'El nombre es obligatorio.')
             return render(request, 'panel/editar_usuario.html', ctx)
         if rut and not rut_valido(rut):
-            messages.error(request, 'Ingresa un RUT vÃ¡lido.')
+            messages.error(request, 'Ingresa un RUT válido.')
             return render(request, 'panel/editar_usuario.html', ctx)
         if User.objects.filter(email=email).exclude(pk=usuario.pk).exists():
-            messages.error(request, 'Ese correo ya estÃ¡ en uso por otra cuenta.')
+            messages.error(request, 'Ese correo ya está en uso por otra cuenta.')
             return render(request, 'panel/editar_usuario.html', ctx)
         if rut and UserProfile.objects.filter(rut=rut).exclude(user=usuario).exists():
-            messages.error(request, 'Ese RUT ya estÃ¡ en uso por otra cuenta.')
+            messages.error(request, 'Ese RUT ya está en uso por otra cuenta.')
             return render(request, 'panel/editar_usuario.html', ctx)
 
         usuario.first_name = nombre
@@ -3006,7 +3006,7 @@ def panel_editar_usuario(request, usuario_id):
         es_organizacion = request.POST.get('es_organizacion') in ('on', '1', 'true')
         nombre_organizacion = request.POST.get('nombre_organizacion', '').strip()
         if es_organizacion and not nombre_organizacion:
-            messages.error(request, 'El nombre de la organizaciÃ³n es obligatorio.')
+            messages.error(request, 'El nombre de la organización es obligatorio.')
             return render(request, 'panel/editar_usuario.html', ctx)
 
         nueva_clave = request.POST.get('nueva_contrasena', '')
@@ -3014,10 +3014,10 @@ def panel_editar_usuario(request, usuario_id):
         cambio_clave = False
         if nueva_clave or nueva_clave2:
             if len(nueva_clave) < 8:
-                messages.error(request, 'La nueva contraseÃ±a debe tener al menos 8 caracteres.')
+                messages.error(request, 'La nueva contraseña debe tener al menos 8 caracteres.')
                 return render(request, 'panel/editar_usuario.html', ctx)
             if nueva_clave != nueva_clave2:
-                messages.error(request, 'Las contraseÃ±as no coinciden.')
+                messages.error(request, 'Las contraseñas no coinciden.')
                 return render(request, 'panel/editar_usuario.html', ctx)
             usuario.set_password(nueva_clave)
             usuario.save()
@@ -3031,8 +3031,8 @@ def panel_editar_usuario(request, usuario_id):
 
         detalle = 'Datos personales actualizados.'
         if cambio_clave:
-            detalle += ' ContraseÃ±a restablecida por el administrador.'
-        registrar_accion(request.user, f'EditÃ³ usuario {usuario.username}', detalle)
+            detalle += ' Contraseña restablecida por el administrador.'
+        registrar_accion(request.user, f'Editó usuario {usuario.username}', detalle)
         if cambio_clave:
             correo_clave_restablecida_por_admin(usuario)
         messages.success(request, 'Usuario actualizado correctamente.')
@@ -3064,7 +3064,7 @@ def panel_eliminar_usuario(request, usuario_id):
     if request.method == 'POST':
         username = usuario.username
         usuario.delete()
-        registrar_accion(request.user, f"EliminÃ³ permanentemente usuario {username}")
+        registrar_accion(request.user, f"Eliminó permanentemente usuario {username}")
         messages.success(request, 'Usuario eliminado correctamente.')
         return redirect('panel_usuarios')
 
@@ -3084,7 +3084,7 @@ def panel_precios(request):
                 cancha.save(update_fields=['precio'])
             except (ValueError, TypeError):
                 pass
-        registrar_accion(request.user, 'ActualizÃ³ precios de canchas')
+        registrar_accion(request.user, 'Actualizó precios de canchas')
         messages.success(request, 'Precios actualizados correctamente.')
         return redirect('panel_precios')
 
@@ -3104,7 +3104,7 @@ def panel_datos_transferencia(request):
         datos.rut = request.POST.get('rut')
         datos.email = request.POST.get('email')
         datos.save()
-        registrar_accion(request.user, "ActualizÃ³ datos bancarios", f"Banco: {datos.banco}")
+        registrar_accion(request.user, "Actualizó datos bancarios", f"Banco: {datos.banco}")
         messages.success(request, 'Datos de transferencia actualizados correctamente.')
         return redirect('panel_datos_transferencia')
 
@@ -3116,7 +3116,7 @@ from django.core.paginator import Paginator
 
 @staff_required
 def panel_registro(request):
-    """Muestra el historial de acciones (log de auditorÃ­a) para los administradores con paginaciÃ³n y bÃºsqueda."""
+    """Muestra el historial de acciones (log de auditoría) para los administradores con paginación y búsqueda."""
     q = request.GET.get('q', '').strip()
     logs_list = Bitacora.objects.select_related('admin').order_by('-creado_en')
     if q:
@@ -3147,7 +3147,7 @@ def panel_bloqueos_periodo(request):
 def panel_modificar_bloqueo_periodo(request, bloqueo_id):
     """Modifica la fecha_fin de un bloqueo de periodo existente."""
     if not request.user.is_superuser:
-        messages.error(request, 'No tienes permisos para realizar esta acciÃ³n.')
+        messages.error(request, 'No tienes permisos para realizar esta acción.')
         return redirect('panel_bloqueos_periodo')
 
     bloqueo = get_object_or_404(BloqueoPeriodo, id=bloqueo_id)
@@ -3157,7 +3157,7 @@ def panel_modificar_bloqueo_periodo(request, bloqueo_id):
         try:
             nueva_fecha_fin = datetime.strptime(nueva_fecha_fin_str, "%Y-%m-%d").date()
         except (ValueError, TypeError):
-            messages.error(request, 'Fecha invÃ¡lida.')
+            messages.error(request, 'Fecha inválida.')
             return redirect('panel_bloqueos_periodo')
 
         if nueva_fecha_fin < bloqueo.fecha_inicio:
@@ -3173,7 +3173,7 @@ def panel_modificar_bloqueo_periodo(request, bloqueo_id):
         if solapamiento:
             fi = solapamiento.fecha_inicio.strftime("%d/%m/%Y")
             ff = solapamiento.fecha_fin.strftime("%d/%m/%Y")
-            messages.error(request, f'La nueva fecha se superpone con otro perÃ­odo bloqueado ({fi} â†’ {ff}).')
+            messages.error(request, f'La nueva fecha se superpone con otro período bloqueado ({fi} → {ff}).')
             return redirect('panel_bloqueos_periodo')
 
         fecha_fin_anterior = bloqueo.fecha_fin
@@ -3181,8 +3181,8 @@ def panel_modificar_bloqueo_periodo(request, bloqueo_id):
         bloqueo.save()
         registrar_accion(
             request.user,
-            "ModificÃ³ perÃ­odo bloqueado",
-            f"{bloqueo.cancha.nombre}: {bloqueo.fecha_inicio.strftime('%d/%m/%Y')} â†’ {fecha_fin_anterior.strftime('%d/%m/%Y')} (nuevo fin: {nueva_fecha_fin.strftime('%d/%m/%Y')})"
+            "Modificó período bloqueado",
+            f"{bloqueo.cancha.nombre}: {bloqueo.fecha_inicio.strftime('%d/%m/%Y')} → {fecha_fin_anterior.strftime('%d/%m/%Y')} (nuevo fin: {nueva_fecha_fin.strftime('%d/%m/%Y')})"
         )
         messages.success(request, 'Fecha de fin actualizada correctamente.')
 
@@ -3193,23 +3193,23 @@ def panel_modificar_bloqueo_periodo(request, bloqueo_id):
 def panel_eliminar_bloqueo_periodo(request, bloqueo_id):
     """Elimina un bloqueo de periodo, liberando esas fechas nuevamente."""
     if not request.user.is_superuser:
-        messages.error(request, 'No tienes permisos para realizar esta acciÃ³n.')
+        messages.error(request, 'No tienes permisos para realizar esta acción.')
         return redirect('panel_bloqueos_periodo')
 
     bloqueo = get_object_or_404(BloqueoPeriodo, id=bloqueo_id)
 
     if request.method == 'POST':
-        detalle = f"{bloqueo.cancha.nombre}: {bloqueo.fecha_inicio.strftime('%d/%m/%Y')} â†’ {bloqueo.fecha_fin.strftime('%d/%m/%Y')}"
+        detalle = f"{bloqueo.cancha.nombre}: {bloqueo.fecha_inicio.strftime('%d/%m/%Y')} → {bloqueo.fecha_fin.strftime('%d/%m/%Y')}"
         bloqueo.delete()
-        registrar_accion(request.user, "EliminÃ³ perÃ­odo bloqueado", detalle)
-        messages.success(request, 'RestricciÃ³n eliminada. Las fechas estÃ¡n disponibles nuevamente.')
+        registrar_accion(request.user, "Eliminó período bloqueado", detalle)
+        messages.success(request, 'Restricción eliminada. Las fechas están disponibles nuevamente.')
 
     return redirect('panel_bloqueos_periodo')
 
 
 @staff_required
 def panel_historial_reservas(request):
-    """Muestra un listado tabular de todas las reservas histÃ³ricas con bÃºsqueda, orden dinÃ¡mico y filtros circulares."""
+    """Muestra un listado tabular de todas las reservas históricas con búsqueda, orden dinámico y filtros circulares."""
     sort_by = request.GET.get('sort', 'id')
     direction = request.GET.get('dir', 'desc')
     estado_filtro = request.GET.get('estado', '')
@@ -3224,7 +3224,7 @@ def panel_historial_reservas(request):
     pagos_ciclo = ['', 'TARJETA', 'TRANSFERENCIA', 'CUPON']
     next_pago = pagos_ciclo[(pagos_ciclo.index(pago_filtro) + 1) % len(pagos_ciclo)] if pago_filtro in pagos_ciclo else 'TARJETA'
 
-    # ConstrucciÃ³n de la Query
+    # Construcción de la Query
     qs = Reserva.objects.all()
     
     if search_query:
@@ -3277,7 +3277,7 @@ def emitir_cupon(usuario, reserva, motivo):
     if reserva:
         nombre_recurso = reserva.salon.nombre if reserva.salon else (reserva.cancha.nombre if reserva.cancha else '')
 
-    # Reintenta hasta 5 veces por si hay colisiÃ³n de cÃ³digo en inserciÃ³n concurrente
+    # Reintenta hasta 5 veces por si hay colisión de código en inserción concurrente
     for intento in range(5):
         try:
             cupon = Cupon.objects.create(
@@ -3302,10 +3302,10 @@ def emitir_cupon(usuario, reserva, motivo):
     Notificacion.objects.create(
         user=usuario,
         tipo='CUPON_EMITIDO',
-        titulo='CupÃ³n de reserva emitido',
+        titulo='Cupón de reserva emitido',
         mensaje=(
-            f'Dado que {motivo_txt} en {nombre_recurso}, se te emitiÃ³ el cupÃ³n '
-            f'{cupon.codigo} vÃ¡lido para una futura reserva. '
+            f'Dado que {motivo_txt} en {nombre_recurso}, se te emitió el cupón '
+            f'{cupon.codigo} válido para una futura reserva. '
             f'Vence el {cupon.fecha_expiracion.strftime("%d/%m/%Y")}.'
         ),
     )
@@ -3313,7 +3313,7 @@ def emitir_cupon(usuario, reserva, motivo):
 
 
 def registrar_accion(admin_user, accion, detalles=""):
-    """Registra una acciÃ³n en la bitÃ¡cora administrativa."""
+    """Registra una acción en la bitácora administrativa."""
     return Bitacora.objects.create(
         admin=admin_user,
         accion=accion,
@@ -3321,7 +3321,7 @@ def registrar_accion(admin_user, accion, detalles=""):
     )
 
 def crear_notificacion_reserva(user, tipo, titulo, mensaje, reserva=None):
-    """Crea una notificaciÃ³n para un usuario."""
+    """Crea una notificación para un usuario."""
     return Notificacion.objects.create(
         user=user,
         tipo=tipo,
@@ -3331,7 +3331,7 @@ def crear_notificacion_reserva(user, tipo, titulo, mensaje, reserva=None):
     )
 
 def notificar_admins(tipo, titulo, mensaje, reserva=None):
-    """Crea una notificaciÃ³n para todos los administradores del sistema."""
+    """Crea una notificación para todos los administradores del sistema."""
     admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
     for admin in admins:
         Notificacion.objects.create(
@@ -3345,7 +3345,7 @@ def notificar_admins(tipo, titulo, mensaje, reserva=None):
 
 
 def notificar_alcaldes(tipo, titulo, mensaje, reserva=None):
-    """Crea una notificaciÃ³n para todos los usuarios con perfil de alcalde."""
+    """Crea una notificación para todos los usuarios con perfil de alcalde."""
     alcaldes = User.objects.filter(perfil__es_alcalde=True)
     for alcalde in alcaldes:
         Notificacion.objects.create(
@@ -3360,7 +3360,7 @@ def notificar_alcaldes(tipo, titulo, mensaje, reserva=None):
 
 @login_required
 def carta_solicitud_recinto(request, reserva_id):
-    """Carta de solicitud de recinto con flujo de dos firmas: organizaciÃ³n â†’ alcalde."""
+    """Carta de solicitud de recinto con flujo de dos firmas: organización → alcalde."""
     reserva = get_object_or_404(Reserva, pk=reserva_id, tipo_reserva='ORGANIZACION')
 
     perfil = getattr(request.user, 'perfil', None)
@@ -3380,14 +3380,14 @@ def carta_solicitud_recinto(request, reserva_id):
             reserva.save(update_fields=['firma_org_en'])
             registrar_accion(
                 request.user,
-                'Firma de organizaciÃ³n en carta',
-                f'Reserva #{reserva.pk} â€” {reserva.nombre_organizacion} â€” '
+                'Firma de organización en carta',
+                f'Reserva #{reserva.pk} — {reserva.nombre_organizacion} — '
                 f'{reserva.fecha.strftime("%d/%m/%Y")} {reserva.hora_inicio.strftime("%H:%M")}',
             )
             notificar_alcaldes(
                 'RESERVA_PENDIENTE',
                 f'Carta firmada: {reserva.nombre_organizacion}',
-                f'{reserva.nombre_organizacion} firmÃ³ la carta de solicitud para '
+                f'{reserva.nombre_organizacion} firmó la carta de solicitud para '
                 f'{reserva.cancha.nombre if reserva.cancha else "el recinto"} el '
                 f'{reserva.fecha.strftime("%d/%m/%Y")}. Pendiente de tu firma.',
                 reserva=reserva,
@@ -3445,8 +3445,8 @@ def _carta_pdf_cabecera():
 
     texto_cell = [
         Paragraph('I. MUNICIPALIDAD DE EMPEDRADO', est_titulo),
-        Paragraph('REGIÃ“N DEL MAULE - CHILE',       est_sub),
-        Paragraph('ADMINISTRACIÃ“N MUNICIPAL',        est_sub),
+        Paragraph('REGIÓN DEL MAULE - CHILE',       est_sub),
+        Paragraph('ADMINISTRACIÓN MUNICIPAL',        est_sub),
     ]
 
     logo_cell = RLImage(logo_path, width=1.8*cm, height=1.8*cm) if os.path.exists(logo_path) else Spacer(1.8*cm, 1.8*cm)
@@ -3488,7 +3488,7 @@ def carta_preview_pdf(request):
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden()
 
-    # â”€â”€ Fuente de datos â”€â”€
+    # ── Fuente de datos ──
     reserva_id_str = request.GET.get('reserva_id')
     firma_org_en = None
     firma_alc_en = None
@@ -3542,10 +3542,10 @@ def carta_preview_pdf(request):
         if modo_fin_dia else
         f"desde las <b>{hora_inicio_str}</b> hasta las <b>{hora_fin_str}</b> horas"
     )
-    motivo_txt = motivo if motivo else 'â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦'
+    motivo_txt = motivo if motivo else '…………………………………………………………………………'
     cuerpo_txt = (
         f"Junto con saludarlos espero que se encuentren bien, vengo a solicitar recinto "
-        f"especÃ­ficamente <b>{nombre_recinto}</b>, el dÃ­a <b>{fecha_reserva}</b> {bloque_horario}, "
+        f"específicamente <b>{nombre_recinto}</b>, el día <b>{fecha_reserva}</b> {bloque_horario}, "
         f"con motivo de <b>{motivo_txt}</b>, por lo cual nos comprometemos a entregar el "
         f"recinto en las condiciones adecuadas y limpia posterior al uso de nuestro evento."
     )
@@ -3598,7 +3598,7 @@ def carta_preview_pdf(request):
     org_items = _bloque(bool(firma_org_en), firma_org_en,
                         rep_nombre or 'Representante Legal', rut_rep, nombre_org)
     alc_items = _bloque(bool(firma_alc_en), firma_alc_en,
-                        'Carlos Correa MiÃ±os', 'Alcalde', 'I. Municipalidad de Empedrado')
+                        'Carlos Correa Miños', 'Alcalde', 'I. Municipalidad de Empedrado')
 
     firma_tabla = Table([[org_items, alc_items]], colWidths=[8*cm, 8*cm])
     firma_tabla.setStyle(TableStyle([
@@ -3610,13 +3610,13 @@ def carta_preview_pdf(request):
     story += [
         Paragraph(f"Empedrado, {fecha_carta}", est_fecha),
         Spacer(1, 0.8*cm),
-        Paragraph("SR. CARLOS CORREA MIÃ‘OS", est_dest),
+        Paragraph("SR. CARLOS CORREA MIÑOS", est_dest),
         Paragraph("ALCALDE", est_dest),
         Paragraph("ILUSTRE MUNICIPALIDAD DE EMPEDRADO", est_dest),
         Spacer(1, 0.9*cm),
         Paragraph(cuerpo_txt, est_cuerpo),
         Spacer(1, 0.5*cm),
-        Paragraph("Sin mÃ¡s que agregar y esperando una positiva respuesta le saluda atte.", est_cuerpo),
+        Paragraph("Sin más que agregar y esperando una positiva respuesta le saluda atte.", est_cuerpo),
         Spacer(1, 1.4*cm),
         firma_tabla,
     ]
@@ -3650,12 +3650,12 @@ def carta_solicitud_pdf(request, reserva_id):
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden()
 
-    # â”€â”€ Respuesta HTTP â”€â”€
+    # ── Respuesta HTTP ──
     response = HttpResponse(content_type='application/pdf')
     nombre_archivo = f"carta_solicitud_{reserva.nombre_organizacion.replace(' ', '_')}_{reserva.fecha}.pdf"
     response['Content-Disposition'] = f'inline; filename="{nombre_archivo}"'
 
-    # â”€â”€ Documento â”€â”€
+    # ── Documento ──
     doc = SimpleDocTemplate(
         response,
         pagesize=LETTER,
@@ -3663,7 +3663,7 @@ def carta_solicitud_pdf(request, reserva_id):
         topMargin=2 * cm, bottomMargin=3 * cm,
     )
 
-    # â”€â”€ Estilos â”€â”€
+    # ── Estilos ──
     azul = colors.HexColor('#1a3a6b')
     negro = colors.black
     gris = colors.HexColor('#6b7280')
@@ -3675,7 +3675,7 @@ def carta_solicitud_pdf(request, reserva_id):
     est_firma_nombre = ParagraphStyle('firma_n', fontName='Times-Bold', fontSize=10, leading=14, alignment=TA_CENTER, textColor=negro)
     est_firma_sub = ParagraphStyle('firma_s', fontName='Times-Roman', fontSize=9, leading=13, alignment=TA_CENTER, textColor=gris)
 
-    # â”€â”€ Contenido â”€â”€
+    # ── Contenido ──
     meses_es = {1:'enero',2:'febrero',3:'marzo',4:'abril',5:'mayo',6:'junio',
                 7:'julio',8:'agosto',9:'septiembre',10:'octubre',11:'noviembre',12:'diciembre'}
     hoy = timezone.now()
@@ -3693,15 +3693,15 @@ def carta_solicitud_pdf(request, reserva_id):
     else:
         bloque_horario = f"desde las <b>{hora_ini}</b> hasta las <b>{hora_fin_str}</b> horas"
 
-    motivo_txt = reserva.motivo if reserva.motivo else 'â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦â€¦'
+    motivo_txt = reserva.motivo if reserva.motivo else '…………………………………………………………………………'
 
     cuerpo_txt = (
         f"Junto con saludarlos espero que se encuentren bien, vengo a solicitar recinto "
-        f"especÃ­ficamente <b>{nombre_recinto}</b>, el dÃ­a <b>{fecha_reserva}</b> {bloque_horario}, "
+        f"específicamente <b>{nombre_recinto}</b>, el día <b>{fecha_reserva}</b> {bloque_horario}, "
         f"con motivo de <b>{motivo_txt}</b>, por lo cual nos comprometemos a entregar el "
         f"recinto en las condiciones adecuadas y limpia posterior al uso de nuestro evento."
     )
-    cierre_txt = "Sin mÃ¡s que agregar y esperando una positiva respuesta le saluda atte."
+    cierre_txt = "Sin más que agregar y esperando una positiva respuesta le saluda atte."
 
     # Ruta del sello
     sello_path = os.path.join(settings.BASE_DIR, 'static', 'sello_municipalidad.jpeg')
@@ -3717,7 +3717,7 @@ def carta_solicitud_pdf(request, reserva_id):
         else:
             items.append(Spacer(1, 2.8 * cm + 4))
 
-        # LÃ­nea de firma (simulada con tabla de 1 celda con borde superior)
+        # Línea de firma (simulada con tabla de 1 celda con borde superior)
         t = Table([['']], colWidths=[7 * cm])
         t.setStyle(TableStyle([('LINEABOVE', (0, 0), (-1, -1), 0.8, negro)]))
         items.append(t)
@@ -3746,7 +3746,7 @@ def carta_solicitud_pdf(request, reserva_id):
     # Firma alcalde
     firma_alc_items = _bloque_firma(
         firmado=bool(reserva.firma_alcalde_carta_en),
-        nombre_linea1='Carlos Correa MiÃ±os',
+        nombre_linea1='Carlos Correa Miños',
         nombre_linea2='Alcalde',
         nombre_linea3='I. Municipalidad de Empedrado',
         fecha_firma=reserva.firma_alcalde_carta_en,
@@ -3766,7 +3766,7 @@ def carta_solicitud_pdf(request, reserva_id):
     story += [
         Paragraph(f"Empedrado, {fecha_carta}", est_fecha),
         Spacer(1, 0.8 * cm),
-        Paragraph("SR. CARLOS CORREA MIÃ‘OS", est_dest),
+        Paragraph("SR. CARLOS CORREA MIÑOS", est_dest),
         Paragraph("ALCALDE", est_dest),
         Paragraph("ILUSTRE MUNICIPALIDAD DE EMPEDRADO", est_dest),
         Spacer(1, 0.9 * cm),

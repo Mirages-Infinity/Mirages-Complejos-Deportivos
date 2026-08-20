@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load clp_tags %}
+{% load static %}
 
 {% block title %}Reserva Estadio Municipal - Complejos Deportivos{% endblock %}
 
@@ -373,7 +374,7 @@
                 </div>
                 <!-- Foto -->
                 <div class="overflow-hidden" style="height: 300px;">
-                    <img src="/media/fotos_recintos/estadio.jpeg"
+                    <img src="{% static 'fotos_recintos/estadio.jpeg' %}"
                          alt="Estadio Municipal"
                          class="w-full h-full object-cover">
                 </div>
