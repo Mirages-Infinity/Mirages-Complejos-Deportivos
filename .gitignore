@@ -39,8 +39,6 @@ check_log.txt
 # Carpeta de pruebas/experimentos locales
 scratch/
 
-# Tailwind generado (se regenera al ejecutar iniciar.bat)
-static/css/output.css
 
 #versiones
 versiones/*
