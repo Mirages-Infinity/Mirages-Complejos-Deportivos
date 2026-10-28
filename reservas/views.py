@@ -223,6 +223,8 @@ def _reserva_generica(request, nombre_cancha, template_name, context_key):
     # Obtener datos de transferencia
     datos_transferencia, _ = DatosTransferencia.objects.get_or_create(id=1)
 
+    webpay_activo = ConfiguracionWebpay.objects.filter(activo=True).exists()
+
     return render(request, template_name, {
         context_key: config,
         'user_profile': user_profile,
@@ -231,6 +233,7 @@ def _reserva_generica(request, nombre_cancha, template_name, context_key):
         'dias_bloqueados_futuros': dias_bloqueados,
         'datos_transferencia': datos_transferencia,
         'tiene_cupon': tiene_cupon,
+        'webpay_activo': webpay_activo,
     })
 
 def reserva_tenis(request):
