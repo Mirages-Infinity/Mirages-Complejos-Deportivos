@@ -155,3 +155,10 @@ WSGI_RELOAD_FILE = config(
     'WSGI_RELOAD_FILE',
     default=f'/var/www/{_primary_host.replace(".", "_")}_wsgi.py' if _primary_host else '',
 )
+WSGI_RELOAD_DOMAIN = config('WSGI_RELOAD_DOMAIN', default=_primary_host)
+
+# API de PythonAnywhere (https://www.pythonanywhere.com/account/#api_token)
+# Permite pedir la recarga de la app por codigo, ya que el propio proceso
+# web no tiene permiso para tocar archivos fuera de su proyecto.
+PYTHONANYWHERE_API_TOKEN = config('PYTHONANYWHERE_API_TOKEN', default='')
+PYTHONANYWHERE_USERNAME = config('PYTHONANYWHERE_USERNAME', default='')
