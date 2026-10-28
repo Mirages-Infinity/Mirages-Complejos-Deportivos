@@ -3,13 +3,44 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
     <title>{% block title %}Complejos Deportivos{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
+
+    <!-- ── PWA: instalable como app desde el navegador ──────────────────── -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#1c1b1f">
+    <link rel="icon" href="{% static 'icons/favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'icons/apple-touch-icon.png' %}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="C. Deportivos">
+
     <style>
+        html {
+            -webkit-text-size-adjust: 100%;
+            overscroll-behavior-y: contain;
+        }
+
         body {
             font-family: 'Segoe UI', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: contain;
+        }
+
+        a, button, .bottom-nav-item, .card-hover {
+            touch-action: manipulation;
+        }
+
+        /* Evita que iOS haga zoom automatico al enfocar un campo (inputs con
+           font-size menor a 16px disparan ese zoom). No cambia el tamano en
+           Android/desktop, solo iOS por debajo de ese umbral. */
+        @media (max-width: 480px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
         }
 
         .card-hover {
@@ -48,7 +79,7 @@
 
     <!-- ── Banner superior ───────────────────────────────────────────────── -->
     {% block top_header %}
-    <div style="position:sticky;top:0;z-index:40;background:white;border-bottom:0.5px solid #e5e7eb;">
+    <div style="position:sticky;top:0;z-index:40;background:white;border-bottom:0.5px solid #e5e7eb;padding-top:env(safe-area-inset-top);">
         <div
             style="max-width:672px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;">
             <div style="width:80px;">{% block header_left %}&nbsp;{% endblock %}</div>
@@ -100,7 +131,7 @@
 
     <!-- ── Barra de navegación inferior (siempre visible) ───────────────── -->
     <div
-        style="position:fixed;bottom:0;left:0;width:100vw;overflow-x:clip;z-index:40;background:white;border-top:0.5px solid #e5e7eb;transform:translateZ(0);backface-visibility:hidden;">
+        style="position:fixed;bottom:0;left:0;width:100vw;overflow-x:clip;z-index:40;background:white;border-top:0.5px solid #e5e7eb;transform:translateZ(0);backface-visibility:hidden;padding-bottom:env(safe-area-inset-bottom);">
         <div
             style="max-width:672px;margin:0 auto;display:flex;justify-content:space-around;align-items:center;padding:8px 24px;">
 
@@ -220,6 +251,13 @@ function validarRut(input) {
   input.style.borderColor = input.value ? (ok ? '#86efac' : '#fca5a5') : '';
   if (errEl) errEl.style.display = ok || !input.value ? 'none' : 'block';
   return ok;
+}
+
+/* ── PWA: registra el service worker (habilita "Instalar app") ── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js');
+  });
 }
 </script>
 </body>
