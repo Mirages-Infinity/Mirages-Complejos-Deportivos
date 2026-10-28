@@ -19,9 +19,11 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from reservas import views
+from core.views import deploy_webhook
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('deploy/webhook/', deploy_webhook, name='deploy_webhook'),
     path('', views.inicio, name='inicio'),
     path('registro/', views.registro, name='registro'),
     path('login/', views.login_view, name='login'),

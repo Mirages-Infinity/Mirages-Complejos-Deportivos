@@ -143,3 +143,15 @@ if not DEBUG:
 # IPs de proxies de confianza para el rate limiter (dejar vacío si no hay proxy)
 # Ejemplo con nginx local: TRUSTED_PROXY_IPS = ['127.0.0.1']
 TRUSTED_PROXY_IPS = config('TRUSTED_PROXY_IPS', default='', cast=Csv())
+
+# --- Despliegue automatico (webhook de GitHub) ---
+# Si se define, habilita /deploy/webhook/: GitHub llama esa URL en cada push,
+# el servidor valida la firma con este secreto, hace git pull y se recarga solo.
+# Vacio en desarrollo local (el webhook queda deshabilitado).
+GITHUB_WEBHOOK_SECRET = config('GITHUB_WEBHOOK_SECRET', default='')
+
+_primary_host = ALLOWED_HOSTS[0] if ALLOWED_HOSTS else ''
+WSGI_RELOAD_FILE = config(
+    'WSGI_RELOAD_FILE',
+    default=f'/var/www/{_primary_host.replace(".", "_")}_wsgi.py' if _primary_host else '',
+)
