@@ -22,6 +22,8 @@ class UserProfile(models.Model):
     es_organizacion = models.BooleanField(default=False, verbose_name='Es organización')
     nombre_organizacion = models.CharField(max_length=200, blank=True, verbose_name='Nombre organización')
 
+
+
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.user.email})"
 
