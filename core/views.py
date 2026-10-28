@@ -3,6 +3,8 @@ import hmac
 import os
 import subprocess
 import sys
+import threading
+import time
 
 import requests
 from django.conf import settings
@@ -20,6 +22,42 @@ def service_worker(request):
     response = HttpResponse(contenido, content_type='application/javascript')
     response['Service-Worker-Allowed'] = '/'
     return response
+
+
+def _recargar_app():
+    """Pide la recarga de la app. Se llama en un hilo aparte y con una
+    pequena espera: recargar reinicia el propio proceso que la pide, asi
+    que si se hace de forma sincrona dentro de la vista, el proceso muere
+    a mitad de la respuesta y GitHub ve un 502 aunque todo haya salido bien."""
+    time.sleep(2)
+
+    # Intento 1 (preferido): API oficial de PythonAnywhere. El proceso de la
+    # app web corre en un entorno restringido que normalmente no puede
+    # tocar archivos fuera de su propio proyecto, asi que esta es la forma
+    # confiable de pedir la recarga.
+    if settings.PYTHONANYWHERE_API_TOKEN and settings.PYTHONANYWHERE_USERNAME:
+        api_url = (
+            f'https://www.pythonanywhere.com/api/v0/user/'
+            f'{settings.PYTHONANYWHERE_USERNAME}/webapps/{settings.WSGI_RELOAD_DOMAIN}/reload/'
+        )
+        try:
+            resp = requests.post(
+                api_url,
+                headers={'Authorization': f'Token {settings.PYTHONANYWHERE_API_TOKEN}'},
+                timeout=30,
+            )
+            if resp.status_code == 200:
+                return
+        except requests.RequestException:
+            pass
+
+    # Intento 2 (respaldo, puede no tener permisos): tocar el archivo WSGI.
+    wsgi_file = settings.WSGI_RELOAD_FILE
+    if wsgi_file and os.path.exists(wsgi_file):
+        try:
+            os.utime(wsgi_file, None)
+        except OSError:
+            pass
 
 
 @csrf_exempt
@@ -53,42 +91,13 @@ def deploy_webhook(request):
             timeout=60,
         )
 
-    # Intento 1 (preferido): API oficial de PythonAnywhere. El proceso de la
-    # app web corre en un entorno restringido que normalmente no puede
-    # tocar archivos fuera de su propio proyecto, asi que esta es la forma
-    # confiable de pedir la recarga.
-    reloaded = False
-    reload_detail = None
-    if pull.returncode == 0 and settings.PYTHONANYWHERE_API_TOKEN and settings.PYTHONANYWHERE_USERNAME:
-        api_url = (
-            f'https://www.pythonanywhere.com/api/v0/user/'
-            f'{settings.PYTHONANYWHERE_USERNAME}/webapps/{settings.WSGI_RELOAD_DOMAIN}/reload/'
-        )
-        try:
-            resp = requests.post(
-                api_url,
-                headers={'Authorization': f'Token {settings.PYTHONANYWHERE_API_TOKEN}'},
-                timeout=30,
-            )
-            reloaded = resp.status_code == 200
-            reload_detail = f'{resp.status_code}: {resp.text[:300]}'
-        except requests.RequestException as exc:
-            reload_detail = str(exc)
-
-    # Intento 2 (respaldo, puede no tener permisos): tocar el archivo WSGI.
-    if not reloaded:
-        wsgi_file = settings.WSGI_RELOAD_FILE
-        if pull.returncode == 0 and wsgi_file and os.path.exists(wsgi_file):
-            try:
-                os.utime(wsgi_file, None)
-                reloaded = True
-            except OSError as exc:
-                reload_detail = (reload_detail or '') + f' | touch wsgi fallo: {exc}'
+    reload_scheduled = pull.returncode == 0
+    if reload_scheduled:
+        threading.Thread(target=_recargar_app, daemon=True).start()
 
     return JsonResponse({
         'ok': pull.returncode == 0 and (collectstatic is None or collectstatic.returncode == 0),
-        'reloaded': reloaded,
-        'reload_detail': reload_detail,
+        'reload_scheduled': reload_scheduled,
         'pull_stdout': pull.stdout,
         'pull_stderr': pull.stderr,
         'collectstatic_stdout': collectstatic.stdout if collectstatic else None,
