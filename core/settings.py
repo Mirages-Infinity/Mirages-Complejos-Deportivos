@@ -15,7 +15,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
     'reservas',
     'complejos',
 ]
@@ -76,6 +78,28 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# --- Almacenamiento de archivos subidos ---
+# Si hay credenciales de Cloudinary en el entorno, las imágenes que suban los
+# usuarios (recintos, comprobantes, etc.) se guardan ahí en vez del disco
+# local — útil en PythonAnywhere free, que solo da 512 MB de cuota.
+# Sin esas variables (ej. en desarrollo local), se usa el disco normal.
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='')
+
+if CLOUDINARY_CLOUD_NAME:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+        'API_KEY': config('CLOUDINARY_API_KEY'),
+        'API_SECRET': config('CLOUDINARY_API_SECRET'),
+    }
+    STORAGES = {
+        'default': {
+            'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+        },
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
