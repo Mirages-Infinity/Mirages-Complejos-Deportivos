@@ -11,6 +11,9 @@ db.sqlite3-journal
 # Archivos subidos por usuarios
 media/
 
+# Generado por collectstatic
+staticfiles/
+
 # Python
 __pycache__/
 *.pyc
