@@ -19,6 +19,7 @@ class UserProfile(models.Model):
     foto = models.FileField(upload_to='perfiles/', blank=True, null=True)
     es_alcalde = models.BooleanField(default=False, verbose_name='Es alcalde')
     es_tesorero = models.BooleanField(default=False, verbose_name='Es tesorero')
+    es_encargado = models.BooleanField(default=False, verbose_name='Es encargado')
     es_organizacion = models.BooleanField(default=False, verbose_name='Es organización')
     nombre_organizacion = models.CharField(max_length=200, blank=True, verbose_name='Nombre organización')
 
@@ -351,6 +352,7 @@ class RegistroTesoreria(models.Model):
 class TransaccionWebpay(models.Model):
     ESTADO_CHOICES = [
         ('INICIADA', 'Iniciada'),
+        ('PROCESANDO', 'Procesando'),
         ('AUTORIZADA', 'Autorizada'),
         ('RECHAZADA', 'Rechazada'),
         ('ANULADA', 'Anulada'),

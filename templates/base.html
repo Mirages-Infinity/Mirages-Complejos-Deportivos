@@ -92,7 +92,7 @@
             <div style="width:80px;display:flex;justify-content:flex-end;align-items:center;gap:4px;">
                 {% block header_right %}
                 {% if user.is_authenticated %}
-                {% if not user.is_staff and not user.is_superuser and not user.perfil.es_tesorero and not user.perfil.es_alcalde %}
+                {% if not es_gestion and not user.perfil.es_tesorero and not user.perfil.es_alcalde %}
                 <a href="{% url 'notificaciones' %}"
                     style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#4b5563;text-decoration:none;position:relative;"
                     title="Notificaciones">
@@ -141,7 +141,7 @@
             {% elif user.is_authenticated and user.perfil.es_tesorero %}
             <!-- === SIN BARRA PARA TESORERO (usa solo el header) === -->
 
-            {% elif user.is_staff or user.is_superuser %}
+            {% elif es_gestion %}
             <!-- === BOTONES PARA ADMINISTRACIÓN === -->
             <!-- 1. Inicio -->
             <a href="{% url 'inicio' %}"

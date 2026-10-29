@@ -35,7 +35,7 @@
     <div style="background:#f9fafb;border-radius:10px;border:0.5px solid #1c1b1f;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Estado inicial</p>
-        <p style="font-size:0.85rem;font-weight:500;color:#1c1b1f;">{% if user.is_staff or user.is_superuser %}Aprobación inmediata{% else %}Pendiente de revisión{% endif %}</p>
+        <p style="font-size:0.85rem;font-weight:500;color:#1c1b1f;">{% if es_gestion %}Aprobación inmediata{% else %}Pendiente de revisión{% endif %}</p>
       </div>
       <div style="text-align:right;">
         <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Plazo</p>

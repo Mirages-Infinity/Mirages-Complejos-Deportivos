@@ -234,7 +234,7 @@
                 <div class="p-3 sm:p-4">
                     <!-- SECCIÓN 1: SELECTOR DE FECHA COMPACTO -->
                     <div
-                        class="flex items-center justify-between bg-gray-50 p-2 sm:p-3 rounded-xl {% if user.is_superuser %}mb-2{% else %}mb-4{% endif %} border border-gray-900">
+                        class="flex items-center justify-between bg-gray-50 p-2 sm:p-3 rounded-xl {% if es_gestion %}mb-2{% else %}mb-4{% endif %} border border-gray-900">
                         <div class="flex items-center gap-1 sm:gap-2">
                             <button id="prev-date"
                                 class="p-1.5 bg-white hover:bg-gray-100 rounded-lg transition-all text-gray-700 border border-gray-900">
@@ -267,12 +267,12 @@
                                     <line x1="3" x2="21" y1="10" y2="10" />
                                 </svg>
                             </button>
-                            <input type="date" id="hidden-datepicker"
-                                class="absolute inset-0 opacity-0 cursor-pointer pointer-events-none"
-                                style="visibility: hidden;">
+                            <!-- Selector nativo transparente sobre el botón: en iPhone solo abre si el usuario toca el input real -->
+                            <input type="date" id="hidden-datepicker" aria-label="Elegir fecha"
+                                style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px;border:0;padding:0;margin:0;">
                         </div>
                     </div>
-                    {% if user.is_superuser %}
+                    {% if es_gestion %}
                     <div id="admin-buttons-row" class="flex items-center gap-2 flex-wrap bg-gray-50 px-2 py-2 rounded-xl mb-4 border border-gray-900">
                         <button id="admin-findes-btn" onclick="toggleFindes()"
                             title="{% if '5' in config_futbolito.dias_semana and '6' in config_futbolito.dias_semana %}Deshabilitar fines de semana (Sáb-Dom activos){% else %}Habilitar fines de semana (Sáb-Dom){% endif %}"
@@ -323,7 +323,7 @@
                     <div class="mb-3">
                         <h3 class="text-[10px] font-medium text-gray-400 uppercase tracking-widest mb-2">Horarios
                             Disponibles</h3>
-                        {% if not config_futbolito.activo and not user.is_superuser %}
+                        {% if not config_futbolito.activo and not es_gestion %}
                         <div class="bg-red-50 text-red-600 font-bold p-4 rounded-xl text-center border border-red-100 text-sm flex flex-col items-center gap-2">
                             <span class="text-2xl opacity-80">🔒</span>
                             Complejo deshabilitado temporalmente.<br>Inténtalo nuevamente más tarde.
@@ -338,7 +338,7 @@
 
                     <!-- Botón de Confirmación Compacto (Oculto para Admins) -->
                     <div class="mt-4" id="confirm-container">
-                        {% if user.is_superuser %}
+                        {% if es_gestion %}
                         <button id="admin-mode-toggle" type="button"
                             class="w-full bg-orange-100 border border-orange-200 text-orange-700 font-bold py-3 px-6 rounded-xl text-center text-sm transition-all hover:bg-orange-200 cursor-pointer flex items-center justify-center gap-2">
                             <span id="admin-mode-icon">🛠️</span>
@@ -933,7 +933,7 @@
                         toggleSlotBlock(timeStr, slot);
                     } else {
                         // Para usuarios normales o admin en modo vista (aunque admin no debería reservar)
-                        if (isPast || isBlocked || isReserved || ("{{ user.is_superuser }}" === "True")) return;
+                        if (isPast || isBlocked || isReserved || ("{{ es_gestion }}" === "True")) return;
 
                         if (confirmBtn) {
                             document.querySelectorAll('.slot-block').forEach(s => s.classList.remove('slot-selected'));
@@ -1451,14 +1451,14 @@
             updateDateUI();
         };
 
-        document.getElementById('calendar-btn').onclick = () => {
-            if (!voucherContainer.classList.contains('hidden')) return;
-            if (typeof hiddenDatePicker.showPicker === 'function') {
-                hiddenDatePicker.showPicker();
-            } else {
-                hiddenDatePicker.click();
-            }
-        };
+        // El calendario es un <input type="date"> real superpuesto al botón (funciona en iPhone).
+        // Se limita al mismo rango que las flechas: desde hoy hasta el máximo permitido.
+        const toISODate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        hiddenDatePicker.min = toISODate(today);
+        hiddenDatePicker.max = toISODate(maxDate);
+        hiddenDatePicker.addEventListener('click', (e) => {
+            if (!voucherContainer.classList.contains('hidden')) e.preventDefault();
+        });
 
         hiddenDatePicker.onchange = (e) => {
             if (!voucherContainer.classList.contains('hidden')) return;
@@ -1494,7 +1494,7 @@
     });
 </script>
 
-{% if user.is_superuser %}
+{% if es_gestion %}
 <!-- Modal Bloqueo de Período -->
 <div id="modal-bloqueo-periodo"
   class="fixed inset-0 z-50 hidden items-center justify-center p-4"

@@ -17,13 +17,15 @@
   <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:{% if rol_fijo %}8{% else %}16{% endif %}px;">
     {% if rol_fijo == 'alcalde' %}Crear perfil de Alcalde
     {% elif rol_fijo == 'tesorero' %}Crear perfil de Tesorero
+    {% elif rol_fijo == 'encargado' %}Crear perfil de Encargado
     {% else %}Crear usuario{% endif %}
   </h1>
 
   {% if rol_fijo %}
-  <div style="background:{% if rol_fijo == 'alcalde' %}#ede9fe{% else %}#e0f2fe{% endif %};border-radius:10px;padding:10px 14px;margin-bottom:16px;border:0.5px solid {% if rol_fijo == 'alcalde' %}#c4b5f4{% else %}#93c5fd{% endif %};">
-    <p style="font-size:0.78rem;font-weight:500;color:{% if rol_fijo == 'alcalde' %}#4a3880{% else %}#0c5a8a{% endif %};">
+  <div style="background:{% if rol_fijo == 'alcalde' %}#ede9fe{% elif rol_fijo == 'encargado' %}#fef3c7{% else %}#e0f2fe{% endif %};border-radius:10px;padding:10px 14px;margin-bottom:16px;border:0.5px solid {% if rol_fijo == 'alcalde' %}#c4b5f4{% elif rol_fijo == 'encargado' %}#fcd34d{% else %}#93c5fd{% endif %};">
+    <p style="font-size:0.78rem;font-weight:500;color:{% if rol_fijo == 'alcalde' %}#4a3880{% elif rol_fijo == 'encargado' %}#92400e{% else %}#0c5a8a{% endif %};">
       {% if rol_fijo == 'alcalde' %}El rol Alcalde quedará asignado automáticamente. Podrá firmar y aprobar reservas de organizaciones.
+      {% elif rol_fijo == 'encargado' %}El rol Encargado quedará asignado automáticamente. Podrá gestionar reservas, horarios, cupones, precios y restricciones.
       {% else %}El rol Tesorero quedará asignado automáticamente. Podrá gestionar el registro de ingresos.{% endif %}
     </p>
   </div>
@@ -111,20 +113,31 @@
         </div>
       </div>
 
-      <!-- Rol (solo si no hay rol fijo) -->
-      {% if not rol_fijo %}
+      <!-- Rol (solo si no hay rol fijo; solo administradores) -->
+      {% if not rol_fijo and es_admin_total %}
       <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:24px;">
         <div style="padding:14px 16px;">
           <label style="display:block;font-size:0.72rem;font-weight:500;color:#9ca3af;margin-bottom:12px;">Tipo de cuenta</label>
 
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px;padding:10px 12px;border-radius:8px;border:0.5px solid #1c1b1f;" id="lbl-usuario">
             <input type="radio" name="rol" value="usuario"
-                   {% if datos.rol != 'admin' %}checked{% endif %}
+                   {% if datos.rol != 'admin' and datos.rol != 'encargado' %}checked{% endif %}
                    onchange="highlightRol()"
                    style="accent-color:#6b7280;width:16px;height:16px;">
             <div>
               <span style="font-size:0.875rem;color:#1c1b1f;font-weight:500;">👤 Usuario normal</span>
               <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;font-weight:400;">Puede realizar reservas en el sistema.</span>
+            </div>
+          </label>
+
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px;padding:10px 12px;border-radius:8px;border:0.5px solid #1c1b1f;" id="lbl-encargado">
+            <input type="radio" name="rol" value="encargado"
+                   {% if datos.rol == 'encargado' %}checked{% endif %}
+                   onchange="highlightRol()"
+                   style="accent-color:#d97706;width:16px;height:16px;">
+            <div>
+              <span style="font-size:0.875rem;color:#1c1b1f;font-weight:500;">🧑‍💼 Encargado</span>
+              <span style="display:block;font-size:0.7rem;color:#9ca3af;margin-top:1px;font-weight:400;">Gestiona reservas, horarios, cupones, precios y restricciones.</span>
             </div>
           </label>
 
@@ -253,14 +266,14 @@
   }
 
   function highlightRol() {
-    const roles = ['usuario', 'admin'];
-    const colores = { usuario: '#6b7280', admin: '#b06000' };
+    const roles = ['usuario', 'encargado', 'admin'];
+    const colores = { usuario: '#6b7280', encargado: '#d97706', admin: '#b06000' };
     roles.forEach(r => {
       const lbl = document.getElementById('lbl-' + r);
       const inp = lbl?.querySelector('input');
       if (lbl && inp) {
         lbl.style.borderColor = inp.checked ? colores[r] : '#1c1b1f';
-        lbl.style.background = inp.checked ? (r === 'admin' ? '#fffbeb' : '#f9fafb') : 'white';
+        lbl.style.background = inp.checked ? (r === 'usuario' ? '#f9fafb' : '#fffbeb') : 'white';
       }
     });
   }

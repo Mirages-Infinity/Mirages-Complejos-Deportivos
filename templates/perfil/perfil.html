@@ -80,7 +80,7 @@
 
       <!-- Cambiar contraseña -->
       <a href="{% url 'cambiar_contrasena' %}"
-        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;{% if not user.is_staff and not user.is_superuser %}border-bottom:0.5px solid #1c1b1f;{% endif %}text-decoration:none;">
+        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;{% if not es_gestion %}border-bottom:0.5px solid #1c1b1f;{% endif %}text-decoration:none;">
         <div style="display:flex;align-items:center;gap:12px;">
           <span
             style="width:32px;height:32px;border-radius:50%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -98,7 +98,7 @@
         </svg>
       </a>
 
-      {% if not user.is_staff and not user.is_superuser %}
+      {% if not es_gestion %}
       <!-- Mis cupones -->
       <a href="{% url 'mis_cupones' %}"
         style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:0.5px solid #1c1b1f;text-decoration:none;">

@@ -101,9 +101,9 @@ def correo_nueva_solicitud_a_admins(reserva):
             .values_list('email', flat=True)
         )
     else:
-        from django.contrib.auth.models import User
+        from .permisos import usuarios_gestion
         admins_emails = list(
-            User.objects.filter(is_staff=True, email__isnull=False)
+            usuarios_gestion().filter(email__isnull=False)
             .exclude(email='')
             .values_list('email', flat=True)
         )
@@ -275,9 +275,9 @@ def correo_modificacion_a_admins(reserva, accion='modificada'):
             .values_list('email', flat=True)
         )
     else:
-        from django.contrib.auth.models import User
+        from .permisos import usuarios_gestion
         admins_emails = list(
-            User.objects.filter(is_staff=True, email__isnull=False)
+            usuarios_gestion().filter(email__isnull=False)
             .exclude(email='')
             .values_list('email', flat=True)
         )

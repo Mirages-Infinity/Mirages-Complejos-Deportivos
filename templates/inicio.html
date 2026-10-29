@@ -13,7 +13,7 @@
             <div style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;border-radius:16px;border:0.5px solid #1c1b1f;background:white;">
                 <span>👤</span>
                 <p style="font-size:1.35rem;font-weight:500;color:#1c1b1f;">
-                    {% if user.is_superuser %}Admin:{% endif %}
+                    {% if user.is_superuser %}Admin:{% elif es_encargado %}Encargado:{% endif %}
                     {% if user.perfil.es_organizacion %}{{ user.perfil.nombre_organizacion }}{% else %}{{ user.first_name }} {{ user.last_name }}{% endif %}
                 </p>
             </div>

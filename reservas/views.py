@@ -4,6 +4,7 @@ from transbank.common.options import WebpayOptions
 from complejos.models import ConfiguracionWebpay
 from .models import TransaccionWebpay
 import random
+import uuid
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.contrib.auth import authenticate, login, logout
@@ -12,7 +13,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from datetime import date, datetime, time, timedelta
 from functools import wraps
-from django.http import JsonResponse, HttpResponseNotAllowed
+from django.http import Http404, JsonResponse, HttpResponseNotAllowed
 from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.conf import settings
@@ -29,6 +30,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode, url_
 from django.utils.encoding import force_bytes, force_str
 from django.utils import timezone
 from decimal import Decimal, InvalidOperation
+from .permisos import es_admin as es_admin_total, es_gestion, usuarios_gestion
 from django.urls import reverse
 import json as json_lib
 from .emails import (
@@ -88,10 +90,53 @@ def staff_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('login')
-        if not (request.user.is_staff or request.user.is_superuser):
+        if not es_admin_total(request.user):
             return redirect('inicio')
         return view_func(request, *args, **kwargs)
     return wrapper
+
+
+FORMATOS_IMAGEN_PERMITIDOS = {'JPEG': '.jpg', 'PNG': '.png', 'WEBP': '.webp', 'GIF': '.gif'}
+
+
+def _validar_imagen_subida(archivo):
+    """Comprueba que el archivo sea una imagen real de un formato permitido y le asigna un
+    nombre aleatorio con la extensión que corresponde a su contenido (no a la que declaró el cliente)."""
+    try:
+        archivo.seek(0)
+        imagen = Image.open(archivo)
+        formato = imagen.format
+        imagen.verify()
+        archivo.seek(0)
+    except (UnidentifiedImageError, OSError, ValueError):
+        return False
+    extension = FORMATOS_IMAGEN_PERMITIDOS.get(formato)
+    if not extension:
+        return False
+    archivo.name = f'{uuid.uuid4().hex}{extension}'
+    return True
+
+
+def gestion_required(view_func):
+    """Administradores y encargados."""
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('login')
+        if not es_gestion(request.user):
+            return redirect('inicio')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def _cuenta_gestionable(actor, usuario):
+    """Un encargado solo gestiona ciudadanos y organizaciones; el administrador, todas las cuentas no-staff."""
+    if usuario.is_staff:
+        return False
+    if es_admin_total(actor):
+        return True
+    perfil = getattr(usuario, 'perfil', None)
+    return not (perfil and (perfil.es_alcalde or perfil.es_tesorero or perfil.es_encargado))
 
 
 def alcalde_required(view_func):
@@ -257,7 +302,7 @@ def reserva_piscina_ninos(request):
 
 @login_required
 def toggle_bloqueo(request):
-    if not request.user.is_superuser:
+    if not es_gestion(request.user):
         return JsonResponse({'error': 'No autorizado'}, status=403)
     
     if request.method == 'POST':
@@ -301,7 +346,7 @@ def toggle_bloqueo(request):
 @login_required
 def notificar_bloqueos_batch(request):
     """Envía notificaciones para todos los cambios de bloqueo de una sesión de edición."""
-    if not request.user.is_superuser:
+    if not es_gestion(request.user):
         return JsonResponse({'error': 'No autorizado'}, status=403)
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
@@ -313,7 +358,7 @@ def notificar_bloqueos_batch(request):
 
         usuarios_todos = User.objects.filter(
             is_active=True, is_staff=False,
-            perfil__es_tesorero=False, perfil__es_alcalde=False,
+            perfil__es_tesorero=False, perfil__es_alcalde=False, perfil__es_encargado=False,
         )
         enviadas = 0
 
@@ -454,7 +499,7 @@ def check_bloqueo_horario(request):
 
 @login_required
 def bloquear_periodo(request):
-    if not request.user.is_superuser:
+    if not es_gestion(request.user):
         return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
 
     if request.method == 'POST':
@@ -500,7 +545,7 @@ def bloquear_periodo(request):
             # 1. Notificación general a usuarios no-staff (excluye tesorero y alcalde)
             usuarios_todos = User.objects.filter(
                 is_active=True, is_staff=False,
-                perfil__es_tesorero=False, perfil__es_alcalde=False,
+                perfil__es_tesorero=False, perfil__es_alcalde=False, perfil__es_encargado=False,
             )
             for u in usuarios_todos:
                 Notificacion.objects.create(
@@ -568,7 +613,7 @@ def bloquear_periodo(request):
 
 @login_required
 def toggle_cancha_status(request):
-    if not request.user.is_superuser:
+    if not es_gestion(request.user):
         return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
         
     if request.method == 'POST':
@@ -598,7 +643,7 @@ DIAS_FINDE = {5, 6}  # 5 = Sábado, 6 = Domingo
 @login_required
 def toggle_findes_semana_cancha(request):
     """Habilita o deshabilita Sábado y Domingo como días reservables."""
-    if not request.user.is_superuser:
+    if not es_gestion(request.user):
         return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
@@ -659,7 +704,7 @@ def toggle_findes_semana_cancha(request):
 @login_required
 def actualizar_horario_cancha(request):
     """Actualiza hora_inicio, hora_fin e intervalo_minutos de una ConfigCancha."""
-    if not request.user.is_superuser:
+    if not es_gestion(request.user):
         return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
@@ -736,7 +781,7 @@ def actualizar_horario_cancha(request):
 @login_required
 def crear_reserva_admin(request):
     """Permite a un superuser crear una reserva personal manualmente (siempre APROBADA)."""
-    if not request.user.is_superuser:
+    if not es_gestion(request.user):
         return JsonResponse({'status': 'error', 'message': 'No autorizado'}, status=403)
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
@@ -810,7 +855,7 @@ def crear_reserva_admin(request):
 def crear_reserva_organizacion(request):
     """Reserva de organización: accesible a admins (flujo completo) y a usuarios org (datos pre-cargados)."""
     _perfil = getattr(request.user, 'perfil', None)
-    _es_admin = request.user.is_staff or request.user.is_superuser
+    _es_admin = es_gestion(request.user)
     _es_org_user = bool(_perfil and _perfil.es_organizacion)
     if not (_es_admin or _es_org_user):
         return redirect('inicio')
@@ -1047,7 +1092,7 @@ def finalizar_reserva_cancha(request):
                 admin_email = request.POST.get('admin_solicitante_email')
 
             admin_override = bool(
-                request.user.is_superuser and admin_nombre and admin_nombre.strip()
+                es_gestion(request.user) and admin_nombre and admin_nombre.strip()
             )
             
             cancha = get_object_or_404(ConfigCancha, id=cancha_id)
@@ -1156,15 +1201,10 @@ def finalizar_reserva_cancha(request):
                         'message': 'Solo se permiten imágenes como comprobante.'
                     }, status=400)
 
-                try:
-                    comprobante.seek(0)
-                    imagen = Image.open(comprobante)
-                    imagen.verify()
-                    comprobante.seek(0)
-                except (UnidentifiedImageError, OSError, ValueError):
+                if not _validar_imagen_subida(comprobante):
                     return JsonResponse({
                         'status': 'error',
-                        'message': 'El archivo subido no es una imagen válida.'
+                        'message': 'El archivo subido no es una imagen válida (usa JPG, PNG, WEBP o GIF).'
                     }, status=400)
             
             # Verificar disponibilidad y crear dentro de una transacción atómica
@@ -1253,7 +1293,7 @@ def finalizar_reserva_cancha(request):
             correo_comprobante_a_solicitante(reserva)
 
             # Notificación in-app a administradores
-            admins = User.objects.filter(is_staff=True)
+            admins = usuarios_gestion()
             txt_estado = "pendiente de aprobación" if reserva.estado == 'PENDIENTE' else "confirmada (pago tarjeta)"
             for admin in admins:
                 Notificacion.objects.create(
@@ -1347,7 +1387,7 @@ def registro(request):
             login(request, user)
             
             # Notificación in-app a administradores
-            admins = User.objects.filter(is_staff=True)
+            admins = usuarios_gestion()
             for admin in admins:
                 Notificacion.objects.create(
                     user=admin,
@@ -1398,7 +1438,7 @@ def login_view(request):
             login(request, user)
             if next_url:
                 return redirect(next_url)
-            if user.is_superuser or user.is_staff:
+            if es_gestion(user):
                 return redirect('panel_inicio')
             perfil = getattr(user, 'perfil', None)
             if perfil and perfil.es_tesorero:
@@ -1523,7 +1563,7 @@ def crear_reserva(request, salon_id):
             messages.error(request, 'Completa todos los campos obligatorios.')
             return render(request, 'reservas/crear_reserva.html', contexto)
 
-        es_admin = request.user.is_staff or request.user.is_superuser
+        es_admin = es_gestion(request.user)
 
         # Validación 4 horas mismo día ANTES de crear la reserva
         if not es_admin:
@@ -1574,7 +1614,7 @@ def crear_reserva(request, salon_id):
             correo_nueva_solicitud_a_admins(reserva)
 
         # Notificación in-app a administradores
-        admins = User.objects.filter(is_staff=True)
+        admins = usuarios_gestion()
         txt_estado = "pendiente de aprobación" if reserva.estado == 'PENDIENTE' else "confirmada (admin/staff)"
         for admin in admins:
             Notificacion.objects.create(
@@ -1628,7 +1668,7 @@ def mis_reservas(request):
         else:
             r.es_editable = (r.estado == 'APROBADA' and inicio_reserva > limite_edicion)
         
-        if request.user.is_staff or request.user.is_superuser:
+        if es_gestion(request.user):
             r.es_cancelable = (r.estado in ('PENDIENTE', 'APROBADA'))
         else:
             r.es_cancelable = (r.estado in ('PENDIENTE', 'APROBADA') and inicio_reserva > limite_cancelar)
@@ -1647,7 +1687,7 @@ def editar_reserva_organizacion(request, reserva_id):
     reserva = get_object_or_404(Reserva, pk=reserva_id, tipo_reserva='ORGANIZACION')
 
     _perfil   = getattr(request.user, 'perfil', None)
-    _es_admin = request.user.is_staff or request.user.is_superuser
+    _es_admin = es_gestion(request.user)
     _es_prop  = reserva.solicitante == request.user
     _es_org   = bool(_perfil and _perfil.es_organizacion and _es_prop)
 
@@ -1881,7 +1921,7 @@ def editar_mi_reserva(request, reserva_id):
             )
 
             # Notificación in-app a administradores
-            admins = User.objects.filter(is_staff=True)
+            admins = usuarios_gestion()
             recurso = reserva.salon.nombre if reserva.salon else reserva.cancha.nombre
             for admin in admins:
                 Notificacion.objects.create(
@@ -1934,7 +1974,7 @@ def cancelar_mi_reserva(request, reserva_id):
         return redirect('mis_reservas')
 
     # Validar regla de 12 horas (excepto para administradores)
-    if not (request.user.is_staff or request.user.is_superuser):
+    if not (es_gestion(request.user)):
         ahora = timezone.now()
         inicio_reserva = timezone.make_aware(datetime.combine(reserva.fecha, reserva.hora_inicio))
         if inicio_reserva <= ahora + timedelta(hours=12):
@@ -1949,7 +1989,7 @@ def cancelar_mi_reserva(request, reserva_id):
         recurso = reserva.salon.nombre if reserva.salon else reserva.cancha.nombre
 
         # Notificación in-app a todos los administradores
-        admins = User.objects.filter(is_staff=True)
+        admins = usuarios_gestion()
         solicitante_nombre = reserva.get_solicitante_display()
         for admin in admins:
             Notificacion.objects.create(
@@ -2007,7 +2047,7 @@ def gestionar_reserva(request, reserva_id):
     reserva = get_object_or_404(Reserva, pk=reserva_id)
 
     # Verificación de permisos: Staff, Superuser o Admin del Salón específico
-    if not (request.user.is_staff or request.user.is_superuser):
+    if not (es_gestion(request.user)):
         if reserva.salon:
             if not reserva.salon.admins.filter(pk=request.user.pk).exists():
                 messages.error(request, 'No tienes permisos para gestionar esta reserva.')
@@ -2098,7 +2138,7 @@ def gestionar_reserva(request, reserva_id):
         correo_respaldo_a_admin(reserva)
 
         messages.success(request, f'Reserva {reserva.get_estado_display().lower()} correctamente.')
-        if request.user.is_staff or request.user.is_superuser:
+        if es_gestion(request.user):
             return redirect('panel_reservas')
         return redirect('inicio')
 
@@ -2125,14 +2165,9 @@ def perfil(request):
             messages.error(request, 'Solo se permiten imágenes como foto de perfil.')
             return redirect('perfil')
 
-        # Validar magic bytes con PIL (evita archivos disfrazados de imagen)
-        try:
-            foto.seek(0)
-            img = Image.open(foto)
-            img.verify()
-            foto.seek(0)
-        except (UnidentifiedImageError, OSError, ValueError):
-            messages.error(request, 'El archivo subido no es una imagen válida.')
+        # Validar el contenido real (evita archivos disfrazados de imagen)
+        if not _validar_imagen_subida(foto):
+            messages.error(request, 'El archivo subido no es una imagen válida (usa JPG, PNG, WEBP o GIF).')
             return redirect('perfil')
 
         perfil_obj.foto = foto
@@ -2364,7 +2399,7 @@ def validar_cupon(request):
     })
 
 
-@staff_required
+@gestion_required
 def panel_cupones(request):
     hoy = timezone.now().date()
     Cupon.objects.filter(estado='ACTIVO', fecha_expiracion__lt=hoy).update(estado='EXPIRADO')
@@ -2388,7 +2423,7 @@ def panel_cupones(request):
     return render(request, 'panel/cupones.html', {'cupones': cupones, 'filtro': filtro, 'conteos': conteos})
 
 
-@staff_required
+@gestion_required
 def panel_crear_cupon_reserva(request):
     usuarios = User.objects.filter(is_staff=False, is_active=True).order_by('first_name', 'last_name', 'email')
     canchas = ConfigCancha.objects.filter(activa=True).order_by('nombre')
@@ -2636,7 +2671,7 @@ def tesorero_actualizar_estado(request, registro_id):
 
 
 
-@staff_required
+@gestion_required
 def panel_inicio(request):
     stats = {
         'total_reservas': Reserva.objects.exclude(estado='ELIMINADA').count(),
@@ -2658,7 +2693,7 @@ def panel_inicio(request):
     })
 
 
-@staff_required
+@gestion_required
 def panel_reservas(request):
     """Listado maestro de todas las reservas del sistema."""
     estado_filtro = request.GET.get('estado', '')
@@ -2696,7 +2731,7 @@ def panel_reservas(request):
     })
 
 
-@staff_required
+@gestion_required
 def panel_eliminar_reserva(request, reserva_id):
     """Borrado lógico de una reserva desde el panel admin."""
     if request.method != 'POST':
@@ -2715,7 +2750,7 @@ def panel_eliminar_reserva(request, reserva_id):
     return redirect('panel_reservas')
 
 
-@staff_required
+@gestion_required
 def panel_cancelar_reserva(request, reserva_id):
     """Cancelación administrativa de una reserva."""
     if request.method != 'POST':
@@ -2752,7 +2787,7 @@ def panel_cancelar_reserva(request, reserva_id):
     return redirect('panel_reservas')
 
 
-@staff_required
+@gestion_required
 def panel_editar_reserva(request, reserva_id):
     """Edición administrativa de una reserva con todas las restricciones del sistema."""
     reserva = get_object_or_404(Reserva, pk=reserva_id)
@@ -2862,25 +2897,33 @@ def panel_editar_reserva(request, reserva_id):
     return render(request, 'panel/editar_reserva.html', contexto)
 
 
-@staff_required
+@gestion_required
 def panel_usuarios(request):
-    # Usuarios con rol especial (alcalde / tesorero)
-    alcaldes = User.objects.filter(
-        is_staff=False, perfil__es_alcalde=True
-    ).select_related('perfil').order_by('first_name', 'last_name')
-    tesoreros = User.objects.filter(
-        is_staff=False, perfil__es_tesorero=True
+    es_adm = es_admin_total(request.user)
+
+    # Alcalde, tesorero y administradores: solo los ve el administrador
+    alcaldes = tesoreros = admins = User.objects.none()
+    if es_adm:
+        alcaldes = User.objects.filter(
+            is_staff=False, perfil__es_alcalde=True
+        ).select_related('perfil').order_by('first_name', 'last_name')
+        tesoreros = User.objects.filter(
+            is_staff=False, perfil__es_tesorero=True
+        ).select_related('perfil').order_by('first_name', 'last_name')
+        admins = User.objects.filter(is_staff=True).select_related('perfil').order_by('-date_joined')
+
+    encargados = User.objects.filter(
+        is_staff=False, perfil__es_encargado=True
     ).select_related('perfil').order_by('first_name', 'last_name')
 
     # Usuarios normales y organizaciones (sin rol especial)
     base_qs = User.objects.filter(
-        is_staff=False, perfil__es_alcalde=False, perfil__es_tesorero=False
+        is_staff=False, perfil__es_alcalde=False, perfil__es_tesorero=False, perfil__es_encargado=False
     ).select_related('perfil').order_by('-date_joined')
 
     usuarios_personales = base_qs.filter(perfil__es_organizacion=False)
     organizaciones = base_qs.filter(perfil__es_organizacion=True)
 
-    admins = User.objects.filter(is_staff=True).select_related('perfil').order_by('-date_joined')
     total_superusuarios = User.objects.filter(is_superuser=True).count()
     return render(request, 'panel/usuarios.html', {
         'usuarios': usuarios_personales,
@@ -2888,18 +2931,22 @@ def panel_usuarios(request):
         'admins': admins,
         'alcaldes': alcaldes,
         'tesoreros': tesoreros,
+        'encargados': encargados,
+        'es_admin_total': es_adm,
         'total_superusuarios': total_superusuarios,
         'max_superusuarios': 3,
     })
 
 
-@staff_required
+@gestion_required
 def panel_crear_usuario(request):
     MAX_SUPERUSUARIOS = settings.MAX_SUPERUSUARIOS
 
     # Rol pre-definido desde URL (?rol=alcalde o ?rol=tesorero)
     rol_fijo = request.GET.get('rol', '') if request.method == 'GET' else request.POST.get('rol_fijo', '')
-    rol_fijo = rol_fijo if rol_fijo in ('alcalde', 'tesorero') else ''
+    rol_fijo = rol_fijo if rol_fijo in ('alcalde', 'tesorero', 'encargado') else ''
+    if not es_admin_total(request.user):
+        rol_fijo = ''
 
     # Bloquear creación si ya existe ese rol único
     if rol_fijo == 'alcalde' and UserProfile.objects.filter(es_alcalde=True).exists():
@@ -2923,6 +2970,8 @@ def panel_crear_usuario(request):
         nombre_organizacion = request.POST.get('nombre_organizacion', '').strip()
         # Organizaciones siempre son rol usuario; si hay rol_fijo, ese manda
         rol = rol_fijo if rol_fijo else ('usuario' if es_organizacion else request.POST.get('rol', 'usuario'))
+        if not es_admin_total(request.user) or rol not in ('usuario', 'admin', 'encargado', 'alcalde', 'tesorero'):
+            rol = 'usuario'
 
         errores = {}
 
@@ -2970,10 +3019,11 @@ def panel_crear_usuario(request):
             rut=rut if rut_valido(rut) else None,
             es_alcalde=(rol == 'alcalde'),
             es_tesorero=(rol == 'tesorero'),
+            es_encargado=(rol == 'encargado'),
             es_organizacion=es_organizacion,
             nombre_organizacion=nombre_organizacion if es_organizacion else '',
         )
-        rol_display = {'admin': 'Administrador', 'alcalde': 'Alcalde', 'tesorero': 'Tesorero'}.get(rol, 'Usuario')
+        rol_display = {'admin': 'Administrador', 'alcalde': 'Alcalde', 'tesorero': 'Tesorero', 'encargado': 'Encargado'}.get(rol, 'Usuario')
         if es_organizacion:
             rol_display = f'Organización ({nombre_organizacion})'
         registrar_accion(request.user, f"Creó {rol_display.lower()} {email}", f"Nombre: {nombre} {apellido}")
@@ -2992,9 +3042,11 @@ def panel_crear_usuario(request):
     })
 
 
-@staff_required
+@gestion_required
 def panel_editar_usuario(request, usuario_id):
     usuario = get_object_or_404(User, pk=usuario_id, is_staff=False)
+    if not _cuenta_gestionable(request.user, usuario):
+        raise Http404
     perfil_obj, _ = UserProfile.objects.get_or_create(user=usuario)
 
     ctx = {'u': usuario, 'perfil_obj': perfil_obj}
@@ -3063,12 +3115,14 @@ def panel_editar_usuario(request, usuario_id):
     return render(request, 'panel/editar_usuario.html', ctx)
 
 
-@staff_required
+@gestion_required
 def panel_toggle_usuario(request, usuario_id):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
     usuario = get_object_or_404(User, pk=usuario_id, is_staff=False)
+    if not _cuenta_gestionable(request.user, usuario):
+        raise Http404
 
     usuario.is_active = not usuario.is_active
     usuario.save(update_fields=['is_active'])
@@ -3093,7 +3147,7 @@ def panel_eliminar_usuario(request, usuario_id):
     return render(request, 'panel/eliminar_usuario.html', {'u': usuario})
 
 
-@staff_required
+@gestion_required
 def panel_precios(request):
     """Permite al administrador editar el precio de cada cancha (CLP por hora, o UTM por día)."""
     canchas = ConfigCancha.objects.order_by('nombre')
@@ -3186,17 +3240,17 @@ def panel_registro(request):
     })
 
 
-@staff_required
+@gestion_required
 def panel_bloqueos_periodo(request):
     """Lista todas las restricciones de periodo activas con su complejo y rango de fechas."""
     bloqueos = BloqueoPeriodo.objects.select_related('cancha', 'creado_por').order_by('fecha_inicio')
     return render(request, 'panel/bloqueos_periodo.html', {'bloqueos': bloqueos})
 
 
-@staff_required
+@gestion_required
 def panel_modificar_bloqueo_periodo(request, bloqueo_id):
     """Modifica la fecha_fin de un bloqueo de periodo existente."""
-    if not request.user.is_superuser:
+    if not es_gestion(request.user):
         messages.error(request, 'No tienes permisos para realizar esta acción.')
         return redirect('panel_bloqueos_periodo')
 
@@ -3239,10 +3293,10 @@ def panel_modificar_bloqueo_periodo(request, bloqueo_id):
     return redirect('panel_bloqueos_periodo')
 
 
-@staff_required
+@gestion_required
 def panel_eliminar_bloqueo_periodo(request, bloqueo_id):
     """Elimina un bloqueo de periodo, liberando esas fechas nuevamente."""
-    if not request.user.is_superuser:
+    if not es_gestion(request.user):
         messages.error(request, 'No tienes permisos para realizar esta acción.')
         return redirect('panel_bloqueos_periodo')
 
@@ -3257,7 +3311,7 @@ def panel_eliminar_bloqueo_periodo(request, bloqueo_id):
     return redirect('panel_bloqueos_periodo')
 
 
-@staff_required
+@gestion_required
 def panel_historial_reservas(request):
     """Muestra un listado tabular de todas las reservas históricas con búsqueda, orden dinámico y filtros circulares."""
     sort_by = request.GET.get('sort', 'id')
@@ -3382,7 +3436,7 @@ def crear_notificacion_reserva(user, tipo, titulo, mensaje, reserva=None):
 
 def notificar_admins(tipo, titulo, mensaje, reserva=None):
     """Crea una notificación para todos los administradores del sistema."""
-    admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+    admins = usuarios_gestion()
     for admin in admins:
         Notificacion.objects.create(
             user=admin,
@@ -3414,7 +3468,7 @@ def carta_solicitud_recinto(request, reserva_id):
     reserva = get_object_or_404(Reserva, pk=reserva_id, tipo_reserva='ORGANIZACION')
 
     perfil = getattr(request.user, 'perfil', None)
-    es_admin = request.user.is_staff or request.user.is_superuser
+    es_admin = es_gestion(request.user)
     es_alcalde = bool(perfil and perfil.es_alcalde)
     es_org_propia = bool(perfil and perfil.es_organizacion and reserva.solicitante == request.user)
 
@@ -3530,7 +3584,7 @@ def carta_preview_pdf(request):
     import os
 
     perfil = getattr(request.user, 'perfil', None)
-    es_admin    = request.user.is_staff or request.user.is_superuser
+    es_admin    = es_gestion(request.user)
     es_alcalde  = bool(perfil and perfil.es_alcalde)
     es_tesorero = bool(perfil and perfil.es_tesorero)
     es_org      = bool(perfil and perfil.es_organizacion)
@@ -3693,7 +3747,7 @@ def carta_solicitud_pdf(request, reserva_id):
     reserva = get_object_or_404(Reserva, pk=reserva_id, tipo_reserva='ORGANIZACION')
 
     perfil = getattr(request.user, 'perfil', None)
-    es_admin = request.user.is_staff or request.user.is_superuser
+    es_admin = es_gestion(request.user)
     es_alcalde = bool(perfil and perfil.es_alcalde)
     es_org_propia = bool(perfil and perfil.es_organizacion and reserva.solicitante == request.user)
     if not (es_admin or es_alcalde or es_org_propia):
@@ -3838,9 +3892,15 @@ def carta_solicitud_pdf(request, reserva_id):
 def webpay_iniciar(request, reserva_id):
     reserva = get_object_or_404(Reserva, id=reserva_id, solicitante=request.user)
     
-    # Validar que no esté ya pagada
+    # Solo se paga con tarjeta una reserva recién creada y aún pendiente
     if reserva.estado == 'APROBADA':
         messages.info(request, 'Esta reserva ya está pagada/aprobada.')
+        return redirect('mis_reservas')
+    if reserva.estado != 'PENDIENTE' or reserva.metodo_pago != 'TARJETA':
+        messages.error(request, 'Esta reserva no se puede pagar en línea.')
+        return redirect('mis_reservas')
+    if TransaccionWebpay.objects.filter(reserva=reserva).exists():
+        messages.info(request, 'Esta reserva ya tiene un pago en proceso o procesado.')
         return redirect('mis_reservas')
 
     config = ConfiguracionWebpay.objects.filter(activo=True).first()
@@ -3866,10 +3926,7 @@ def webpay_iniciar(request, reserva_id):
 
     try:
         # Configurar SDK
-        if config.entorno == 'PRODUCCION':
-            tx = Transaction(WebpayOptions(config.commerce_code, config.api_key, IntegrationType.LIVE))
-        else:
-            tx = Transaction(WebpayOptions(config.commerce_code, config.api_key, IntegrationType.TEST))
+        tx = _webpay_transaction(config)
 
         response = tx.create(buy_order, session_id, monto, return_url)
         token = response.get('token')
@@ -3894,26 +3951,70 @@ def webpay_iniciar(request, reserva_id):
 
 from django.views.decorators.csrf import csrf_exempt
 
+
+def _webpay_transaction(config):
+    integracion = IntegrationType.LIVE if config.entorno == 'PRODUCCION' else IntegrationType.TEST
+    return Transaction(WebpayOptions(config.commerce_code_efectivo, config.api_key_efectiva, integracion))
+
+
+def _pago_autorizado(response):
+    return response.get('status') == 'AUTHORIZED' and response.get('response_code') == 0
+
+
+def _cerrar_pago_sin_cobro(transaccion, estado):
+    """Marca el pago como no cobrado y libera la reserva solo si seguía pendiente."""
+    transaccion.estado = estado
+    transaccion.save()
+    reserva = transaccion.reserva
+    if reserva.estado == 'PENDIENTE':
+        reserva.estado = 'RECHAZADA'
+        reserva.save()
+
+
+def _confirmar_reserva_pagada(transaccion, response):
+    """Guarda el pago autorizado y aprueba la reserva si su horario sigue siendo suyo.
+    Devuelve False si el pago quedó cobrado pero la reserva ya no puede confirmarse."""
+    with transaction.atomic():
+        reserva = Reserva.objects.select_for_update().get(pk=transaccion.reserva_id)
+        transaccion.response_code = response.get('response_code')
+        transaccion.authorization_code = response.get('authorization_code')
+        transaccion.payment_type_code = response.get('payment_type_code')
+        transaccion.estado = 'AUTORIZADA'
+        transaccion.save()
+
+        horario_ocupado = bool(reserva.cancha_id) and Reserva.objects.filter(
+            cancha=reserva.cancha, fecha=reserva.fecha,
+            hora_inicio__lt=reserva.hora_fin, hora_fin__gt=reserva.hora_inicio,
+            estado__in=ESTADOS_OCUPAN_SLOT,
+        ).exclude(pk=reserva.pk).exists()
+        if reserva.estado != 'PENDIENTE' or horario_ocupado:
+            return False
+
+        reserva.estado = 'APROBADA'
+        reserva.metodo_pago = 'TARJETA'
+        reserva.save()
+        RegistroTesoreria.objects.get_or_create(
+            reserva=reserva,
+            defaults={'estado': 'INGRESADO', 'notas': f"Pago por Webpay Plus (O.C: {transaccion.buy_order})"},
+        )
+        return True
+
+
 @csrf_exempt
 def webpay_retorno(request):
     token = request.POST.get('token_ws') or request.GET.get('token_ws')
     tbk_token = request.POST.get('TBK_TOKEN') or request.GET.get('TBK_TOKEN')
-    
+
     if tbk_token and not token:
-        # Usuario abortó el pago
+        # Usuario abortó el pago: solo aplica a pagos que siguen en curso
         transaccion = TransaccionWebpay.objects.filter(token_ws=tbk_token).first()
-        if transaccion:
-            transaccion.estado = 'ANULADA'
-            transaccion.save()
-            
-            # Liberar la reserva
-            reserva = transaccion.reserva
-            reserva.estado = 'RECHAZADA'
-            reserva.save()
-            
+        if transaccion and transaccion.estado == 'INICIADA':
+            _cerrar_pago_sin_cobro(transaccion, 'ANULADA')
             messages.warning(request, 'Cancelaste el pago en Webpay y la reserva fue anulada.')
-            return redirect('mis_reservas')
-            
+        else:
+            messages.info(request, 'Este pago ya no está en curso.')
+        return redirect('mis_reservas')
+
     if not token:
         messages.error(request, 'Respuesta inválida desde Transbank.')
         return redirect('mis_reservas')
@@ -3923,59 +4024,63 @@ def webpay_retorno(request):
         messages.error(request, 'Transacción no encontrada.')
         return redirect('mis_reservas')
 
+    # Un mismo token solo se procesa una vez (recargar la página no debe repetir nada)
+    if transaccion.estado != 'INICIADA':
+        if transaccion.estado == 'AUTORIZADA':
+            messages.info(request, 'Tu pago ya fue confirmado.')
+        else:
+            messages.info(request, 'Este pago ya fue procesado.')
+        return redirect('mis_reservas')
+
     config = ConfiguracionWebpay.objects.filter(activo=True).first()
     if not config:
         messages.error(request, 'Error de configuración de Webpay.')
         return redirect('mis_reservas')
 
-    try:
-        if config.entorno == 'PRODUCCION':
-            tx = Transaction(WebpayOptions(config.commerce_code, config.api_key, IntegrationType.LIVE))
-        else:
-            tx = Transaction(WebpayOptions(config.commerce_code, config.api_key, IntegrationType.TEST))
-
-        response = tx.commit(token)
-        transaccion.response_code = response.get('response_code')
-        transaccion.authorization_code = response.get('authorization_code')
-        transaccion.payment_type_code = response.get('payment_type_code')
-
-        if response.get('status') == 'AUTHORIZED' and response.get('response_code') == 0:
-            transaccion.estado = 'AUTORIZADA'
-            transaccion.save()
-            
-            # Aprobar la reserva automáticamente
-            reserva = transaccion.reserva
-            reserva.estado = 'APROBADA'
-            reserva.metodo_pago = 'TARJETA'
-            reserva.save()
-            
-            # Registrar en tesoreria automáticamente
-            RegistroTesoreria.objects.get_or_create(reserva=reserva, defaults={'estado': 'INGRESADO', 'notas': f"Pago por Webpay Plus (O.C: {transaccion.buy_order})"})
-
-            messages.success(request, '¡Tu pago ha sido exitoso y la reserva está confirmada!')
-            return redirect('mis_reservas')
-        else:
-            transaccion.estado = 'RECHAZADA'
-            transaccion.save()
-            
-            # Liberar la reserva
-            reserva = transaccion.reserva
-            reserva.estado = 'RECHAZADA'
-            reserva.save()
-            
-            messages.error(request, 'El pago fue rechazado por Transbank y la reserva fue anulada.')
-            return redirect('mis_reservas')
-
-    except Exception as e:
-        logger.exception("Error al confirmar transacción Webpay")
-        if transaccion:
-            transaccion.estado = 'FALLIDA'
-            transaccion.save()
-            reserva = transaccion.reserva
-            reserva.estado = 'RECHAZADA'
-            reserva.save()
-        messages.error(request, 'Ocurrió un error al verificar tu pago con Transbank. Contáctanos si el cargo fue realizado.')
+    # Reclamar la transacción de forma atómica: si otra petición llegó antes, no se repite el cobro
+    reclamada = TransaccionWebpay.objects.filter(pk=transaccion.pk, estado='INICIADA').update(estado='PROCESANDO')
+    if not reclamada:
+        messages.info(request, 'Este pago ya está siendo procesado.')
         return redirect('mis_reservas')
+    transaccion.refresh_from_db()
+
+    tx = _webpay_transaction(config)
+    try:
+        response = tx.commit(token)
+    except Exception:
+        logger.exception("Error al confirmar transacción Webpay")
+        # El cobro pudo haberse hecho aunque la respuesta fallara: se consulta el estado real
+        try:
+            response = tx.status(token)
+        except Exception:
+            logger.exception("Error al consultar el estado de la transacción Webpay")
+            response = None
+        if not (response and _pago_autorizado(response)):
+            _cerrar_pago_sin_cobro(transaccion, 'FALLIDA')
+            messages.error(request, 'Ocurrió un error al verificar tu pago con Transbank. Contáctanos si el cargo fue realizado.')
+            return redirect('mis_reservas')
+
+    if not _pago_autorizado(response):
+        transaccion.response_code = response.get('response_code')
+        _cerrar_pago_sin_cobro(transaccion, 'RECHAZADA')
+        messages.error(request, 'El pago fue rechazado por Transbank y la reserva fue anulada.')
+        return redirect('mis_reservas')
+
+    if _confirmar_reserva_pagada(transaccion, response):
+        messages.success(request, '¡Tu pago ha sido exitoso y la reserva está confirmada!')
+        return redirect('mis_reservas')
+
+    reserva = transaccion.reserva
+    logger.error("Pago Webpay autorizado pero la reserva %s no pudo confirmarse (O.C %s)", reserva.pk, transaccion.buy_order)
+    notificar_admins(
+        'RESERVA_PENDIENTE',
+        'Pago Webpay requiere revisión',
+        f'El pago de la reserva #{reserva.pk} (O.C {transaccion.buy_order}, ${int(transaccion.monto)}) fue autorizado, '
+        f'pero la reserva ya no estaba disponible. Revisa y devuelve el dinero si corresponde.',
+        reserva=reserva,
+    )
+    messages.error(request, 'Tu pago fue recibido, pero la reserva ya no estaba disponible. Nos pondremos en contacto contigo para devolverte el dinero.')
+    return redirect('mis_reservas')
 
 # ──────────────────────────────────────────────────────────────────────────────
 # CONFIGURACIÓN PANEL
@@ -3987,14 +4092,33 @@ def panel_configuracion_webpay(request):
         config = ConfiguracionWebpay.objects.create()
 
     if request.method == 'POST':
-        config.entorno = request.POST.get('entorno')
-        config.commerce_code = request.POST.get('commerce_code')
-        config.api_key = request.POST.get('api_key')
+        entorno = request.POST.get('entorno')
+        if entorno not in dict(ConfiguracionWebpay.ENTORNO_CHOICES):
+            messages.error(request, 'El entorno seleccionado no es válido.')
+            return redirect('panel_configuracion_webpay')
+
+        commerce_code = (request.POST.get('commerce_code') or '').strip()
+        api_key_nueva = (request.POST.get('api_key') or '').strip()
+
+        if not settings.WEBPAY_COMMERCE_CODE and commerce_code:
+            config.commerce_code = commerce_code
+        # La llave nunca se muestra: si el campo viene vacío se conserva la actual
+        if not config.credenciales_en_entorno and api_key_nueva:
+            config.api_key = api_key_nueva
+
+        if entorno == 'PRODUCCION' and config.api_key_efectiva == ConfiguracionWebpay.API_KEY_PRUEBAS:
+            messages.error(request, 'No se puede usar el entorno de Producción con la llave de pruebas. Ingresa la llave real entregada por Transbank.')
+            return redirect('panel_configuracion_webpay')
+
+        config.entorno = entorno
         config.activo = request.POST.get('activo') == 'on'
         config.save()
-        
+
         registrar_accion(request.user, 'Actualizó configuración de Webpay')
         messages.success(request, 'Configuración de Webpay actualizada correctamente.')
         return redirect('panel_configuracion_webpay')
 
-    return render(request, 'panel/configuracion_webpay.html', {'config': config})
+    return render(request, 'panel/configuracion_webpay.html', {
+        'config': config,
+        'api_key_de_pruebas': config.api_key_efectiva == ConfiguracionWebpay.API_KEY_PRUEBAS,
+    })
