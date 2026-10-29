@@ -14,19 +14,37 @@
 <div class="w-full max-w-2xl mx-auto flex flex-col flex-1 pb-24" style="padding:20px 16px 0;">
 
   <p style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:2px;">Panel de administración</p>
-  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:4px;">Precios por hora</h1>
-  <p style="font-size:0.8rem;color:#6b7280;font-weight:400;margin-bottom:20px;">Define el valor por hora de cada complejo. Los descuentos del 50% para organizaciones se calculan automáticamente a partir de estos precios.</p>
+  <h1 style="font-size:1.35rem;font-weight:500;color:#1c1b1f;margin-bottom:4px;">Precios</h1>
+  <p style="font-size:0.8rem;color:#6b7280;font-weight:400;margin-bottom:20px;">Define el valor de cada complejo: por hora en pesos, o por día en UTM (las piscinas). Los descuentos del 50% para organizaciones se calculan automáticamente.</p>
 
   {% if messages %}
   <div style="margin-bottom:14px;display:flex;flex-direction:column;gap:6px;">
     {% for msg in messages %}
-    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:500;background:#d7f3e0;color:#1a6e30;">{{ msg }}</div>
+    <div style="padding:10px 14px;border-radius:10px;font-size:0.8rem;font-weight:500;background:{% if msg.tags == 'error' %}#fde2e2;color:#b91c1c{% else %}#d7f3e0;color:#1a6e30{% endif %};">{{ msg }}</div>
     {% endfor %}
   </div>
   {% endif %}
 
   <form method="post">
     {% csrf_token %}
+
+    <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;padding:14px 16px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <p style="font-size:0.875rem;font-weight:500;color:#1c1b1f;">Valor UTM vigente</p>
+          <p style="font-size:0.7rem;color:#9ca3af;margin-top:2px;">
+            {% if not valor_utm %}<span style="color:#b91c1c;font-weight:500;">Sin valor: ingresa la UTM del mes.</span>
+            {% elif utm_desactualizada %}<span style="color:#b91c1c;font-weight:500;">Corresponde a {{ valor_utm.mes|stringformat:"02d" }}/{{ valor_utm.anio }}: actualízala con la UTM de este mes.</span>
+            {% else %}UTM de {{ valor_utm.mes|stringformat:"02d" }}/{{ valor_utm.anio }}{% endif %}
+          </p>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:0.85rem;font-weight:500;color:#6b7280;">$</span>
+          <input type="text" inputmode="decimal" name="utm_valor" value="{% if valor_utm %}{{ valor_utm.valor|floatformat:0 }}{% endif %}" placeholder="0"
+            style="width:110px;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.9rem;font-weight:500;color:#1c1b1f;text-align:right;outline:none;">
+        </div>
+      </div>
+    </div>
 
     <div style="background:white;border-radius:16px;border:0.5px solid #1c1b1f;overflow:hidden;margin-bottom:16px;">
       {% for cancha in canchas %}
@@ -35,9 +53,9 @@
 
           <div>
             <p style="font-size:0.875rem;font-weight:500;color:#1c1b1f;">{{ cancha.nombre }}</p>
-            {% if cancha.precio %}
+            {% if cancha.precio_clp %}
             <p style="font-size:0.7rem;color:#9ca3af;margin-top:2px;font-weight:400;">
-              Con descuento org: <span style="color:#1a6e30;font-weight:500;">$ {{ cancha.precio|floatformat:0|stringformat:"s" }} → $ {% widthratio cancha.precio 2 1 %}</span>
+              {% if cancha.modalidad == 'DIA' %}Por día · hoy $ {{ cancha.precio_clp }} · {% endif %}Con descuento org: <span style="color:#1a6e30;font-weight:500;">$ {{ cancha.precio_clp }} → $ {% widthratio cancha.precio_clp 2 1 %}</span>
             </p>
             {% else %}
             <p style="font-size:0.7rem;color:#9ca3af;margin-top:2px;font-weight:400;">Sin precio definido</p>
@@ -45,10 +63,16 @@
           </div>
 
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            {% if cancha.modalidad == 'DIA' %}
+            <input type="text" inputmode="decimal" name="utm_{{ cancha.pk }}" value="{{ cancha.precio_utm|default_if_none:''|stringformat:'s'|cut:'.00' }}" placeholder="0"
+              style="width:80px;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.9rem;font-weight:500;color:#1c1b1f;text-align:right;outline:none;">
+            <span style="font-size:0.85rem;font-weight:500;color:#6b7280;">UTM</span>
+            {% else %}
             <span style="font-size:0.85rem;font-weight:500;color:#6b7280;">$</span>
             <input type="number" name="precio_{{ cancha.pk }}" value="{{ cancha.precio }}"
               min="0" step="500" placeholder="0"
               style="width:110px;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.9rem;font-weight:500;color:#1c1b1f;text-align:right;outline:none;">
+            {% endif %}
           </div>
         </div>
       </div>

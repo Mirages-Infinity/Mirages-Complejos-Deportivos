@@ -1,3 +1,5 @@
+from decimal import Decimal, ROUND_HALF_UP
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -23,7 +25,20 @@ class Salon(models.Model):
 
 
 class ConfigCancha(models.Model):
+    MODALIDAD_HORA = 'HORA'
+    MODALIDAD_DIA = 'DIA'
+    MODALIDAD_CHOICES = [
+        (MODALIDAD_HORA, 'Por hora'),
+        (MODALIDAD_DIA, 'Por día'),
+    ]
+
     nombre = models.CharField(max_length=100, default="Cancha de Tenis")
+    modalidad = models.CharField(
+        max_length=4,
+        choices=MODALIDAD_CHOICES,
+        default=MODALIDAD_HORA,
+        verbose_name="Modalidad de arriendo",
+    )
     hora_inicio = models.TimeField(default="09:00")
     hora_fin = models.TimeField(default="23:00")
     pausa_inicio = models.TimeField(null=True, blank=True, verbose_name="Inicio pausa")
@@ -35,8 +50,25 @@ class ConfigCancha(models.Model):
         verbose_name="Días disponibles",
     )
     intervalo_minutos = models.PositiveIntegerField(default=60)
-    precio = models.PositiveIntegerField(default=0, verbose_name="Precio por hora (CLP)")
+    precio = models.PositiveIntegerField(default=0, verbose_name="Precio por hora o por día (CLP)")
+    precio_utm = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Precio en UTM",
+        help_text="Si se define, el precio en pesos se calcula con el valor de la UTM vigente.",
+    )
     activo = models.BooleanField(default=True, verbose_name="Cancha Activa")
+
+    @property
+    def precio_vigente(self):
+        """Precio en CLP: precio_utm × UTM del mes si está definido; si no, el precio fijo."""
+        if self.precio_utm:
+            registro = ValorUTM.objects.first()
+            if registro:
+                return int((self.precio_utm * registro.valor).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+        return self.precio
 
     def dias_semana_list(self):
         try:
@@ -50,6 +82,21 @@ class ConfigCancha(models.Model):
 
     def __str__(self):
         return f"Configuración: {self.nombre}"
+
+
+class ValorUTM(models.Model):
+    """Valor de la UTM en pesos, ingresado a mano por el administrador (anio/mes = mes al que corresponde)."""
+    valor = models.DecimalField(max_digits=10, decimal_places=2)
+    anio = models.PositiveIntegerField()
+    mes = models.PositiveIntegerField()
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Valor UTM'
+        verbose_name_plural = 'Valor UTM'
+
+    def __str__(self):
+        return f"UTM {self.mes:02d}/{self.anio}: ${self.valor}"
 
 
 class BloqueoHorario(models.Model):

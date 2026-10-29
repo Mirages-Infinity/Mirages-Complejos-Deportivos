@@ -66,6 +66,10 @@ urlpatterns = [
     path('reserva-estadio/', views.reserva_estadio, name='reserva_estadio'),
     path('reserva-estadio/finalizar/', views.finalizar_reserva_estadio, name='finalizar_reserva_estadio'),
 
+    path('reserva-piscina-adultos/', views.reserva_piscina_adultos, name='reserva_piscina_adultos'),
+    path('reserva-piscina-ninos/', views.reserva_piscina_ninos, name='reserva_piscina_ninos'),
+    path('reserva-piscina/finalizar/', views.finalizar_reserva_piscina, name='finalizar_reserva_piscina'),
+
     # Panel de administración
     path('panel/', views.panel_inicio, name='panel_inicio'),
     path('panel/reservas/', views.panel_reservas, name='panel_reservas'),

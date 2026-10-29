@@ -22,12 +22,13 @@ import re
 import logging
 from PIL import Image, UnidentifiedImageError
 from .models import UserProfile, Reserva, CambioEmailPendiente, Notificacion, Bitacora, Cupon, RegistroTesoreria
-from complejos.models import ConfigCancha, BloqueoHorario, BloqueoPeriodo, Salon, DatosTransferencia
+from complejos.models import ConfigCancha, BloqueoHorario, BloqueoPeriodo, Salon, DatosTransferencia, ValorUTM
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode, url_has_allowed_host_and_scheme
 from django.utils.encoding import force_bytes, force_str
 from django.utils import timezone
+from decimal import Decimal, InvalidOperation
 from django.urls import reverse
 import json as json_lib
 from .emails import (
@@ -247,6 +248,12 @@ def reserva_futbolito(request):
 
 def reserva_estadio(request):
     return _reserva_generica(request, 'Estadio Municipal', 'reservar_estadio.html', 'config_estadio')
+
+def reserva_piscina_adultos(request):
+    return _reserva_generica(request, 'Piscina Adultos', 'reservar_piscina.html', 'config_piscina')
+
+def reserva_piscina_ninos(request):
+    return _reserva_generica(request, 'Piscina Niños', 'reservar_piscina.html', 'config_piscina')
 
 @login_required
 def toggle_bloqueo(request):
@@ -829,7 +836,7 @@ def crear_reserva_organizacion(request):
 
     def _ctx_base(extra=None):
         """Contexto común para el paso 1 (formulario)."""
-        precio_cancha = cancha.precio if cancha else 0
+        precio_cancha = cancha.precio_vigente if cancha else 0
         orgs_existentes = User.objects.filter(
             is_staff=False, perfil__es_organizacion=True
         ).select_related('perfil').order_by('perfil__nombre_organizacion') if _es_admin else []
@@ -845,7 +852,7 @@ def crear_reserva_organizacion(request):
         return ctx
 
     def _calcular_hora_fin(fecha, hora_inicio, modo_fin_dia, hora_fin_manual_str):
-        if modo_fin_dia:
+        if modo_fin_dia or cancha.modalidad == ConfigCancha.MODALIDAD_DIA:
             return cancha.hora_fin
         if hora_fin_manual_str:
             try:
@@ -880,7 +887,7 @@ def crear_reserva_organizacion(request):
         errores.append('El RUT del representante no es válido.')
     if not rep_email:
         errores.append('El correo del representante es requerido.')
-    if cancha and not cancha.precio:
+    if cancha and not cancha.precio_vigente:
         errores.append('Esta cancha no tiene precio configurado. Ve a Panel → Precios para definirlo.')
 
     fecha = None
@@ -900,7 +907,7 @@ def crear_reserva_organizacion(request):
         }))
 
     hora_fin = _calcular_hora_fin(fecha, hora_inicio, modo_fin_dia, hora_fin_manual_str)
-    precio_original = cancha.precio
+    precio_original = cancha.precio_vigente
     precio_descuento = precio_original // 2
 
     meses_es = {1:'enero',2:'febrero',3:'marzo',4:'abril',5:'mayo',6:'junio',
@@ -1045,7 +1052,9 @@ def finalizar_reserva_cancha(request):
             
             cancha = get_object_or_404(ConfigCancha, id=cancha_id)
             fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
-            hora_inicio = datetime.strptime(hora_str, "%H:%M").time()
+            es_por_dia = cancha.modalidad == ConfigCancha.MODALIDAD_DIA
+            # Arriendo por día: la reserva ocupa todo el horario del recinto
+            hora_inicio = cancha.hora_inicio if es_por_dia else datetime.strptime(hora_str, "%H:%M").time()
 
             # Validar día de semana
             dias_disponibles = cancha.dias_semana_list()
@@ -1058,7 +1067,7 @@ def finalizar_reserva_cancha(request):
                 }, status=400)
 
             # Validar que la hora no caiga en la pausa
-            if cancha.pausa_inicio and cancha.pausa_fin:
+            if not es_por_dia and cancha.pausa_inicio and cancha.pausa_fin:
                 if cancha.pausa_inicio <= hora_inicio < cancha.pausa_fin:
                     return JsonResponse({
                         'status': 'error',
@@ -1079,10 +1088,20 @@ def finalizar_reserva_cancha(request):
                         'message': 'Las reservas para el mismo día deben realizarse con al menos 4 horas de anticipación.'
                     }, status=400)
 
-            minutos = cancha.intervalo_minutos
-            dt_inicio = datetime.combine(fecha, hora_inicio)
-            dt_fin = dt_inicio + timedelta(minutes=minutos)
-            hora_fin = dt_fin.time()
+            if es_por_dia:
+                hora_fin = cancha.hora_fin
+                if BloqueoPeriodo.objects.filter(
+                    cancha=cancha, fecha_inicio__lte=fecha, fecha_fin__gte=fecha
+                ).exists():
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Este recinto no está disponible en la fecha seleccionada.',
+                    }, status=400)
+            else:
+                minutos = cancha.intervalo_minutos
+                dt_inicio = datetime.combine(fecha, hora_inicio)
+                dt_fin = dt_inicio + timedelta(minutes=minutos)
+                hora_fin = dt_fin.time()
 
             metodo_pago = (metodo_pago or '').upper()
 
@@ -1151,9 +1170,8 @@ def finalizar_reserva_cancha(request):
             # Verificar disponibilidad y crear dentro de una transacción atómica
             # para evitar double-booking por concurrencia
             with transaction.atomic():
-                existe_bloqueo = BloqueoHorario.objects.select_for_update().filter(
-                    cancha=cancha, fecha=fecha, hora=hora_inicio
-                ).exists()
+                bloqueos_dia = BloqueoHorario.objects.select_for_update().filter(cancha=cancha, fecha=fecha)
+                existe_bloqueo = bloqueos_dia.exists() if es_por_dia else bloqueos_dia.filter(hora=hora_inicio).exists()
                 existe_reserva = Reserva.objects.select_for_update().filter(
                     cancha=cancha,
                     fecha=fecha,
@@ -1187,8 +1205,8 @@ def finalizar_reserva_cancha(request):
                     representante_rut=perfil_solicitante.rut or '' if es_org_user else '',
                     representante_telefono=perfil_solicitante.telefono or '' if es_org_user else '',
                     representante_email=request.user.email if es_org_user else '',
-                    precio_original=cancha.precio if es_org_user else None,
-                    precio_descuento=cancha.precio // 2 if es_org_user and cancha.precio else None,
+                    precio_original=cancha.precio_vigente if es_org_user else None,
+                    precio_descuento=cancha.precio_vigente // 2 if es_org_user and cancha.precio_vigente else None,
                 )
 
                 # Marcar cupón como usado dentro de la misma transacción
@@ -1265,6 +1283,7 @@ finalizar_reserva_tenis = finalizar_reserva_cancha
 finalizar_reserva_gimnasio = finalizar_reserva_cancha
 finalizar_reserva_futbolito = finalizar_reserva_cancha
 finalizar_reserva_estadio = finalizar_reserva_cancha
+finalizar_reserva_piscina = finalizar_reserva_cancha
 
 
 
@@ -1668,8 +1687,8 @@ def editar_reserva_organizacion(request, reserva_id):
             return render(request, 'panel/crear_reserva_organizacion.html', {
                 'cancha': cancha, 'fecha': reserva.fecha.strftime('%Y-%m-%d'),
                 'hora': reserva.hora_inicio.strftime('%H:%M'),
-                'precio_cancha': cancha.precio if cancha else 0,
-                'precio_descuento': (cancha.precio // 2) if cancha else 0,
+                'precio_cancha': cancha.precio_vigente if cancha else 0,
+                'precio_descuento': (cancha.precio_vigente // 2) if cancha else 0,
                 'orgs_existentes': [], 'step': 'form',
                 'es_org_user': _es_org and not _es_admin,
                 'editando': True, 'reserva_pk': reserva.pk,
@@ -1734,8 +1753,8 @@ def editar_reserva_organizacion(request, reserva_id):
     return render(request, 'panel/crear_reserva_organizacion.html', {
         'cancha': cancha, 'fecha': reserva.fecha.strftime('%Y-%m-%d'),
         'hora': reserva.hora_inicio.strftime('%H:%M'),
-        'precio_cancha': cancha.precio if cancha else 0,
-        'precio_descuento': (cancha.precio // 2) if cancha else 0,
+        'precio_cancha': cancha.precio_vigente if cancha else 0,
+        'precio_descuento': (cancha.precio_vigente // 2) if cancha else 0,
         'orgs_existentes': [], 'step': 'form',
         'es_org_user': _es_org and not _es_admin,
         'editando': True, 'reserva_pk': reserva.pk,
@@ -3076,22 +3095,50 @@ def panel_eliminar_usuario(request, usuario_id):
 
 @staff_required
 def panel_precios(request):
-    """Permite al administrador editar el precio por hora de cada cancha."""
+    """Permite al administrador editar el precio de cada cancha (CLP por hora, o UTM por día)."""
     canchas = ConfigCancha.objects.order_by('nombre')
 
     if request.method == 'POST':
-        for cancha in canchas:
-            val = request.POST.get(f'precio_{cancha.pk}', '').strip()
+        utm_manual = request.POST.get('utm_valor', '').strip()
+        if utm_manual:
+            limpio = re.sub(r'[^\d.,]', '', utm_manual).replace('.', '').replace(',', '.')
             try:
-                cancha.precio = max(0, int(val))
-                cancha.save(update_fields=['precio'])
-            except (ValueError, TypeError):
+                valor = Decimal(limpio)
+            except InvalidOperation:
+                valor = Decimal('0')
+            if valor > 0:
+                hoy = timezone.localdate()
+                registro = ValorUTM.objects.first() or ValorUTM(valor=valor, anio=hoy.year, mes=hoy.month)
+                registro.valor, registro.anio, registro.mes = valor, hoy.year, hoy.month
+                registro.save()
+            else:
+                messages.error(request, f'El valor de la UTM "{utm_manual}" no es válido. Ingresa solo números, por ejemplo 69323.')
+                return redirect('panel_precios')
+        for cancha in canchas:
+            try:
+                if cancha.modalidad == ConfigCancha.MODALIDAD_DIA:
+                    val = request.POST.get(f'utm_{cancha.pk}', '').strip().replace(',', '.')
+                    cancha.precio_utm = max(Decimal('0'), Decimal(val))
+                    cancha.save(update_fields=['precio_utm'])
+                else:
+                    val = request.POST.get(f'precio_{cancha.pk}', '').strip()
+                    cancha.precio = max(0, int(val))
+                    cancha.save(update_fields=['precio'])
+            except (ValueError, TypeError, InvalidOperation):
                 pass
         registrar_accion(request.user, 'Actualizó precios de canchas')
         messages.success(request, 'Precios actualizados correctamente.')
         return redirect('panel_precios')
 
-    return render(request, 'panel/precios.html', {'canchas': canchas})
+    for cancha in canchas:
+        cancha.precio_clp = cancha.precio_vigente
+    valor_utm = ValorUTM.objects.first()
+    hoy = timezone.localdate()
+    return render(request, 'panel/precios.html', {
+        'canchas': canchas,
+        'valor_utm': valor_utm,
+        'utm_desactualizada': bool(valor_utm) and (valor_utm.anio, valor_utm.mes) != (hoy.year, hoy.month),
+    })
 
 
 @staff_required
@@ -3806,7 +3853,7 @@ def webpay_iniciar(request, reserva_id):
     if reserva.tipo_reserva == 'ORGANIZACION' and reserva.precio_descuento is not None:
         monto = int(reserva.precio_descuento)
     elif reserva.cancha:
-        monto = int(reserva.cancha.precio)
+        monto = int(reserva.cancha.precio_vigente)
         
     if monto <= 0:
         messages.error(request, 'El monto de esta reserva es inválido para pago online.')
