@@ -72,6 +72,23 @@
         .bottom-nav-item.active {
             color: #1c1b1f;
         }
+
+        /* iPhone: los campos de fecha y hora tienen un ancho propio y se salían de su columna.
+           Se igualan a un campo normal (el selector superpuesto del calendario se excluye). */
+        input[type="date"]:not(#hidden-datepicker),
+        input[type="time"] {
+            -webkit-appearance: none;
+            appearance: none;
+            display: block;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            min-height: 2.75rem;
+            box-sizing: border-box;
+            text-align: left;
+            font-size: max(16px, 0.875rem);
+        }
+        .grid > div { min-width: 0; }
     </style>
 </head>
 
