@@ -42,15 +42,20 @@
 
     <div>
       <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">Commerce Code (Código de Comercio)</label>
-      <input type="text" name="commerce_code" value="{{ config.commerce_code }}" required
+      <input type="text" name="commerce_code" value="{{ config.commerce_code_efectivo }}" required {% if config.commerce_code_efectivo != config.commerce_code %}readonly{% endif %}
              style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
     </div>
 
     <div>
       <label style="font-size:0.68rem;font-weight:500;color:#9ca3af;text-transform:uppercase;letter-spacing:0.09em;display:block;margin-bottom:6px;">API Key (Llave Secreta)</label>
-      <input type="password" name="api_key" value="{{ config.api_key }}" required
+      {% if config.credenciales_en_entorno %}
+      <p style="font-size:0.78rem;color:#1a6e30;font-weight:500;padding:9px 12px;background:#d7f3e0;border-radius:8px;">Definida en la configuración del servidor (no se muestra ni se edita desde aquí).</p>
+      {% else %}
+      <input type="password" name="api_key" value="" autocomplete="new-password"
+             placeholder="{% if api_key_de_pruebas %}Llave de pruebas en uso{% else %}Llave guardada · escribe una nueva solo para cambiarla{% endif %}"
              style="width:100%;padding:9px 12px;border:0.5px solid #1c1b1f;border-radius:8px;font-size:0.85rem;font-weight:500;color:#1c1b1f;outline:none;box-sizing:border-box;background:white;">
-      <p style="font-size:0.65rem;color:#6b7280;margin-top:4px;">Nunca compartas esta llave. Es entregada por Transbank al pasar a Producción.</p>
+      <p style="font-size:0.65rem;color:#6b7280;margin-top:4px;">Nunca compartas esta llave. Es entregada por Transbank al pasar a Producción. Déjalo en blanco para conservar la actual.</p>
+      {% endif %}
     </div>
 
     <button type="submit"

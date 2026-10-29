@@ -31,6 +31,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'reservas.middleware.RolRestringidoMiddleware',
+    'core.security.SecurityHeadersMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -136,9 +137,18 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SESSION_COOKIE_SECURE = True               # Cookie de sesión solo por HTTPS
     CSRF_COOKIE_SECURE = True                  # Cookie CSRF solo por HTTPS
-    SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
+
+# Política de contenido (CSP). Si algo del sitio dejara de cargar tras un despliegue,
+# poner CSP_REPORT_ONLY=True en el .env para que el navegador solo avise en la consola
+# sin bloquear nada, y revisar qué origen falta en core/security.py.
+CSP_REPORT_ONLY = config('CSP_REPORT_ONLY', default=False, cast=bool)
+
+# Credenciales de Webpay: si se definen aquí (en el .env del servidor) tienen prioridad
+# sobre las guardadas en la base de datos y el panel deja de mostrarlas o editarlas.
+WEBPAY_COMMERCE_CODE = config('WEBPAY_COMMERCE_CODE', default='')
+WEBPAY_API_KEY = config('WEBPAY_API_KEY', default='')
 
 # IPs de proxies de confianza para el rate limiter (dejar vacío si no hay proxy)
 # Ejemplo con nginx local: TRUSTED_PROXY_IPS = ['127.0.0.1']

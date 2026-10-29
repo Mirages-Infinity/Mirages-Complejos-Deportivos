@@ -1,5 +1,6 @@
 from decimal import Decimal, ROUND_HALF_UP
 
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -153,6 +154,21 @@ class ConfiguracionWebpay(models.Model):
     commerce_code = models.CharField(max_length=100, default="597055555532", help_text="Código de comercio entregado por Transbank. Por defecto es el de pruebas.")
     api_key = models.CharField(max_length=255, default="579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C", help_text="Llave secreta entregada por Transbank. Por defecto es la de pruebas.")
     activo = models.BooleanField(default=True, help_text="Activar/Desactivar el pago con Webpay")
+
+    # Llave de pruebas pública de Transbank: nunca debe usarse en producción
+    API_KEY_PRUEBAS = "579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C"
+
+    @property
+    def credenciales_en_entorno(self):
+        return bool(settings.WEBPAY_API_KEY)
+
+    @property
+    def commerce_code_efectivo(self):
+        return settings.WEBPAY_COMMERCE_CODE or self.commerce_code
+
+    @property
+    def api_key_efectiva(self):
+        return settings.WEBPAY_API_KEY or self.api_key
 
     class Meta:
         verbose_name = 'Configuración Webpay'
